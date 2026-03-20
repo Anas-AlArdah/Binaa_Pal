@@ -1,9 +1,9 @@
 .crafts-page {
   min-height: 100vh;
   background-color: #f8f6f2;
-  padding: 40px 20px 80px;
+  padding: 120px 20px 80px; /* بدل 40px من فوق */
   font-family: Arial, sans-serif;
-direction: rtl;
+  direction: rtl;
 }
 
 .crafts-container {

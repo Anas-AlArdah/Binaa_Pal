@@ -10,6 +10,7 @@ import {
   FaWindowMaximize,
 } from "react-icons/fa";
 import { GiBrickWall } from "react-icons/gi";
+import Header from "../../components/Header";
 
 const crafts = [
   {
@@ -77,29 +78,32 @@ function Crafts() {
   };
 
   return (
-    <div className="crafts-page">
-      <div className="crafts-container">
-        <div className="crafts-header">
-          <h1>جميع الصنعات</h1>
-          <p>تصفح الصنايعية المهرة حسب نوع الصنعة</p>
-        </div>
+    <>
+      <Header />
+      <div className="crafts-page">
+        <div className="crafts-container">
+          <div className="crafts-header">
+            <h1>جميع الصنعات</h1>
+            <p>تصفح الصنايعية المهرة حسب نوع الصنعة</p>
+          </div>
 
-        <div className="crafts-grid">
-          {crafts.map((craft) => (
-            <div
-              className="craft-card"
-              key={craft.id}
-              onClick={() => handleCraftClick(craft.name)}
-            >
-              <div className="craft-icon">{craft.icon}</div>
-              <h3>{craft.name}</h3>
-              <p>{craft.description}</p>
-              <span>متوفر {craft.workers} صنايعية</span>
-            </div>
-          ))}
+          <div className="crafts-grid">
+            {crafts.map((craft) => (
+              <div
+                className="craft-card"
+                key={craft.id}
+                onClick={() => handleCraftClick(craft.name)}
+              >
+                <div className="craft-icon">{craft.icon}</div>
+                <h3>{craft.name}</h3>
+                <p>{craft.description}</p>
+                <span>متوفر {craft.workers} صنايعية</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
