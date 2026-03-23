@@ -6,7 +6,7 @@ function Header() {
         <header className="header fixed-top " dir="">
             <nav className="navbar navbar-expand-lg sticky-top" style={{backgroundColor: '#eef8f8'}}>
                 <div className="container-fluid">
-                    <a className="navbar-brand fw-bold" href="/" style={{color: '#556B2F'}}>Pina Pall</a>
+                    <a className="navbar-brand fw-bold" href="/" style={{color: '#556B2F'}}>Bina Pall</a>
                     <button className="navbar-toggler" type="button" data-bs-toggle="collapse"
                             data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                             aria-expanded="false" aria-label="Toggle navigation">
