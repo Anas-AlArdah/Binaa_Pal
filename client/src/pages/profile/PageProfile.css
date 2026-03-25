@@ -1,63 +1,216 @@
-/* =====================================================
-   PageProfile.css – Material UI Professional Theme
-   Matching the Binaa Pal aesthetic (Warm & Modern)
-   ===================================================== */
-
 :root {
-  --profile-bg: #f5f0e8;
-  --primary-olive: #5a6b35;
-  --primary-olive-active: #4a5a2b;
-  --text-dark: #2c2c2c;
-  --text-secondary: #777;
-  --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-  --border-color: #e8e0d0;
+  --profile-bg: #f5efe6;
+  --profile-bg-soft: #fbf8f3;
+  --profile-surface: rgba(255, 255, 255, 0.9);
+  --profile-border: #e7ddd0;
+  --profile-border-strong: #ddd0bf;
+  --profile-text: #26231e;
+  --profile-muted: #6f675d;
+  --profile-olive: #5d7340;
+  --profile-olive-dark: #46592f;
+  --profile-gold: #b78d4f;
+  --profile-shadow: 0 18px 42px rgba(86, 67, 40, 0.08);
 }
 
 .profile-page {
   min-height: 100vh;
-  background-color: var(--profile-bg);
-  padding: 40px 20px;
-  display: flex;
-  justify-content: center;
-  font-family: 'Inter', 'Cairo', sans-serif !important;
+  padding: 28px 20px 56px;
   direction: rtl;
+  font-family: 'Inter', 'Cairo', sans-serif !important;
+  background:
+    radial-gradient(circle at top left, rgba(183, 141, 79, 0.1), transparent 22%),
+    radial-gradient(circle at bottom right, rgba(93, 115, 64, 0.12), transparent 24%),
+    linear-gradient(180deg, #f7f2ea 0%, #f2ebe0 100%);
 }
 
-.profile-container {
-  width: 100%;
-  max-width: 900px;
+.profile-shell {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-/* Custom Overrides for standard elements if needed */
-.section-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-dark);
-  margin-bottom: 16px;
+.profile-banner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.85fr);
+  gap: 22px;
+  align-items: stretch;
+}
+
+.profile-banner__content,
+.profile-banner__summary {
+  border: 1px solid rgba(231, 221, 208, 0.9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(250, 245, 236, 0.88));
+  border-radius: 28px;
+  box-shadow: var(--profile-shadow);
+}
+
+.profile-banner__content {
+  padding: 32px;
+}
+
+.profile-banner__summary {
+  padding: 24px;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.section-icon {
-  font-size: 0.9rem;
-  color: #333;
+.profile-banner__eyebrow {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: var(--profile-olive);
+  font-size: 0.82rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em;
 }
 
-/* Button Stylings */
+.profile-banner__title {
+  max-width: 680px;
+  margin-bottom: 14px !important;
+  color: var(--profile-text);
+  font-size: clamp(2.1rem, 4vw, 3.8rem) !important;
+  line-height: 1.08 !important;
+  font-weight: 900 !important;
+}
+
+.profile-banner__text {
+  max-width: 640px;
+  color: var(--profile-muted);
+  font-size: 1rem !important;
+  line-height: 1.9 !important;
+}
+
+.profile-banner__chip {
+  background: #fff !important;
+  border: 1px solid var(--profile-border) !important;
+  color: #4f4a42 !important;
+  font-weight: 700 !important;
+}
+
+.profile-banner__chip .MuiChip-icon {
+  color: var(--profile-olive) !important;
+}
+
+.profile-summary-card {
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid var(--profile-border);
+  background: var(--profile-bg-soft);
+}
+
+.profile-summary-card__label {
+  display: block;
+  color: var(--profile-gold);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-summary-card strong {
+  display: block;
+  margin: 8px 0 4px;
+  color: var(--profile-text);
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.profile-summary-card p {
+  margin: 0;
+  color: var(--profile-muted);
+  line-height: 1.7;
+}
+
+.profile-panel {
+  height: 100%;
+  padding: 22px;
+  border-radius: 28px;
+  border: 1px solid rgba(231, 221, 208, 0.9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(250, 245, 236, 0.88));
+  box-shadow: var(--profile-shadow);
+}
+
+.profile-panel--hero {
+  padding: 16px;
+}
+
+.profile-panel--soft {
+  background: linear-gradient(180deg, rgba(93, 115, 64, 0.08), rgba(255, 255, 255, 0.92));
+}
+
+.profile-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.profile-cta {
+  padding: 24px;
+  border-radius: 28px;
+  color: #fff;
+  background: linear-gradient(145deg, #647a43 0%, #43552e 100%);
+  box-shadow: 0 18px 40px rgba(70, 89, 47, 0.22);
+}
+
+.profile-cta__eyebrow {
+  color: rgba(255, 244, 216, 0.92);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-cta h3 {
+  margin: 12px 0 8px;
+  font-size: 1.55rem;
+  line-height: 1.35;
+}
+
+.profile-cta p {
+  margin: 0 0 18px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.8;
+}
+
+.profile-cta__button,
 .btn-request-olive {
-  background-color: var(--primary-olive) !important;
-  color: white !important;
+  border: 0;
+  border-radius: 16px !important;
+  padding: 12px 22px !important;
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--profile-olive) 0%, var(--profile-olive-dark) 100%) !important;
+  box-shadow: 0 12px 26px rgba(93, 115, 64, 0.2) !important;
+  font-weight: 800 !important;
   text-transform: none !important;
-  font-weight: 600 !important;
-  border-radius: 8px !important;
-  padding: 8px 20px !important;
-  box-shadow: none !important;
+  cursor: pointer;
 }
 
+.profile-cta__button:hover,
 .btn-request-olive:hover {
-  background-color: var(--primary-olive-active) !important;
+  background: linear-gradient(135deg, #6e874c 0%, #506539 100%) !important;
+}
+
+@media (max-width: 960px) {
+  .profile-banner {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .profile-page {
+    padding: 18px 12px 36px;
+  }
+
+  .profile-banner__content,
+  .profile-banner__summary,
+  .profile-panel,
+  .profile-cta {
+    border-radius: 22px;
+  }
+
+  .profile-banner__content,
+  .profile-panel,
+  .profile-cta {
+    padding: 18px;
+  }
 }

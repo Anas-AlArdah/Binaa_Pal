@@ -1,49 +1,49 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Outlet } from 'react-router-dom';
+import './App.css';
+import Header from './components/Header';
 import PageProfile from './pages/profile/PageProfile';
-import Crafts from "./pages/CraftsmanProfile/Crafts";
+import Crafts from './pages/CraftsmanProfile/Crafts';
+
+function AppLayout() {
+  return (
+    <div className="app-shell">
+      <Header />
+      <main className="app-content">
+        <Outlet />
+      </main>
+    </div>
+  );
+}
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Navigation Home Page */}
-        <Route path="/" element={
-          <div style={{ padding: '40px', fontFamily: "'Inter', 'Cairo', sans-serif", textAlign: 'center' }}>
-            <h1 style={{ color: '#5a6b35', marginBottom: '20px' }}>Binaa Pal - Navigation</h1>
-            <p style={{ color: '#777', marginBottom: '30px' }}>Select a page to view:</p>
-            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
-              <Link 
-                to="/profile" 
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#5a6b35',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: '8px',
-                  fontWeight: '600'
-                }}
-              >
-                Worker Profile Page
-              </Link>
-              <Link 
-                to="/craftsman" 
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#4a5a2b',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: '8px',
-                  fontWeight: '600'
-                }}
-              >
-                Craftsman Profile Page
-              </Link>
+        <Route
+          path="/"
+          element={
+            <div className="home-nav">
+              <div className="home-nav__panel">
+                <span className="home-nav__eyebrow">Binaa Pal</span>
+                <h1>واجهات تجريبية للمشروع</h1>
+                <p>اختر الصفحة التي تريد معاينتها. الصفحات الداخلية أصبحت تعمل داخل Layout موحّد مع الهيدر.</p>
+                <div className="home-nav__actions">
+                  <Link to="/profile" className="home-nav__link">
+                    صفحة البروفايل
+                  </Link>
+                  <Link to="/craftsman" className="home-nav__link home-nav__link--alt">
+                    صفحة الحرفي
+                  </Link>
+                </div>
+              </div>
             </div>
-          </div>
-        } />
-        
-        <Route path="/profile" element={<PageProfile />} />
-        <Route path="/craftsman" element={<Crafts />} />
+          }
+        />
+
+        <Route element={<AppLayout />}>
+          <Route path="/profile" element={<PageProfile />} />
+          <Route path="/craftsman" element={<Crafts />} />
+        </Route>
       </Routes>
     </Router>
   );

@@ -1,15 +1,27 @@
 import React from 'react';
-import { Box, Typography, Chip, Stack } from '@mui/material';
+import { Box, Typography, Stack, Chip } from '@mui/material';
+
+const regions = ['الخليل', 'بيت لحم', 'دورا', 'يطا', 'الظاهرية'];
 
 const ProfileRegions = () => {
   return (
-    <Box sx={{ mb: 4 }}>
-      <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#2c2c2c', mb: 1.5 }}>
+    <Box>
+      <Typography variant="h6" sx={{ color: '#26231e', fontWeight: 900, mb: 1.5 }}>
         مناطق الخدمة
       </Typography>
-      <Stack direction="row" spacing={1}>
-        <Chip label="الخليل" variant="outlined" sx={{ borderRadius: 6, borderColor: '#eee', color: '#666', fontSize: '0.85rem' }} />
-        <Chip label="بيت لحم" variant="outlined" sx={{ borderRadius: 6, borderColor: '#eee', color: '#666', fontSize: '0.85rem' }} />
+      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+        {regions.map((region) => (
+          <Chip
+            key={region}
+            label={region}
+            sx={{
+              bgcolor: '#fff',
+              color: '#4f4a42',
+              border: '1px solid #e7ddd0',
+              fontWeight: 700,
+            }}
+          />
+        ))}
       </Stack>
     </Box>
   );
