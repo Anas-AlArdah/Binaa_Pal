@@ -11,8 +11,9 @@ import {
 } from "react-icons/fa";
 import { GiBrickWall } from "react-icons/gi";
 import Header from "../../components/Header";
+import Hero from "../../components/Hero";
 
-const crafts = [
+export const crafts = [
   {
     id: 1,
     name: "التبليط",
@@ -72,6 +73,7 @@ const crafts = [
   },
 ];
 
+
 function Crafts() {
   const handleCraftClick = (craftName) => {
     console.log("الصنعة المختارة:", craftName);
@@ -80,6 +82,8 @@ function Crafts() {
   return (
     <>
       <Header />
+        <Hero craft={crafts.slice(0,4)} />
+
       <div className="crafts-page">
         <div className="crafts-container">
           <div className="crafts-header">
@@ -108,3 +112,4 @@ function Crafts() {
 }
 
 export default Crafts;
+

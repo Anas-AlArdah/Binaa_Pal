@@ -4,7 +4,7 @@ function Header() {
 
     return (
         <header className="header fixed-top " dir="">
-            <nav className="navbar navbar-expand-lg sticky-top" style={{backgroundColor: '#eef8f8'}}>
+            <nav className="navbar navbar-expand-lg sticky-top" style={{backgroundColor: '#205c6e'}}>
                 <div className="container-fluid">
                     <a className="navbar-brand fw-bold" href="/" style={{color: '#556B2F'}}>Bina Pall</a>
                     <button className="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -58,7 +58,7 @@ function Header() {
                         ) : isWorker ? (
                             // مسجل كعامل
                             <div className="d-flex align-items-center gap-3">
-                                <span className="fw-bold" style={{color: '#0d0e15'}}>عامل</span>
+                                <span className="fw-bold" style={{color: 'white'}}>عامل</span>
                                 <a href="/worker-profile" className="text-success fw-bold">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor"
                                          className="bi bi-person-circle"style={{color: '#484b57'}} viewBox="0 0 16 16">
@@ -68,7 +68,7 @@ function Header() {
                                     </svg>
                                 </a>
 
-                                <button className="btn btn-outline-danger"
+                                <button className="btn btn-danger"
                                         onClick={() => console.log('logout')}>
                                     تسجيل الخروج
                                 </button>
@@ -77,7 +77,7 @@ function Header() {
                         ) : (
                             // مسجل كزبون
                             <div className="d-flex align-items-center gap-3">
-                                <span className="text- fw-bold">عميل</span>
+                                <span className="text- fw-bold" style={{color:"white"}}>عميل</span>
                                 <a href="/profile" className=" fw-bold" >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor"
                                          className="bi bi-person-circle"style={{color: '#484b57'}} viewBox="0 0 16 16">
@@ -88,7 +88,7 @@ function Header() {
 
                                 </a>
 
-                                <button className="btn btn-outline-danger"
+                                <button className="btn btn-danger"
                                         onClick={() => console.log('logout')}>
                                     تسجيل الخروج
                                 </button>
