@@ -18,7 +18,7 @@ function Homepage() {
         if(width <= 480){
             setCount(3);
         }
-    })
+    },{})
 
 
 

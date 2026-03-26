@@ -82,7 +82,7 @@ function Crafts() {
   return (
     <>
       <Header />
-        <Hero craft={crafts.slice(0,4)} />
+
 
       <div className="crafts-page">
         <div className="crafts-container">

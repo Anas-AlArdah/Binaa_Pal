@@ -6,7 +6,9 @@ function App() {
   return (
     <Router>
       <Routes>
+
         {/* Navigation Home Page */}
+
         <Route path="/" element={
           <div style={{ padding: '40px', fontFamily: "'Inter', 'Cairo', sans-serif", textAlign: 'center' }}>
             <h1 style={{ color: '#5a6b35', marginBottom: '20px' }}>Binaa Pal - Navigation</h1>
@@ -42,8 +44,8 @@ function App() {
           </div>
         } />
         
-        <Route path="/profile" element={<PageProfile />} />
-        <Route path="/craftsman" element={<Crafts />} />
+        <Route path="/profile" element={<PageProfile />}/>
+        <Route path="/craftsman" element={<Crafts />}/>
       </Routes>
     </Router>
   );
