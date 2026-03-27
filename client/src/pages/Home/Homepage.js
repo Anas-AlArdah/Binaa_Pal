@@ -13,12 +13,14 @@ function Homepage() {
         }if(count<2){
             setCount(2);
         }
-
         const width = window.innerWidth;
-        if(width <= 480){
+        if(width <= 500){
             setCount(3);
         }
-    },{})
+        if(width >= 500){
+            setCount(4);
+        }
+    },[window.innerWidth]);
 
 
 

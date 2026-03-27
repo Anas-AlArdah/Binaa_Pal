@@ -1,7 +1,7 @@
 function Footer() {
     return (
-        <div className="container-fluid">
-        <div className="row  " dir="rtl" style={{ background: "#205c6e", color: "#dfdddd" }}>
+        <div className="container-fluid ">
+        <div className="row   " dir="rtl" style={{ background: "#205c6e", color: "#dfdddd" }}>
 
             {/* الأعمدة */}
             <div className="col-12 col-md-8 d-md-flex d-block mb-sm-0" style={{ fontSize: "16px" }}>
