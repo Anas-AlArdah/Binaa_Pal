@@ -107,6 +107,7 @@ function Crafts() {
           </div>
         </div>
       </div>
+      
     </>
   );
 }
