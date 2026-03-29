@@ -12,6 +12,7 @@ import {
 import { GiBrickWall } from "react-icons/gi";
 import Header from "../../components/Header";
 import Hero from "../../components/Hero";
+import Footer from "../../components/Footer";
 
 export const crafts = [
   {
@@ -107,7 +108,7 @@ function Crafts() {
           </div>
         </div>
       </div>
-      
+      <Footer/>
     </>
   );
 }
