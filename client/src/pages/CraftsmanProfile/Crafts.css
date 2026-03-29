@@ -1,7 +1,8 @@
 .crafts-page {
   min-height: 100vh;
-  background-color: #f8f6f2;
-  padding: 120px 20px 80px; /* بدل 40px من فوق */
+  /* خلفية فاتحة جداً مائلة للرمادي/الأزرق الفاتح لراحة العين وإبراز الكروت */
+  background: #f4f7f9;
+  padding: 120px 20px 80px;
   font-family: Arial, sans-serif;
   direction: rtl;
 }
@@ -18,69 +19,185 @@
 .crafts-header h1 {
   font-size: 48px;
   font-weight: 700;
-  color: #1f1f1f;
+  /* لون العنوان مطابق للون الناف بار لزيادة التناسق */
+  color: #005c97;
   margin-bottom: 10px;
 }
 
 .crafts-header p {
   font-size: 18px;
-  color: #7a746d;
+  color: #64748b; /* لون رمادي أنيق للنص الفرعي */
 }
 
 .crafts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 24px;
 }
 
-.craft-card {
+.cardBox {
+  width: 250px;
+  height: 300px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 20px;
   background: #ffffff;
-  border: 1px solid #e3ddd4;
+  /* ظل خفيف وناعم يتناسب مع التصميم الفاتح */
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 4px 15px 0px,
+              rgba(0, 0, 0, 0.05) 0px 10px 30px 0px;
+}
+
+/* حركة الإطار المضيء (Glow) */
+.cardBox::before {
+  content: "";
+  position: absolute;
+  width: 40%;
+  height: 160%;
+  /* نفس تدرج الناف بار للإطار المتحرك */
+  background: linear-gradient(to right, #005c97, #363795, #005c97);
+  transform-origin: center;
+  animation: glowing_401 5s linear infinite;
+}
+
+.card {
+  position: absolute;
+  width: 96%;
+  height: 96%;
+  background: #ffffff; /* كرت أبيض ناصع */
+  border-radius: 18px;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  color: #1e293b; /* لون النص الأساسي داكن */
+  overflow: hidden;
+  padding: 20px;
+}
+
+/* تنسيق الأيقونة والاسم (الوضع الافتراضي) */
+.craft-preview {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.craft-icon {
+  width: 68px;
+  height: 68px;
   border-radius: 16px;
-  padding: 24px;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.03);
-}
-
-.craft-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
-}
-
-.craft-icon {
-  font-size: 34px;
-  margin-bottom: 16px;
-}
-
-.craft-card h3 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #222;
-  margin-bottom: 12px;
-}
-
-.craft-card p {
-  font-size: 16px;
-  color: #6f6a63;
-  line-height: 1.6;
-  min-height: 75px;
-  margin-bottom: 16px;
-}
-
-.craft-card span {
-  font-size: 15px;
-  font-weight: 600;
-  color: #5c7c43;
-}
-.craft-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 14px;
-  background: #f1eee8;
+  /* خلفية شفافة خفيفة جداً من اللون الأزرق للأيقونة */
+  background: rgba(0, 92, 151, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 30px;
+}
+
+.card .h4 {
+  font-size: 24px;
+  font-weight: 800;
+  pointer-events: none;
+  opacity: 0.95;
+  color: #1e293b;
+  transition: 0.3s ease-in-out;
+}
+
+/* تنسيق المحتوى (يظهر عند الهوفر) */
+.card .content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  /* هنا استخدمنا نفس تدرج الناف بار ليغطي الكرت عند تمرير الماوس */
+  background: linear-gradient(135deg, #005c97, #363795);
+  color: #ffffff;
+}
+
+.card .content .h3 {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: #ffffff;
+}
+
+.card .content p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #e2e8f0; /* أبيض مائل للرمادي لسهولة القراءة */
   margin-bottom: 16px;
+}
+
+/* زر عدد الصنايعية داخل الهوفر */
+.workers-count {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #005c97; /* نص أزرق */
+  background: #ffffff; /* خلفية بيضاء تبرز فوق التدرج الأزرق */
+  padding: 8px 16px;
+  border-radius: 999px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+/* تأثيرات الهوفر */
+.card:hover .content {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.card:hover .craft-preview {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+@keyframes glowing_401 {
+  0% {
+    transform: rotate(0);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* التجاوب مع الشاشات الصغيرة */
+@media (max-width: 768px) {
+  .crafts-header h1 {
+    font-size: 36px;
+  }
+
+  .crafts-header p {
+    font-size: 16px;
+  }
+
+  .card .h4 {
+    font-size: 22px;
+  }
+
+  .card .content .h3 {
+    font-size: 20px;
+  }
+
+  .card .content p {
+    font-size: 14px;
+  }
 }

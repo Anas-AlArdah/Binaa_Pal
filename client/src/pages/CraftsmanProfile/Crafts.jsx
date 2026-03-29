@@ -11,8 +11,8 @@ import {
 } from "react-icons/fa";
 import { GiBrickWall } from "react-icons/gi";
 import Header from "../../components/Header";
-import Hero from "../../components/Hero";
 import Footer from "../../components/Footer";
+import { useNavigate } from "react-router-dom";
 
 export const crafts = [
   {
@@ -74,16 +74,28 @@ export const crafts = [
   },
 ];
 
-
 function Crafts() {
-  const handleCraftClick = (craftName) => {
+  const navigate = useNavigate();
+
+  const handleCraftClick = (craftName, craftId) => {
+    const slugMap = {
+      1: "tiling",
+      2: "painting",
+      3: "electrical",
+      4: "plumbing",
+      5: "gypsum",
+      6: "carpentry",
+      7: "aluminum",
+      8: "masonry",
+    };
+
     console.log("الصنعة المختارة:", craftName);
+    navigate(`/craftsman/${slugMap[craftId]}`);
   };
 
   return (
     <>
       <Header />
-
 
       <div className="crafts-page">
         <div className="crafts-container">
@@ -95,23 +107,33 @@ function Crafts() {
           <div className="crafts-grid">
             {crafts.map((craft) => (
               <div
-                className="craft-card"
+                className="cardBox"
                 key={craft.id}
-                onClick={() => handleCraftClick(craft.name)}
+                onClick={() => handleCraftClick(craft.name, craft.id)}
               >
-                <div className="craft-icon">{craft.icon}</div>
-                <h3>{craft.name}</h3>
-                <p>{craft.description}</p>
-                <span>متوفر {craft.workers} صنايعية</span>
+                <div className="card">
+                  <div className="craft-preview">
+                    <div className="craft-icon">{craft.icon}</div>
+                    <div className="h4">{craft.name}</div>
+                  </div>
+
+                  <div className="content">
+                    <div className="h3">{craft.name}</div>
+                    <p>{craft.description}</p>
+                    <span className="workers-count">
+                      متوفر {craft.workers} صنايعية
+                    </span>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
-      <Footer/>
+
+      <Footer />
     </>
   );
 }
 
 export default Crafts;
-
