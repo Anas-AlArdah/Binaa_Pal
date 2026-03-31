@@ -1,31 +1,33 @@
 function Footer() {
     return (
         <div className="container-fluid ">
-        <div className="row   " dir="rtl" style={{ background: "#205c6e", color: "#dfdddd" }}>
+        <div className="row   " dir="rtl" style={{
+            background: 'linear-gradient(to right, #005c97, #363795)'
+        }}>
 
             {/* الأعمدة */}
             <div className="col-12 col-md-8 d-md-flex d-block mb-sm-0" style={{ fontSize: "16px" }}>
 
                 <div className="mt-5 me-5">
                     <b style={{ color: "white" }}>المنصة</b>
-                    <h6 className="mt-3">عن أُستاذ</h6>
-                    <h6>كيف تعمل المنصة</h6>
-                    <h6>تواصل معنا</h6>
-                    <h6>الأسئلة الشائعة</h6>
+                    <h6 className="mt-3 text-white">عن أُستاذ</h6>
+                    <h6 className=" text-white">كيف تعمل المنصة</h6>
+                    <h6 className=" text-white">تواصل معنا</h6>
+                    <h6 className=" text-white">الأسئلة الشائعة</h6>
                 </div>
 
                 <div className="mt-5 me-5">
                     <b style={{ color: "white" }}>للعملاء</b>
-                    <h6 className="mt-3">ابحث عن حرفي</h6>
-                    <h6>كيف تطلب خدمة</h6>
-                    <h6>تقييم الحرفيين</h6>
+                    <h6 className="mt-3 text-white">ابحث عن حرفي</h6>
+                    <h6 className=" text-white">كيف تطلب خدمة</h6>
+                    <h6 className=" text-white">تقييم الحرفيين</h6>
                 </div>
 
                 <div className="mt-5 me-5">
                     <b style={{ color: "white" }}>للحرفيين</b>
-                    <h6 className="mt-3">سجّل كحرفي</h6>
-                    <h6>كيف تعرض خدماتك</h6>
-                    <h6>مميزات الانضمام</h6>
+                    <h6 className="mt-3 text-white">سجّل كحرفي</h6>
+                    <h6 className=" text-white">كيف تعرض خدماتك</h6>
+                    <h6 className=" text-white">مميزات الانضمام</h6>
                 </div>
 
             </div>

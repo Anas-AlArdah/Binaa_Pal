@@ -5,22 +5,27 @@ import {useEffect, useState} from "react";
 import Footer from "../../components/Footer";
 
 function Homepage() {
-    const [count,setCount] = useState(3);
+    const [count,setCount] = useState(4);
 
-    useEffect(()=>{
-        if(count>5){
-            setCount(5);
-        }if(count<2){
-            setCount(2);
-        }
-        const width = window.innerWidth;
-        if(width <= 500){
-            setCount(3);
-        }
-        if(width >= 500){
-            setCount(4);
-        }
-    },[window.innerWidth]);
+
+
+    let MIN = 2;
+    let MAX = 5;
+
+
+    useEffect(() => {
+        const handleResize = () => {
+            const width = window.innerWidth;
+            setCount(width <= 500 ? 3 : 4);
+        };
+
+        handleResize();
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+// الأزرار
+
 
 
 
@@ -30,10 +35,12 @@ function Homepage() {
             <Header />
             <Hero craft={crafts.slice(0, count)} />
             <div className="d-flex justify-content-center gap-2 mt-3 mb-5 ">
-                <button className="mt-3 btn btn-request-olive" onClick={()=>setCount(count+1)}>
+                <button className="mt-3 btn text-white" style={{background: 'linear-gradient(to right, #1A6B8A, #1A6B8A)'}} onClick={() => setCount( Math.min(count + 1, MAX))}>
                     عرض المزيد
                 </button>
-                <button className="mt-3  btn btn-request-olive" onClick={()=>setCount(count-1)}>
+                <button className="mt-3  btn text-white" style={{background: 'linear-gradient(to right, #1A6B8A, #1A6B8A)',
+                }}
+                        onClick={() => setCount(prev => Math.max(count - 1, MIN))}>
                     عرض
                     اقل
                 </button>

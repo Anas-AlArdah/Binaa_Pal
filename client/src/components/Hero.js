@@ -1,6 +1,7 @@
 
 import React from "react";
 import Footer from "./Footer";
+import Card from "./Card";
 
 
 
@@ -13,7 +14,7 @@ function Hero({craft = []}) {
 
     return (
 
-        <div className="container-fluid mt-md-5">
+        <div className="container-fluid mt-md-5 "style={ {background: '#f4f7f9'}}>
             <div className="hero " style={{ position: "relative", overflow: "hidden",height: "60vh" }}>
 
                 {/* الفيديو */}
@@ -49,26 +50,7 @@ function Hero({craft = []}) {
                             <div style={{ width: "60px", height: "4px", background: "#F5A623", borderRadius: "2px", margin: "0 auto" }}></div>
                         </div>
                         <div className="d-flex justify-content-center align-items-center">
-                            <div className="d-flex justify-content-center">
-                                <div className="input-group shadow-sm" style={{ maxWidth: "600px", width: "100%" }}>
-                  <span className="input-group-text bg-white border-end-0 rounded-start-pill text-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <circle cx="11" cy="11" r="8"/>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    </svg>
-                  </span>
-                                    <input
-                                        type="search"
-                                        className="form-control border-start-0 border-end-0 shadow-none bg-white border-0"
-                                        placeholder="..ابحث عن حرفي أو خدمة"
-                                        aria-label="Search"
-                                    />
-                                    <button className="btn btn-success rounded-end-pill px-4 fw-medium" type="button">
-                                        ابحث الآن
-                                    </button>
-                                </div>
-                            </div>
+                           <Card/>
                         </div>
                     </div>
 
@@ -163,7 +145,7 @@ function Hero({craft = []}) {
                         <button
                             className="btn"
                             style={{
-                                background: "#1A6B8A",
+                                background: 'linear-gradient(to right, #1A6B8A, #1A6B8A)',
                                 color: "white",
                                 borderRadius: "12px",
                                 padding: "12px 20px",
@@ -185,16 +167,27 @@ function Hero({craft = []}) {
             </div>
             <div className="d-flex justify-content-center   ">
                 <div className="crafts-grid d-flex justify-content-center gap-2 ">
-                    {craft.map((item) => (
+                    {craft.map((craft) => (
                         <div
-                            className="craft-card "
-                            key={item.id}
-                            onClick={() => console.log(item.name)}
+                            className="cardBox
+                             "
+                            key={craft.id}
+                            onClick={() => console.log(craft.name)}
                         >
-                            <div className="craft-icon">{item.icon}</div>
-                            <h3>{item.name}</h3>
-                            <p>{item.description}</p>
-                            <span>متوفر {item.workers} صنايعية</span>
+                            <div className="card">
+                                <div className="craft-preview">
+                                    <div className="craft-icon">{craft.icon}</div>
+                                    <div className="h4">{craft.name}</div>
+                                </div>
+
+                                <div className="content">
+                                    <div className="h3">{craft.name}</div>
+                                    <p>{craft.description}</p>
+                                    <span className="workers-count">
+                      متوفر {craft.workers} صنايعية
+                    </span>
+                                </div>
+                            </div>
                         </div>
                     ))}
                 </div>
