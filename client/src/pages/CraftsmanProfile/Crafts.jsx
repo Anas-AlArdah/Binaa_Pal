@@ -91,6 +91,7 @@ function Crafts() {
 
     console.log("الصنعة المختارة:", craftName);
     navigate(`/craftsman/${slugMap[craftId]}`);
+    window.scrollTo(0, 0);
   };
 
   return (
