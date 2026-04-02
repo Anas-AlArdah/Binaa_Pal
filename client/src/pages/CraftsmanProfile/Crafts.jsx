@@ -103,7 +103,7 @@ function Crafts() {
         <div className="crafts-container">
           <div className="crafts-header">
             <h1>جميع الصنعات</h1>
-            <p>تصفح الصنايعية المهرة حسب نوع الصنعة</p>
+            <p>ابدأ باختيار الصنعة، ثم اطّلع على أفضل الصنايعية المتوفرين فيها</p>
           </div>
 
           <div className="crafts-grid">
