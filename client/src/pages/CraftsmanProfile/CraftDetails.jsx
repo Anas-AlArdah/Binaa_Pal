@@ -12,6 +12,8 @@ import {
   FaMapMarkerAlt,
   FaStar,
   FaShieldAlt,
+  FaMoneyBillWave,
+  FaBriefcase
 } from "react-icons/fa";
 import { GiBrickWall } from "react-icons/gi";
 import Header from "../../components/Header";
@@ -75,6 +77,7 @@ const workersData = [
     price: "30 - 80 شيكلًا",
     priceSort: 80,
     availableNow: true,
+    // imageUrl: "https://images.unsplash.com/photo-... (إذا في صورة من الداتا بيس حطها هون)"
   },
   {
     id: 2,
@@ -245,54 +248,81 @@ function CraftDetails() {
             {filteredWorkers.length > 0 ? (
               <div className="workers-grid">
                 {filteredWorkers.map((worker) => (
-                  <div className="worker-card" key={worker.id}>
-                    <div className="worker-card-top">
-                      <div className="worker-avatar">
-                        {worker.name.charAt(0)}
-                      </div>
-
-                      <div className="worker-info">
-                        <h3>{worker.name}</h3>
-                        <p className="worker-city">
-                          <FaMapMarkerAlt className="mini-icon" />
-                          {worker.city}
-                        </p>
-
-                        <div className="worker-skills">
-                          <span className="skill-pill main">{worker.craftName}</span>
-                          <span className="skill-pill secondary">{worker.secondarySkill}</span>
-                        </div>
+                  /* ========================================= */
+                  /* الكرت الجديد المأخوذ من Uiverse بعد التعديل */
+                  /* ========================================= */
+                  <div className="profile-card group" key={worker.id}>
+                    {/* قسم الصورة والتأثيرات */}
+                    <div className="avatar-section">
+                      <div className="img-container">
+                        {/* هنا بنفحص إذا في صورة من الداتا بيس، إذا لا بنعرض الحرف الأول */}
+                        {worker.imageUrl ? (
+                          <img src={worker.imageUrl} alt={worker.name} className="worker-img" />
+                        ) : (
+                          <div className="worker-img placeholder-img">{worker.name.charAt(0)}</div>
+                        )}
+                        <div className="bg-shape"></div>
                       </div>
                     </div>
 
-                    <div className="worker-rating-row">
-                      <div className="rating-box">
-                        <FaStar className="star-icon" />
-                        <span>{worker.rating}</span>
-                        <small>({worker.reviewsCount})</small>
-                      </div>
-
-                      <div className="verified-box">
-                        <FaShieldAlt className="shield-icon" />
-                        <span>{worker.verifiedCount} مصادقة</span>
+                    {/* الاسم والصنعة والحالة */}
+                    <div className="worker-headings">
+                      <h3>{worker.name}</h3>
+                      <div className="badge-row">
+                        <span className="craft-badge">{worker.craftName}</span>
+                        <span className={`status-badge ${worker.availableNow ? "available" : "unavailable"}`}>
+                          {worker.availableNow ? "متاح الآن" : "غير متاح"}
+                        </span>
                       </div>
                     </div>
 
-                    <div className="worker-footer-info">
-                      <span>{worker.experience}</span>
-                      <span>{worker.price} / للمتر</span>
+                    {/* قائمة المعلومات والتفاصيل */}
+                    <div className="worker-details-list">
+                      <ul>
+                        {/* التقييم والمصادقة */}
+                        <li>
+                          <div className="detail-item">
+                            <FaStar className="icon-gold" />
+                            <span>{worker.rating} <small className="text-gray">({worker.reviewsCount})</small></span>
+                          </div>
+                          <div className="detail-item" style={{ marginRight: 'auto' }}>
+                            <FaShieldAlt className="icon-green" />
+                            <span>{worker.verifiedCount} <small className="text-gray">مصادقة</small></span>
+                          </div>
+                        </li>
+
+                        {/* السعر والخبرة */}
+                        <li>
+                          <div className="detail-item">
+                            <FaMoneyBillWave className="icon-green" />
+                            <span>{worker.price}</span>
+                          </div>
+                          <div className="detail-item" style={{ marginRight: 'auto' }}>
+                            <FaBriefcase className="icon-gray" />
+                            <span>{worker.experience}</span>
+                          </div>
+                        </li>
+
+                        {/* الموقع والمهارة الثانوية */}
+                        <li>
+                          <div className="detail-item">
+                            <FaMapMarkerAlt className="icon-gray" />
+                            <span>{worker.city}</span>
+                          </div>
+                          <div className="detail-item" style={{ marginRight: 'auto' }}>
+                            <span className="skill-pill secondary">{worker.secondarySkill}</span>
+                          </div>
+                        </li>
+                      </ul>
                     </div>
 
-                    <div className="worker-status-row">
-                      {worker.availableNow ? (
-                        <span className="status available">متاح الآن</span>
-                      ) : (
-                        <span className="status unavailable">غير متاح الآن</span>
-                      )}
+                    {/* الزر والخط المتحرك السفلي */}
+                    <div className="action-button-container">
+                      <button className="view-profile-btn">عرض البروفايل</button>
                     </div>
-
-                    <button className="view-profile-btn">عرض البروفايل</button>
+                    <hr className="bottom-animated-bar" />
                   </div>
+                  /* ========================================= */
                 ))}
               </div>
             ) : (
