@@ -2,15 +2,29 @@
 import React from "react";
 import Footer from "./Footer";
 import Card from "./Card";
-
+import { useNavigate } from "react-router-dom";
 
 
 function Hero({craft = []}) {
     console.log(craft);
+    const navigate = useNavigate();
 
-    const handleCraftClick = (craftName) => {
+    const handleCraftClick = (craftName, craftId) => {
+        const slugMap = {
+            1: "tiling",
+            2: "painting",
+            3: "electrical",
+            4: "plumbing",
+            5: "gypsum",
+            6: "carpentry",
+            7: "aluminum",
+            8: "masonry",
+        };
+
         console.log("الصنعة المختارة:", craftName);
+        navigate(`/craftsman/${slugMap[craftId]}`);
     };
+
 
     return (
 
@@ -172,7 +186,7 @@ function Hero({craft = []}) {
                             className="cardBox
                              "
                             key={craft.id}
-                            onClick={() => console.log(craft.name)}
+                            onClick={() => handleCraftClick(craft.name,craft.id)}
                         >
                             <div className="card">
                                 <div className="craft-preview">

@@ -1,6 +1,6 @@
 .craft-details-page {
   min-height: 100vh;
-  background-color: #f8f6f2;
+  background: #f4f7f9;
   padding: 120px 20px 80px;
   font-family: Arial, sans-serif;
   direction: rtl;
@@ -104,152 +104,224 @@
 
 .workers-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
 }
 
-.worker-card {
-  background: #fff;
-  border: 1px solid #e3ddd4;
-  border-radius: 18px;
-  padding: 22px;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.03);
-  transition: 0.25s ease;
-}
+/* ============================================== */
+/* ستايلات الكرت الجديد (Uiverse Profile Card) */
+/* ============================================== */
 
-.worker-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
-}
-
-.worker-card-top {
+.profile-card {
+  width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  background-color: #fff;
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 16px;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.3s ease;
+  border: 1px solid #e3ddd4;
 }
 
-.worker-avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: #ece9df;
-  color: #6f733d;
+.profile-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-section {
+  width: 100%;
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.img-container {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
-  font-weight: 700;
-  flex-shrink: 0;
+  position: relative;
+  z-index: 40;
 }
 
-.worker-info h3 {
-  margin: 0 0 8px;
-  font-size: 28px;
-  color: #1f1f1f;
+/* الخطوط المتحركة المأخوذة من الكرت الأصلي */
+.img-container::before,
+.img-container::after {
+  content: "";
+  position: absolute;
+  height: 6px;
+  width: 100%;
+  background-color: #5c7c43;
+  transition: all 0.3s ease;
+  transition-delay: 0.3s;
 }
 
-.worker-city {
+.img-container::after {
+  top: 16px;
+}
+
+.img-container::before {
+  bottom: 16px;
+}
+
+.profile-card:hover .img-container::before,
+.profile-card:hover .img-container::after {
+  width: 1%;
+  transition-delay: 0s;
+}
+
+.worker-img {
+  width: 130px;
+  height: 130px;
+  z-index: 40;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.placeholder-img {
+  background-color: #ece9df;
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: #6e6861;
-  margin: 0 0 12px;
-  font-size: 15px;
+  justify-content: center;
+  font-size: 40px;
+  color: #5c7c43;
+  font-weight: bold;
 }
 
-.mini-icon {
-  font-size: 13px;
+.profile-card:hover .worker-img {
+  border-width: 6px;
+  border-color: #eef3e8;
 }
 
-.worker-skills {
+/* الدائرة الخلفية اللي بتصغر على الهوفر */
+.bg-shape {
+  position: absolute;
+  background-color: #5c7c43;
+  z-index: 10;
+  width: 60%;
+  height: 60%;
+  border-radius: 50%;
+  opacity: 0.15;
+  transition: all 0.3s ease;
+  transition-delay: 0.5s;
+}
+
+.profile-card:hover .bg-shape {
+  width: 1%;
+  height: 1%;
+  transition-delay: 0s;
+  opacity: 0;
+}
+
+.worker-headings {
+  text-align: center;
+  margin-top: 16px;
+  padding: 0 20px;
+  width: 100%;
+}
+
+.worker-headings h3 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  color: #1f1f1f;
+  font-weight: 700;
+}
+
+.badge-row {
   display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.skill-pill {
-  padding: 7px 12px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.skill-pill.main {
-  background: #eef3e8;
-  color: #55753d;
-}
-
-.skill-pill.secondary {
+.craft-badge {
   background: #f4efe8;
   color: #8f6b3f;
-}
-
-.worker-rating-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid #eee8de;
-  border-bottom: 1px solid #eee8de;
-  padding: 16px 0;
-  margin-bottom: 15px;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.rating-box,
-.verified-box {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #444;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.rating-box small {
-  color: #777;
-  font-size: 15px;
-}
-
-.star-icon {
-  color: #d59b1d;
-}
-
-.shield-icon {
-  color: #6f8b44;
-}
-
-.worker-footer-info {
-  display: flex;
-  justify-content: space-between;
-  color: #6d675f;
-  font-size: 16px;
-  margin-bottom: 16px;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.worker-status-row {
-  margin-bottom: 16px;
-}
-
-.status {
-  display: inline-block;
-  padding: 8px 14px;
+  padding: 4px 12px;
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
 }
 
-.status.available {
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-badge.available {
   background: #edf5ee;
   color: #2f7a36;
 }
 
-.status.unavailable {
+.status-badge.unavailable {
   background: #fff0f0;
   color: #b23b3b;
+}
+
+.worker-details-list {
+  width: 100%;
+  padding: 0 24px;
+  margin-top: 20px;
+}
+
+.worker-details-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.worker-details-list li {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px dashed #eee8de;
+  padding-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #434955;
+}
+
+.worker-details-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-gold { color: #d59b1d; font-size: 16px; }
+.icon-green { color: #6f8b44; font-size: 16px; }
+.icon-gray { color: #888; font-size: 16px; }
+.text-gray { color: #888; font-weight: normal; font-size: 12px; }
+
+.skill-pill.secondary {
+  background: #f4efe8;
+  color: #8f6b3f;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.action-button-container {
+  width: 100%;
+  padding: 20px 24px 24px;
 }
 
 .view-profile-btn {
@@ -257,16 +329,33 @@
   border: none;
   background: #5c7c43;
   color: #fff;
-  padding: 13px;
+  padding: 12px;
   border-radius: 12px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
-  transition: 0.25s ease;
+  transition: background 0.25s ease;
 }
 
 .view-profile-btn:hover {
   background: #4d6a37;
+}
+
+/* الخط المتحرك السفلي */
+.bottom-animated-bar {
+  width: 100%;
+  height: 6px;
+  background-color: #5c7c43;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  margin: 0;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.profile-card:hover .bottom-animated-bar {
+  height: 12px;
 }
 
 .no-results {
@@ -293,21 +382,10 @@
   .craft-main-text h1 {
     font-size: 32px;
   }
-
   .craft-main-text p {
     font-size: 16px;
   }
-
   .workers-grid {
     grid-template-columns: 1fr;
-  }
-
-  .worker-info h3 {
-    font-size: 22px;
-  }
-
-  .worker-footer-info {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }

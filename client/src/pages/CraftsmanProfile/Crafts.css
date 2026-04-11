@@ -1,6 +1,5 @@
 .crafts-page {
   min-height: 100vh;
-  /* خلفية فاتحة جداً مائلة للرمادي/الأزرق الفاتح لراحة العين وإبراز الكروت */
   background: #f4f7f9;
   padding: 120px 20px 80px;
   font-family: Arial, sans-serif;
@@ -19,14 +18,13 @@
 .crafts-header h1 {
   font-size: 48px;
   font-weight: 700;
-  /* لون العنوان مطابق للون الناف بار لزيادة التناسق */
   color: #005c97;
   margin-bottom: 10px;
 }
 
 .crafts-header p {
   font-size: 18px;
-  color: #64748b; /* لون رمادي أنيق للنص الفرعي */
+  color: #64748b;
 }
 
 .crafts-grid {
@@ -36,7 +34,8 @@
 }
 
 .cardBox {
-  width: 250px;
+  width: 100%;
+  max-width: 250px;
   height: 300px;
   position: relative;
   display: grid;
@@ -44,18 +43,16 @@
   overflow: hidden;
   border-radius: 20px;
   background: #ffffff;
-  /* ظل خفيف وناعم يتناسب مع التصميم الفاتح */
   box-shadow: rgba(0, 0, 0, 0.05) 0px 4px 15px 0px,
-              rgba(0, 0, 0, 0.05) 0px 10px 30px 0px;
+    rgba(0, 0, 0, 0.05) 0px 10px 30px 0px;
+  justify-self: center;
 }
 
-/* حركة الإطار المضيء (Glow) */
 .cardBox::before {
   content: "";
   position: absolute;
   width: 40%;
   height: 160%;
-  /* نفس تدرج الناف بار للإطار المتحرك */
   background: linear-gradient(to right, #005c97, #363795, #005c97);
   transform-origin: center;
   animation: glowing_401 5s linear infinite;
@@ -65,7 +62,7 @@
   position: absolute;
   width: 96%;
   height: 96%;
-  background: #ffffff; /* كرت أبيض ناصع */
+  background: #ffffff;
   border-radius: 18px;
   z-index: 5;
   display: flex;
@@ -73,12 +70,11 @@
   align-items: center;
   flex-direction: column;
   text-align: center;
-  color: #1e293b; /* لون النص الأساسي داكن */
+  color: #1e293b;
   overflow: hidden;
   padding: 20px;
 }
 
-/* تنسيق الأيقونة والاسم (الوضع الافتراضي) */
 .craft-preview {
   position: absolute;
   inset: 0;
@@ -95,7 +91,6 @@
   width: 68px;
   height: 68px;
   border-radius: 16px;
-  /* خلفية شفافة خفيفة جداً من اللون الأزرق للأيقونة */
   background: rgba(0, 92, 151, 0.08);
   display: flex;
   align-items: center;
@@ -112,7 +107,6 @@
   transition: 0.3s ease-in-out;
 }
 
-/* تنسيق المحتوى (يظهر عند الهوفر) */
 .card .content {
   position: absolute;
   top: 0;
@@ -128,7 +122,6 @@
   transform: translateY(100%);
   opacity: 0;
   transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  /* هنا استخدمنا نفس تدرج الناف بار ليغطي الكرت عند تمرير الماوس */
   background: linear-gradient(135deg, #005c97, #363795);
   color: #ffffff;
 }
@@ -143,23 +136,21 @@
 .card .content p {
   font-size: 15px;
   line-height: 1.8;
-  color: #e2e8f0; /* أبيض مائل للرمادي لسهولة القراءة */
+  color: #e2e8f0;
   margin-bottom: 16px;
 }
 
-/* زر عدد الصنايعية داخل الهوفر */
 .workers-count {
   display: inline-block;
   font-size: 14px;
   font-weight: 700;
-  color: #005c97; /* نص أزرق */
-  background: #ffffff; /* خلفية بيضاء تبرز فوق التدرج الأزرق */
+  color: #005c97;
+  background: #ffffff;
   padding: 8px 16px;
   border-radius: 999px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* تأثيرات الهوفر */
 .card:hover .content {
   transform: translateY(0);
   opacity: 1;
@@ -179,18 +170,60 @@
   }
 }
 
-/* التجاوب مع الشاشات الصغيرة */
+/* ====== Laptop / medium screens ====== */
+@media (max-width: 1100px) {
+  .crafts-container {
+    max-width: 1000px;
+  }
+
+  .crafts-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+  }
+}
+
+/* ====== Tablet ====== */
 @media (max-width: 768px) {
+  .crafts-page {
+    padding: 100px 16px 60px;
+  }
+
+  .crafts-header {
+    margin-bottom: 24px;
+  }
+
   .crafts-header h1 {
     font-size: 36px;
+    line-height: 1.3;
   }
 
   .crafts-header p {
     font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .crafts-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+  }
+
+  .cardBox {
+    max-width: 100%;
+    height: 280px;
+  }
+
+  .craft-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 26px;
   }
 
   .card .h4 {
     font-size: 22px;
+  }
+
+  .card .content {
+    padding: 18px;
   }
 
   .card .content .h3 {
@@ -199,5 +232,113 @@
 
   .card .content p {
     font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .workers-count {
+    font-size: 13px;
+    padding: 7px 14px;
+  }
+}
+
+/* ====== Mobile ====== */
+@media (max-width: 576px) {
+  .crafts-page {
+    padding: 90px 14px 50px;
+  }
+
+  .crafts-header h1 {
+    font-size: 30px;
+  }
+
+  .crafts-header p {
+    font-size: 15px;
+  }
+
+  .crafts-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .cardBox {
+    width: 100%;
+    max-width: 100%;
+    height: 260px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .craft-preview {
+    gap: 12px;
+  }
+
+  .craft-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 24px;
+    border-radius: 14px;
+  }
+
+  .card .h4 {
+    font-size: 20px;
+  }
+
+  .card .content {
+    padding: 16px;
+  }
+
+  .card .content .h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .card .content p {
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+
+  .workers-count {
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+}
+
+/* ====== Very small phones ====== */
+@media (max-width: 380px) {
+  .crafts-page {
+    padding: 85px 12px 45px;
+  }
+
+  .crafts-header h1 {
+    font-size: 26px;
+  }
+
+  .crafts-header p {
+    font-size: 14px;
+  }
+
+  .cardBox {
+    height: 245px;
+  }
+
+  .craft-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 22px;
+  }
+
+  .card .h4 {
+    font-size: 18px;
+  }
+
+  .card .content .h3 {
+    font-size: 17px;
+  }
+
+  .card .content p {
+    font-size: 12px;
   }
 }
