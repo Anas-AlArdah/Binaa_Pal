@@ -3,6 +3,8 @@ import './App.css';
 import Header from './components/Header';
 import PageProfile from './pages/profile/PageProfile';
 import Crafts from './pages/CraftsmanProfile/Crafts';
+import CraftDetails from './pages/CraftsmanProfile/CraftDetails';
+import Homepage from './pages/Home/Homepage';
 
 function AppLayout() {
   return (
@@ -19,30 +21,85 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* صفحة التنقل الرئيسية (الأساسية) */}
         <Route
           path="/"
           element={
-            <div className="home-nav">
-              <div className="home-nav__panel">
-                <span className="home-nav__eyebrow">Binaa Pal</span>
-                <h1>واجهات تجريبية للمشروع</h1>
-                <p>اختر الصفحة التي تريد معاينتها. الصفحات الداخلية أصبحت تعمل داخل Layout موحّد مع الهيدر.</p>
-                <div className="home-nav__actions">
-                  <Link to="/profile" className="home-nav__link">
-                    صفحة البروفايل
-                  </Link>
-                  <Link to="/craftsman" className="home-nav__link home-nav__link--alt">
-                    صفحة الحرفي
-                  </Link>
-                </div>
+            <div
+              style={{
+                padding: "40px",
+                fontFamily: "'Inter', 'Cairo', sans-serif",
+                textAlign: "center",
+              }}
+            >
+              <h1 style={{ color: "#5a6b35", marginBottom: "20px" }}>
+                Binaa Pal - Navigation
+              </h1>
+
+              <p style={{ color: "#777", marginBottom: "30px" }}>
+                اختر الصفحة التي تريد معاينتها:
+              </p>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "20px",
+                  justifyContent: "center",
+                  flexWrap: "wrap"
+                }}
+              >
+                <Link
+                  to="/home"
+                  style={{
+                    padding: "12px 24px",
+                    backgroundColor: "#2c3e50",
+                    color: "white",
+                    textDecoration: "none",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                  }}
+                >
+                  Homepage
+                </Link>
+
+                <Link
+                  to="/profile"
+                  style={{
+                    padding: "12px 24px",
+                    backgroundColor: "#5a6b35",
+                    color: "white",
+                    textDecoration: "none",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                  }}
+                >
+                  Worker Profile Page
+                </Link>
+
+                <Link
+                  to="/craftsman"
+                  style={{
+                    padding: "12px 24px",
+                    backgroundColor: "#4a5a2b",
+                    color: "white",
+                    textDecoration: "none",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                  }}
+                >
+                  Craftsman List Page
+                </Link>
               </div>
             </div>
           }
         />
 
+        {/* المسارات التي تستخدم الـ Layout الموحد */}
         <Route element={<AppLayout />}>
+          <Route path="/home" element={<Homepage />} />
           <Route path="/profile" element={<PageProfile />} />
           <Route path="/craftsman" element={<Crafts />} />
+          <Route path="/craftsman/:slug" element={<CraftDetails />} />
         </Route>
       </Routes>
     </Router>

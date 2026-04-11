@@ -1,7 +1,9 @@
+import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import './Header.css';
 
 const navItems = [
-  { to: '/', label: 'الرئيسية' },
+  { to: '/home', label: 'الرئيسية' },
   { to: '/craftsman', label: 'الحرفيون' },
   { to: '/profile', label: 'البروفايل' },
 ];
@@ -10,12 +12,12 @@ function Header() {
   const isLoggedIn = true;
   const isWorker = true;
   const accountLabel = isWorker ? 'حساب عامل' : 'حساب عميل';
-  const profileRoute = isWorker ? '/craftsman' : '/profile';
+  const profileRoute = '/profile';
 
   return (
     <header className="site-header" dir="rtl">
       <nav className="site-header__nav" aria-label="Main navigation">
-        <Link to="/" className="site-header__brand">
+        <Link to="/home" className="site-header__brand">
           <span className="site-header__title">Binaa Pal</span>
           <span className="site-header__subtitle">منصة خدمات بواجهة أوضح وأكثر أناقة</span>
         </Link>
@@ -48,7 +50,6 @@ function Header() {
                   />
                 </svg>
               </Link>
-
               <button type="button" className="site-header__logout" onClick={() => console.log('logout')}>
                 تسجيل الخروج
               </button>
