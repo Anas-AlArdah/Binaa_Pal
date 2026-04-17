@@ -1,8 +1,5 @@
 import React from 'react';
-import { Box, Container, Grid, Stack, Typography, Chip } from '@mui/material';
-import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
-import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded';
-import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
+import { Container, Grid, Stack, Typography } from '@mui/material';
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import ProfileSkills from '../../components/profile/ProfileSkills';
 import ProfileStats from '../../components/profile/ProfileStats';
@@ -13,49 +10,27 @@ import ProfileRegions from '../../components/profile/ProfileRegions';
 import ProfileReviews from '../../components/profile/ProfileReviews';
 import './PageProfile.css';
 
-const highlights = [
-  { label: 'ملف موثق', icon: <VerifiedRoundedIcon /> },
-  { label: 'استجابة سريعة', icon: <ScheduleRoundedIcon /> },
-  { label: 'خبرة كهربائية متخصصة', icon: <BoltRoundedIcon /> },
-];
-
 const PageProfile = () => {
   return (
-    <Box className="profile-page">
+    <div className="profile-page">
       <Container maxWidth="lg" className="profile-shell">
+        {/* Banner Section */}
         <section className="profile-banner">
           <div className="profile-banner__content">
-            <Typography className="profile-banner__eyebrow">الملف الشخصي للحرفي</Typography>
+            <span className="profile-banner__eyebrow">الملف الشخصي الاحترافي</span>
             <Typography variant="h2" className="profile-banner__title">
-              بروفايل احترافي يبني الثقة ويعرض القيمة بوضوح.
+              بناء الثقة عبر عرض الخبرة والقيمة بوضوح.
             </Typography>
             <Typography className="profile-banner__text">
-              ترتيب أفضل للمعلومات، أسلوب بصري أنظف، ومسارات أوضح تساعد العميل يفهم الخبرة، السعر، ومعرض الأعمال من أول نظرة.
+              هذا البروفايل مصمم لمساعدة العملاء على فهم مهاراتك، أسعارك، ومعرض أعمالك من النظرة الأولى، مما يزيد من فرص اختيارك للمشاريع.
             </Typography>
-            <Stack direction="row" spacing={1.2} useFlexGap flexWrap="wrap" sx={{ mt: 2.5 }}>
-              {highlights.map((item) => (
-                <Chip key={item.label} icon={item.icon} label={item.label} className="profile-banner__chip" />
-              ))}
-            </Stack>
-          </div>
-
-          <div className="profile-banner__summary">
-            <div className="profile-summary-card">
-              <span className="profile-summary-card__label">التقييم العام</span>
-              <strong>4.9</strong>
-              <p>ثقة مرتفعة ومراجعات إيجابية من العملاء</p>
-            </div>
-            <div className="profile-summary-card">
-              <span className="profile-summary-card__label">جاهزية التنفيذ</span>
-              <strong>24h</strong>
-              <p>بدء سريع للطلبات الجديدة والأعمال المستعجلة</p>
-            </div>
           </div>
         </section>
 
-        <Grid container spacing={3}>
+        {/* Main Content Grid */}
+        <Grid container spacing={4}>
           <Grid item xs={12}>
-            <div className="profile-panel profile-panel--hero">
+            <div className="profile-panel">
               <ProfileHeader />
             </div>
           </Grid>
@@ -83,23 +58,24 @@ const PageProfile = () => {
               <div className="profile-panel">
                 <ProfileAvailability />
               </div>
-              <div className="profile-panel profile-panel--soft">
+              <div className="profile-panel">
                 <ProfileRegions />
               </div>
+              
               <div className="profile-cta">
-                <span className="profile-cta__eyebrow">جاهز للعمل</span>
-                <h3>واجهة مرتبة تعطي قرار أسرع للعميل.</h3>
-                <p>عرض الخبرة والتخصص والتقييم بهذه الطريقة يجعل طلب الخدمة أوضح وأكثر إقناعًا.</p>
+                <h3>جاهز للعمل؟</h3>
+                <p>تواصل مع العميل مباشرة وابدأ مشروعك القادم اليوم.</p>
                 <button type="button" className="profile-cta__button">
-                  اطلب الخدمة الآن
+                  تواصل معي الآن
                 </button>
               </div>
             </div>
           </Grid>
         </Grid>
       </Container>
-    </Box>
+    </div>
   );
 };
 
 export default PageProfile;
+

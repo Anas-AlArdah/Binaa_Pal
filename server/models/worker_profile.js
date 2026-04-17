@@ -1,0 +1,37 @@
+'use strict';
+const {
+  Model
+} = require('sequelize');
+
+module.exports = (sequelize, DataTypes) => {
+  class WorkerProfile extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+      // One WorkerProfile can have many Reviews
+      WorkerProfile.hasMany(models.Review, {
+        foreignKey: 'worker_id',
+        as: 'reviews'
+      });
+    }
+  }
+  WorkerProfile.init({
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
+    bio: DataTypes.TEXT,
+    major: DataTypes.STRING,
+    p_images: DataTypes.TEXT, // Portfolio images
+    min_price: DataTypes.DECIMAL(10, 2),
+    max_price: DataTypes.DECIMAL(10, 2)
+  }, {
+    sequelize,
+    modelName: 'WorkerProfile',
+    tableName: 'WorkerProfiles', // Explicit table name for clarity
+  });
+  return WorkerProfile;
+};
