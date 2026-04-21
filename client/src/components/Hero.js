@@ -179,7 +179,7 @@ function Hero({craft = []}) {
                     المهن الشائعة
                 </h1>
             </div>
-            <div className="d-flex justify-content-center   ">
+            <div className=" justify-content-center   ">
                 <div className="crafts-grid d-flex justify-content-center gap-2 ">
                     {craft.map((craft) => (
                         <div
