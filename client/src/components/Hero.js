@@ -28,7 +28,7 @@ function Hero({craft = []}) {
 
     return (
 
-        <div className="container-fluid mt-md-5 "style={ {background: '#f4f7f9'}}>
+        <div className=" mt-md-5 "style={ {background: '#f4f7f9'}}>
             <div className="hero " style={{ position: "relative", overflow: "hidden",height: "60vh" }}>
 
                 {/* الفيديو */}
