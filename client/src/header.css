@@ -1,0 +1,26 @@
+.nav-btn {
+    color: white;
+    outline: none;
+
+    transition: all 0.3s ease;
+
+    border-bottom: 2px solid transparent;
+}
+
+.nav-btn:hover {
+    outline: none;
+    color: #0f2727;
+    border-bottom: 2px solid #b4eaea;
+    transform: translateY(-2px);
+}
+
+.nav-btn:active {
+outline: none;
+    border-bottom: 2px solid #b4eaea; /* خليها نفس hover */
+    color: #b4eaea;
+}
+.nav-btn:focus,
+.nav-btn:active {
+    outline: none !important;
+    box-shadow: none !important;
+}
