@@ -1,75 +1,83 @@
 import React from 'react';
 import { Box, Typography, Stack, Paper, Rating, Chip } from '@mui/material';
 
-const reviews = [
-  {
-    author: 'سارة ن.',
-    text: 'التعامل كان ممتاز، الحضور بالوقت، والتنفيذ نظيف جدًا. أكثر شيء أعجبني أنه شرح المشكلة والحل قبل البدء.',
-    date: '2026-02-17',
-    rating: 5,
-    stats: { الجودة: 5, الالتزام: 5, القيمة: 4, التواصل: 5 },
-  },
-  {
-    author: 'أحمد ر.',
-    text: 'شغل احترافي وسريع، والتكلفة كانت واضحة. الصفحة الحالية تعكس مستواه بشكل أفضل بكثير.',
-    date: '2026-01-20',
-    rating: 4,
-    stats: { الجودة: 5, الالتزام: 4, القيمة: 4, التواصل: 5 },
-  },
-];
 
-const ProfileReviews = () => {
+
+const ProfileReviews = ({ reviews }) => {
+  const displayReviews = reviews || [];
+  
+  if (displayReviews.length === 0) {
+    return (
+      <Box>
+        <Typography variant="h5" sx={{ color: '#2d2a26', fontWeight: 900, fontSize: '24px', mb: 1 }}>
+          تقييمات العملاء
+        </Typography>
+        <Typography sx={{ color: '#6f685d', fontSize: '14px', fontWeight: 500 }}>
+          لا يوجد تقييمات حتى الآن.
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box>
-      <Typography variant="h5" sx={{ color: '#26231e', fontWeight: 900, mb: 2.2 }}>
-        تقييمات العملاء
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 3 }}>
+        <Box>
+          <Typography variant="h5" sx={{ color: '#2d2a26', fontWeight: 900, fontSize: '24px' }}>
+            تقييمات العملاء الموثقة
+          </Typography>
+          <Typography sx={{ color: '#6f685d', fontSize: '14px', fontWeight: 500 }}>
+            آراء العملاء الحقيقية بناءً على مشاريع سابقة
+          </Typography>
+        </Box>
+        <Chip 
+          label={`${displayReviews.length} تقييم`} 
+          sx={{ bgcolor: '#fdf8ef', color: '#c49e5c', border: '1px solid rgba(196, 158, 92, 0.2)', fontWeight: 800 }} 
+        />
+      </Box>
 
-      <Stack spacing={2}>
-        {reviews.map((review) => (
+      <Stack spacing={3}>
+        {displayReviews.map((review, index) => (
           <Paper
-            key={`${review.author}-${review.date}`}
+            key={index}
             elevation={0}
             sx={{
-              p: 2.2,
-              borderRadius: 4,
-              border: '1px solid #e7ddd0',
-              bgcolor: '#fcfaf6',
+              p: 3,
+              borderRadius: '24px',
+              border: '1px solid rgba(0,0,0,0.05)',
+              bgcolor: '#fdfaf5',
+              transition: 'all 0.3s ease',
+              '&:hover': { bgcolor: '#fff', boxShadow: '0 10px 30px rgba(66, 52, 32, 0.05)' }
             }}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 1.2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 2 }}>
               <Box>
-                <Typography sx={{ color: '#26231e', fontWeight: 800 }}>{review.author}</Typography>
-                <Typography sx={{ color: '#8a7d6a', fontSize: '0.82rem' }}>{review.date}</Typography>
+                <Typography sx={{ color: '#2d2a26', fontWeight: 800, fontSize: '16px' }}>{review.reviewer ? `${review.reviewer.firstname} ${review.reviewer.lastname}` : 'عميل منصة بناء'}</Typography>
+                <Typography sx={{ color: '#8a7d6a', fontSize: '12px', fontWeight: 600 }}>
+                  {new Date(review.createdAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </Typography>
               </Box>
 
               <Stack direction="row" spacing={1} alignItems="center">
-                <Rating value={review.rating} readOnly size="small" sx={{ color: '#d0a451' }} />
-                <Chip label="موثّق" size="small" sx={{ bgcolor: '#eef4e7', color: '#4f6334', fontWeight: 700 }} />
+                <Rating value={review.rating} readOnly size="small" sx={{ color: '#c49e5c' }} />
+                <Typography sx={{ color: '#c49e5c', fontWeight: 800, fontSize: '14px' }}>{review.rating}.0</Typography>
               </Stack>
             </Box>
 
-            <Typography sx={{ color: '#4f4a42', lineHeight: 1.9, mb: 1.4 }}>{review.text}</Typography>
+            <Typography sx={{ color: '#4c4a43', lineHeight: 1.8, fontSize: '15px', fontWeight: 500 }}>
+              {review.comment}
+            </Typography>
 
-            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-              {Object.entries(review.stats).map(([label, value]) => (
-                <Chip
-                  key={label}
-                  label={`${label}: ${value}/5`}
-                  sx={{
-                    bgcolor: '#fff',
-                    color: '#5c564c',
-                    border: '1px solid #e7ddd0',
-                    fontWeight: 700,
-                  }}
-                />
-              ))}
-            </Stack>
+            <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+              <Chip label="مشروع مكتمل" size="small" sx={{ height: 24, fontSize: '11px', bgcolor: 'rgba(85, 107, 47, 0.1)', color: '#556b2f', border: '1px solid rgba(85, 107, 47, 0.2)', fontWeight: 700 }} />
+              <Chip label="دفع موثق" size="small" sx={{ height: 24, fontSize: '11px', bgcolor: 'rgba(196, 158, 92, 0.1)', color: '#c49e5c', border: '1px solid rgba(196, 158, 92, 0.2)', fontWeight: 700 }} />
+            </Box>
           </Paper>
         ))}
       </Stack>
     </Box>
   );
 };
+
 
 export default ProfileReviews;

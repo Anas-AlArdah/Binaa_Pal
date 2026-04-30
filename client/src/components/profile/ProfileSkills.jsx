@@ -2,25 +2,31 @@ import React from 'react';
 import { Box, Chip, Stack, Typography } from '@mui/material';
 import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
 
-const skills = ['كهرباء', 'تمديدات', 'صيانة أعطال', 'لوحات كهرباء', 'فحص أحمال', 'تشطيب نهائي'];
 
-const ProfileSkills = () => {
+const ProfileSkills = ({ major }) => {
+  if (!major) return null;
+  const parsedSkills = major.split(',').map(s => s.trim()).filter(s => s);
+  
+  if (parsedSkills.length === 0) return null;
+
   return (
     <Box>
-      <Typography variant="h6" sx={{ color: '#26231e', fontWeight: 900, mb: 1.5 }}>
-        التخصصات
+      <Typography sx={{ fontSize: '13px', fontWeight: 800, color: '#556b2f', mb: 2, textTransform: 'uppercase' }}>
+        التخصص والمهارات
       </Typography>
       <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-        {skills.map((skill, index) => (
+        {parsedSkills.map((skill, index) => (
           <Chip
             key={skill}
-            icon={index === 0 ? <BoltRoundedIcon sx={{ fontSize: '1rem !important', color: '#fff !important' }} /> : undefined}
+            icon={index === 0 ? <BoltRoundedIcon sx={{ fontSize: '1rem !important' }} /> : undefined}
             label={skill}
             sx={{
-              bgcolor: index === 0 ? '#5d7340' : '#fff',
-              color: index === 0 ? '#fff' : '#4f4a42',
-              border: index === 0 ? 'none' : '1px solid #e7ddd0',
+              bgcolor: index === 0 ? '#556b2f' : 'transparent',
+              color: index === 0 ? '#fff' : '#2d2a26',
+              border: '1px solid',
+              borderColor: index === 0 ? '#556b2f' : 'rgba(0,0,0,0.1)',
               fontWeight: 700,
+              borderRadius: '10px'
             }}
           />
         ))}
@@ -28,5 +34,6 @@ const ProfileSkills = () => {
     </Box>
   );
 };
+
 
 export default ProfileSkills;

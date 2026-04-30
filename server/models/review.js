@@ -16,6 +16,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'worker_id',
         as: 'worker'
       });
+      // Review belongs to a User (reviewer)
+      Review.belongsTo(models.User, {
+        foreignKey: 'user_id',
+        as: 'reviewer'
+      });
     }
   }
   Review.init({

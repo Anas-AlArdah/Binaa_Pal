@@ -3,10 +3,12 @@ import { Box, Typography, Stack, Chip } from '@mui/material';
 
 const regions = ['الخليل', 'بيت لحم', 'دورا', 'يطا', 'الظاهرية'];
 
-const ProfileRegions = () => {
+const ProfileRegions = ({ location }) => {
+  const regions = location ? [location] : ['الخليل', 'بيت لحم'];
+
   return (
     <Box>
-      <Typography variant="h6" sx={{ color: '#26231e', fontWeight: 900, mb: 1.5 }}>
+      <Typography sx={{ fontSize: '13px', fontWeight: 800, color: '#556b2f', mb: 2, textTransform: 'uppercase' }}>
         مناطق الخدمة
       </Typography>
       <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -15,10 +17,11 @@ const ProfileRegions = () => {
             key={region}
             label={region}
             sx={{
-              bgcolor: '#fff',
-              color: '#4f4a42',
-              border: '1px solid #e7ddd0',
+              bgcolor: 'transparent',
+              color: '#2d2a26',
+              border: '1px solid rgba(0,0,0,0.1)',
               fontWeight: 700,
+              borderRadius: '10px'
             }}
           />
         ))}
@@ -26,5 +29,6 @@ const ProfileRegions = () => {
     </Box>
   );
 };
+
 
 export default ProfileRegions;

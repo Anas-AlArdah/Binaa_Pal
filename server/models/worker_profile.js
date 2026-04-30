@@ -16,6 +16,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'worker_id',
         as: 'reviews'
       });
+      // WorkerProfile belongs to a User
+      WorkerProfile.belongsTo(models.User, {
+        foreignKey: 'user_id',
+        as: 'user'
+      });
     }
   }
   WorkerProfile.init({
@@ -35,3 +40,4 @@ module.exports = (sequelize, DataTypes) => {
   });
   return WorkerProfile;
 };
+//npx sequelize-cli model:generate --name WorkerProfile --attributes user_id:integer,bio:text,major:string,p_images:text,min_price:decimal,max_price:decimal

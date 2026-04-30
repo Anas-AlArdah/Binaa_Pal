@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Link, Outlet } from 'react-rout
 import './App.css';
 import Header from './components/Header';
 import PageProfile from './pages/profile/PageProfile';
+import PageProfileIndex from './pages/profile/PageProfileIndex';
 import Crafts from './pages/CraftsmanProfile/Crafts';
 import CraftDetails from './pages/CraftsmanProfile/CraftDetails';
 import Homepage from './pages/Home/Homepage';
@@ -21,42 +22,37 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* صفحة التنقل الرئيسية (الأساسية) */}
         <Route
           path="/"
           element={
             <div
               style={{
-                padding: "40px",
+                padding: '40px',
                 fontFamily: "'Inter', 'Cairo', sans-serif",
-                textAlign: "center",
+                textAlign: 'center',
               }}
             >
-              <h1 style={{ color: "#5a6b35", marginBottom: "20px" }}>
-                Binaa Pal - Navigation
-              </h1>
+              <h1 style={{ color: '#5a6b35', marginBottom: '20px' }}>Binaa Pal - Navigation</h1>
 
-              <p style={{ color: "#777", marginBottom: "30px" }}>
-                اختر الصفحة التي تريد معاينتها:
-              </p>
+              <p style={{ color: '#777', marginBottom: '30px' }}>اختر الصفحة التي تريد معاينتها:</p>
 
               <div
                 style={{
-                  display: "flex",
-                  gap: "20px",
-                  justifyContent: "center",
-                  flexWrap: "wrap"
+                  display: 'flex',
+                  gap: '20px',
+                  justifyContent: 'center',
+                  flexWrap: 'wrap',
                 }}
               >
                 <Link
                   to="/home"
                   style={{
-                    padding: "12px 24px",
-                    backgroundColor: "#2c3e50",
-                    color: "white",
-                    textDecoration: "none",
-                    borderRadius: "8px",
-                    fontWeight: "600",
+                    padding: '12px 24px',
+                    backgroundColor: '#2c3e50',
+                    color: 'white',
+                    textDecoration: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '600',
                   }}
                 >
                   Homepage
@@ -65,12 +61,12 @@ function App() {
                 <Link
                   to="/profile"
                   style={{
-                    padding: "12px 24px",
-                    backgroundColor: "#5a6b35",
-                    color: "white",
-                    textDecoration: "none",
-                    borderRadius: "8px",
-                    fontWeight: "600",
+                    padding: '12px 24px',
+                    backgroundColor: '#5a6b35',
+                    color: 'white',
+                    textDecoration: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '600',
                   }}
                 >
                   Worker Profile Page
@@ -79,12 +75,12 @@ function App() {
                 <Link
                   to="/craftsman"
                   style={{
-                    padding: "12px 24px",
-                    backgroundColor: "#4a5a2b",
-                    color: "white",
-                    textDecoration: "none",
-                    borderRadius: "8px",
-                    fontWeight: "600",
+                    padding: '12px 24px',
+                    backgroundColor: '#4a5a2b',
+                    color: 'white',
+                    textDecoration: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '600',
                   }}
                 >
                   Craftsman List Page
@@ -94,10 +90,10 @@ function App() {
           }
         />
 
-        {/* المسارات التي تستخدم الـ Layout الموحد */}
         <Route element={<AppLayout />}>
           <Route path="/home" element={<Homepage />} />
-          <Route path="/profile" element={<PageProfile />} />
+          <Route path="/profile" element={<PageProfileIndex />} />
+          <Route path="/profile/:id" element={<PageProfile />} />
           <Route path="/craftsman" element={<Crafts />} />
           <Route path="/craftsman/:slug" element={<CraftDetails />} />
         </Route>
