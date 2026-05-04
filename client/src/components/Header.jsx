@@ -2,7 +2,7 @@ import {blue} from "@mui/material/colors";
 import Crafts from "../pages/CraftsmanProfile/Crafts";
 import { Link } from 'react-router-dom';
 function Header() {
-    const isLoggedIn = true;
+    const isLoggedIn = false;
     const isWorker = true; // غيّرها لـ false لتشوف حساب الزبون
 
     return (
@@ -37,7 +37,7 @@ function Header() {
                                 </Link>
                             </li>
 
-                            {/* روابط إضافية للعامل */}
+
                             {isLoggedIn && isWorker && (
                                 <>
 
