@@ -11,10 +11,11 @@ const userRoutes = require('./routes/userRouter');
 const roleRoutes = require('./routes/roleRouter');
 const requestRoutes = require('./routes/requestRouter');
 const offerRouter = require("./routes/offerRouter");
-const assistantRouter = require('./routes/assistantRouter');
+const assistantRouter = require('./routes/Assistantrouter');
 const searchRouter = require('./routes/aiSearchRouter');
 const skillRouter = require('./routes/skillRouter');
 const workerskillRouter = require('./routes/workerskillRouter');
+
 app.use('/users', userRoutes);
 app.use('/roles', roleRoutes);
 app.use('/requests', requestRoutes);

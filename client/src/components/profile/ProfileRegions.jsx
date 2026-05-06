@@ -1,18 +1,34 @@
 import React from 'react';
-import { Box, Typography, Chip, Stack } from '@mui/material';
+import { Box, Typography, Stack, Chip } from '@mui/material';
 
-const ProfileRegions = () => {
+const regions = ['الخليل', 'بيت لحم', 'دورا', 'يطا', 'الظاهرية'];
+
+const ProfileRegions = ({ location }) => {
+  const regions = location ? [location] : ['الخليل', 'بيت لحم'];
+
   return (
-    <Box sx={{ mb: 4 }}>
-      <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#2c2c2c', mb: 1.5 }}>
+    <Box>
+      <Typography sx={{ fontSize: '13px', fontWeight: 800, color: '#556b2f', mb: 2, textTransform: 'uppercase' }}>
         مناطق الخدمة
       </Typography>
-      <Stack direction="row" spacing={1}>
-        <Chip label="الخليل" variant="outlined" sx={{ borderRadius: 6, borderColor: '#eee', color: '#666', fontSize: '0.85rem' }} />
-        <Chip label="بيت لحم" variant="outlined" sx={{ borderRadius: 6, borderColor: '#eee', color: '#666', fontSize: '0.85rem' }} />
+      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+        {regions.map((region) => (
+          <Chip
+            key={region}
+            label={region}
+            sx={{
+              bgcolor: 'transparent',
+              color: '#2d2a26',
+              border: '1px solid rgba(0,0,0,0.1)',
+              fontWeight: 700,
+              borderRadius: '10px'
+            }}
+          />
+        ))}
       </Stack>
     </Box>
   );
 };
+
 
 export default ProfileRegions;

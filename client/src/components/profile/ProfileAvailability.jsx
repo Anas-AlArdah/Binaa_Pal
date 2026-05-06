@@ -1,49 +1,44 @@
 import React from 'react';
 import { Box, Typography, Stack, Paper } from '@mui/material';
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
+
+const schedule = [
+  { day: 'الأحد', time: '08:00 - 17:00' },
+  { day: 'الإثنين', time: '08:00 - 17:00' },
+  { day: 'الثلاثاء', time: '08:00 - 17:00' },
+  { day: 'الأربعاء', time: '08:00 - 17:00' },
+  { day: 'الخميس', time: '08:00 - 14:00' },
+  { day: 'الجمعة', time: 'مغلق', off: true },
+  { day: 'السبت', time: 'مغلق', off: true },
+];
 
 const ProfileAvailability = () => {
-  const schedule = [
-    { day: 'الأحد', time: '08:00–17:00' },
-    { day: 'الإثنين', time: '08:00–17:00' },
-    { day: 'الثلاثاء', time: '08:00–17:00' },
-    { day: 'الأربعاء', time: '08:00–17:00' },
-    { day: 'الخميس', time: '08:00–14:00' },
-    { day: 'الجمعة', time: 'مغلق', off: true },
-    { day: 'السبت', time: 'مغلق', off: true },
-  ];
-
   return (
-    <Box sx={{ mb: 4 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-        <CalendarMonthIcon sx={{ fontSize: '1.2rem', color: '#2c2c2c' }} />
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#2c2c2c', fontSize: '1rem' }}>
+    <Box>
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.8 }}>
+        <CalendarMonthRoundedIcon sx={{ color: '#5d7340' }} />
+        <Typography variant="h6" sx={{ color: '#26231e', fontWeight: 900 }}>
           أوقات العمل
         </Typography>
-      </Box>
-      <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-        {schedule.map((slot, index) => (
-          <Paper 
-            key={index} 
+      </Stack>
+
+      <Stack spacing={1}>
+        {schedule.map((slot) => (
+          <Paper
+            key={slot.day}
             elevation={0}
-            sx={{ 
-              p: 1.5, 
-              textAlign: 'center', 
-              minWidth: 70, 
-              border: '1px solid #eee', 
-              borderRadius: 2,
-              bgcolor: slot.off ? '#fff' : '#e8ecd9',
+            sx={{
+              p: 1.4,
+              borderRadius: 3,
+              border: '1px solid #e7ddd0',
+              bgcolor: slot.off ? '#fff' : '#fcfaf6',
               display: 'flex',
-              flexDirection: 'column',
-              gap: 0.5
+              justifyContent: 'space-between',
+              alignItems: 'center',
             }}
           >
-            <Typography variant="caption" sx={{ color: '#999', fontWeight: 600 }}>
-              {slot.day}
-            </Typography>
-            <Typography variant="caption" sx={{ color: slot.off ? '#ddd' : '#666', fontWeight: 600, fontSize: '0.65rem' }}>
-              {slot.time}
-            </Typography>
+            <Typography sx={{ color: '#3e3933', fontWeight: 700 }}>{slot.day}</Typography>
+            <Typography sx={{ color: slot.off ? '#9b9285' : '#5d7340', fontWeight: 700 }}>{slot.time}</Typography>
           </Paper>
         ))}
       </Stack>
