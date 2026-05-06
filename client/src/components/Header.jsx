@@ -29,7 +29,7 @@ function Header() {
 
                                 <Link to="/craftsman" className="nav-link active fw-bold" style={{ textDecoration: 'none', font: '10px' }}>
                                     <button
-                                        className="btn border-opacity-25 fw-bold navbar-brand"
+                                        className="btn border-opacity-25 fw-bold navbar-brand "
                                         style={{ color: "white" }}
                                     >
                                         الصنعات
@@ -64,7 +64,7 @@ function Header() {
                         </ul>
 
                         {!isLoggedIn ? (
-                            // غير مسجل
+
                             <a href="/register">
                                 <button className="btn  "  style={{
                                     background: 'transparent',
