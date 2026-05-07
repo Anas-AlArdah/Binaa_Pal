@@ -49,7 +49,7 @@ export const getApiErrorMessage = (
   }
 
   if (error instanceof TypeError) {
-    return 'تعذر الاتصال بالخادم الخلفي. تأكد من تشغيل مجلد server على المنفذ 5000.';
+    return 'تعذر الاتصال بالخادم الخلفي. تأكد من تشغيل مجلد server على المنفذ 3001.';
   }
 
   if (error instanceof Error && error.message) {
@@ -84,7 +84,7 @@ export async function fetchJson(path, options = {}) {
 
     if (looksLikeHtml) {
       throw new ApiError(
-        'تم استلام صفحة HTML بدل JSON من الـ API. إذا كنت تعمل محلياً، تأكد أن الباكند يعمل على المنفذ 5000.',
+        'تم استلام صفحة HTML بدل JSON من الـ API. إذا كنت تعمل محلياً، تأكد أن الباكند يعمل على المنفذ 3001.',
         response.status,
         rawBody
       );
