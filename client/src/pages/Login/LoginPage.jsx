@@ -144,7 +144,7 @@ function LoginPage() {
             <div className="login-bg-blob blob-3"></div>
 
             <div className="login-form-wrapper" dir="rtl">
-                <div className="login-card">
+                <div className={`login-card ${isAdmin ? 'login-card--admin' : ''}`}>
                     <div className="brand-header">
                         <span className="brand-name">Binaa Pal</span>
                     </div>
@@ -232,7 +232,7 @@ function LoginPage() {
                                     name="email"
                                     type="email"
                                     className="form-input-custom"
-                                    placeholder="you@example.com"
+                                    placeholder={isAdmin ? 'admin@example.com' : 'you@example.com'}
                                     required
                                     disabled={loading}
                                 />
