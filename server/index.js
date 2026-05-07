@@ -5,6 +5,7 @@ const cors = require('cors');
 const db = require('./models');
 const userRouter = require('./routes/userRouter');
 const roleRouter = require('./routes/roleRouter');
+const authRouter = require('./routes/authRouter');
 const requestRouter = require('./routes/requestRouter');
 const workerProfileRouter = require('./routes/workerProfileRouter');
 const craftRouter = require('./routes/craftRouter');
@@ -18,6 +19,7 @@ app.use(express.json());
 
 
 // Routes
+app.use('/api/auth', authRouter);
 app.use('/api/users', userRouter);
 app.use('/api/roles', roleRouter);
 app.use('/api/requests', requestRouter);
