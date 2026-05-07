@@ -1,150 +1,123 @@
-
 import "../header.css";
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
+
 function Header() {
+    const [isOpen, setIsOpen] = useState(false);
+    const location = useLocation();
+
     const isLoggedIn = true;
-    const isWorker = true; // غيّرها لـ false لتشوف حساب الزبون
+    const isWorker = true;
+
+    const closeMenu = () => setIsOpen(false);
 
     return (
-        <header className="header fixed-top
-" dir="">
+        <header className="header fixed-top">
             <nav
-                className="navbar navbar-expand-lg sticky-top"
+                className="navbar navbar-expand-lg"
                 style={{
-                    background: 'linear-gradient(to right, #005c97, #363795)'
+                    background: "linear-gradient(to right, #005c97, #363795)"
                 }}
-            >                <div className="container-fluid ">
-                <Link className="navbar-brand fw-bold fs-3" to="/home" style={{ color: '#ffffff', textDecoration: 'none' }}>
-                    Bina Pall
-                </Link>
+            >
+                <div className="container-fluid">
 
-                    <button className="navbar-toggler" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                            aria-expanded="false" aria-label="Toggle navigation">
+                    {/* Logo */}
+                    <Link className="navbar-brand fw-bold fs-3 text-white" to="/home">
+                        Binaa Pal
+                    </Link>
+
+                    {/* Toggle */}
+                    <button
+                        className="navbar-toggler"
+                        type="button"
+                        onClick={() => setIsOpen(!isOpen)}
+                    >
                         <span className="navbar-toggler-icon"></span>
                     </button>
-                    <div className="collapse navbar-collapse " id="navbarSupportedContent">
-                        <ul className="navbar-nav mx-auto mb-2 mb-lg-0  ">   <li className="nav-item ">
-                            <Link to={"/craftsman"} className="nav-link fw-bold" href="/my-services">
-                                <button className="btn  nav-btn border-opacity-25 fw-bold navbar-brand"  style={{color:"white", textDecoration: 'none',marginLeft:'120px'}} >
-                                  الصناعات
-                                </button>
 
+                    {/* Menu */}
+                    <div className={`collapse navbar-collapse ${isOpen ? "show" : ""} ms-md-5`}>
 
-                            </Link>
-                        </li>
+                        {/* Center links */}
+                        <ul className="navbar-nav mx-auto gap-4 ">
 
-                            {/* روابط إضافية للعامل */}
+                            <li className="nav-item">
+                                <Link
+                                    to="/craftsman"
+                                    className="nav-link text-white fw-bold fs-4 ms-md-5 me-md-3"
+                                    onClick={closeMenu}
+                                >
+                                    الصنعات
+                                </Link>
+                            </li>
+
                             {isLoggedIn && isWorker && (
                                 <>
-
-
-                                    <li className="nav-item  ">
-                                        <Link to={"/"} className="nav-link active fw-bold" href="/my-services">
-                                            <button className="btn  nav-btn border-opacity-25 fw-bold navbar-brand"  style={{color:"white", textDecoration: 'none',}} >
-                                                خدماتي
-                                            </button>
-
-
-                                        </Link>
-                                    </li>
                                     <li className="nav-item">
-                                        <Link to={"/"} className="nav-link  fw-bold" href="/orders">
-
-                                            <button className="btn nav-btn border-opacity-25 fw-bold navbar-brand"  style={{color:"white", textDecoration: 'none'}} >
-                                                الطلبات
-                                            </button>
+                                        <Link
+                                            to="/"
+                                            className="nav-link text-white fw-bold fs-4 ms-md-5 me-md-4"
+                                            onClick={closeMenu}
+                                        >
+                                            خدماتي
                                         </Link>
                                     </li>
 
+                                    <li className="nav-item">
+                                        <Link
+                                            to="/orders"
+                                            className="nav-link text-white fw-bold fs-4 ms-md-5 me-md-4"
+                                            onClick={closeMenu}
+                                        >
+                                            الطلبات
+                                        </Link>
+                                    </li>
                                 </>
                             )}
                         </ul>
 
-                        {!isLoggedIn ? (
-                            // غير مسجل
-                            <a href="/register">
-                                <button className="btn  "  style={{
-                                    background: 'transparent',
-                                    border: '1px solid #ff4d4d',
-                                    color: '#ff4d4d',
-                                    padding: '5px 15px',
-                                    borderRadius: '20px',
-                                    fontSize: '14px',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer',
-                                    transition: '0.3s'
-                                }}
+                        {/* Right side */}
+                        <div className="d-flex align-items-center gap-3">
 
-                                        onClick={() => console.log('logout')}>
+                            {!isLoggedIn ? (
+                                <Link to="/register" className="btn btn-outline-danger fs-5">
                                     تسجيل الدخول
-                                </button>
-                            </a>
-
-                        ) : isWorker ? (
-                            // مسجل كعامل
-                            <div className="d-flex align-items-center gap-3">
-                                <span className="fw-bold" style={{color: 'white'}}>عامل</span>
-                                <Link to={isWorker ? "/profile" : "/profile"} style={{ color: '#ffffff' }}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
-                                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-                                        <path fillRule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
-                                    </svg>
                                 </Link>
 
+                            ) : (
+                                <>
+                                    <span className="text-white fw-bold fs-4">
+                                        {isWorker ? "عامل" : "عميل"}
+                                    </span>
 
-                                <button className="btn "  style={{
-                                    background: 'transparent',
-                                    border: '1px solid #ff4d4d',
-                                    color: '#ff4d4d',
-                                    padding: '5px 15px',
-                                    borderRadius: '20px',
-                                    fontSize: '14px',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer',
-                                    transition: '0.3s'
-                                }}
+                                    <Link to="/profile" onClick={closeMenu}>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="30"
+                                            height="30"
+                                            fill="white"
+                                            viewBox="0 0 16 16"
+                                        >
+                                            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                                            <path
+                                                fillRule="evenodd"
+                                                d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8"
+                                            />
+                                        </svg>
+                                    </Link>
 
-                                        onClick={() => console.log('logout')}>
-                                    تسجيل الخروج
-                                </button>
-                            </div>
-
-                        ) : (
-                            // مسجل كزبون
-                            <div className="d-flex align-items-center gap-3">
-                                <span className="text- fw-bold" style={{color:"white"}}>عميل</span>
-                                <Link to={isWorker ? "/profile" : "/profile"} style={{ color: '#ffffff' }}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
-                                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-                                        <path fillRule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
-                                    </svg>
-                                </Link>
-
-
-
-                                <button className="btn  "  style={{
-                                    background: 'transparent',
-                                    border: '1px solid #ff4d4d',
-                                    color: '#ff4d4d',
-                                    padding: '5px 15px',
-                                    borderRadius: '20px',
-                                    fontSize: '14px',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer',
-                                    transition: '0.3s'
-                                }}
-
-                                        onClick={() => console.log('logout')}>
-                                    تسجيل الخروج
-                                </button>
-                            </div>
-                        )}
+                                    <button className="btn btn-outline-danger fs-5">
+                                        تسجيل الخروج
+                                    </button>
+                                </>
+                            )}
+                        </div>
 
                     </div>
                 </div>
             </nav>
         </header>
-    )
+    );
 }
+
 export default Header;

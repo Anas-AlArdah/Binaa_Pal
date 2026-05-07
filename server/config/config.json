@@ -2,8 +2,8 @@
   "development": {
     "username": "root",
     "password": "osama12345",
-    "database": "binaapall2",
-    "host": "127.0.0.1",
+    "database": "BinaaPall2",
+    "host": "localhost",
     "port": 3306,
     "dialect": "mysql"
   },

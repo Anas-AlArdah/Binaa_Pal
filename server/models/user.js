@@ -10,15 +10,34 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      User.hasOne(models.WorkerProfile, {
-        foreignKey: 'user_id',
-        as: 'workerProfile'
-      });
-      // User has many Reviews
-      User.hasMany(models.Review, {
-        foreignKey: 'user_id',
-        as: 'reviews'
-      });
+        User.belongsTo(models.Role, {
+            foreignKey: 'role_id',
+            as: 'role'
+        });
+        User.hasMany(models.Worker_Skill, {
+            foreignKey: 'worker_id',
+            as: 'worker_skills'
+        });
+        User.hasOne(models.WorkerProfile, {
+            foreignKey: 'user_id',
+            as: 'worker_profile'
+        });
+        // User.hasMany(models.Review, {
+        //     foreignKey: 'user_id',
+        //     as: 'reviews'
+        // });
+        // User.hasOne(models.Worker_PROFILE,{
+        //     foreignKey: 'user_id',
+        //     as: 'worker_profile'
+        // })
+        User.hasMany(models.Request,{
+            foreignKey: 'user_id',
+            as: 'request'
+        })
+
+
+
+
     }
   }
   User.init({

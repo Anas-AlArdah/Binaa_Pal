@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: 'user_id',
             as: 'user',
         })
+        Request.belongsTo(models.Offer, {
+            foreignKey: 'offers_id',
+            as: 'offer',
+        });
 
 
     }

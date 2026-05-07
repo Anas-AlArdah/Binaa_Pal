@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const db = require('./models');
+require('dotenv').config();
+
 const userRoutes = require('./routes/userRouter');
 const roleRoutes = require('./routes/roleRouter');
 const requestRoutes = require('./routes/requestRouter');
@@ -40,7 +42,7 @@ app.use('/skills', skillRoutes);
 app.use('/workerskills', workerSkillRoutes);
 
 app.get('/', (req, res) => {
-  res.send('API is working');
+  res.send('API is working 🚀');
 });
 
 async function startServer() {

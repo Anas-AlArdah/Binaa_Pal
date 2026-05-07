@@ -33,6 +33,21 @@
   gap: 24px;
 }
 
+.crafts-status {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  color: #475569;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 28px 20px;
+  text-align: center;
+}
+
+.crafts-status.error {
+  color: #b91c1c;
+}
+
 .cardBox {
   width: 100%;
   max-width: 250px;

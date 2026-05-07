@@ -1,12 +1,18 @@
-const Request = require('../models/Request');
+const {Request,User,Offer} = require('../models');
 
 async function createRequest(req, res) {
     try {
+        if (!req.body.description || !req.body.user_id) {
+            return res.status(400).json({
+                message: "description and user_id are required"
+            });
+        }
+
         const request = await Request.create({
             description: req.body.description,
             city: req.body.city,
             date: req.body.date,
-            status: req.body.status,
+            status: req.body.status || "pending",
             user_id: req.body.user_id,
             offers_id: req.body.offers_id,
         });
@@ -14,8 +20,8 @@ async function createRequest(req, res) {
         res.status(201).json(request);
 
     } catch (err) {
-        res.status(400).json({
-            message: 'Error creating request',
+        res.status(500).json({
+            message: "Error creating request",
             error: err.message
         });
     }
@@ -41,7 +47,16 @@ async function getRequestById(req, res) {
 
 async function getAllRequests(req, res) {
     try {
-        const requests = await Request.findAll();
+        const requests = await Request.findAll({
+            include: [{model : User,
+            as:"user"
+            },
+              {
+                model: Offer,
+                as: "offer"
+            }
+            ]
+        });
         res.status(200).json(requests);
 
     } catch (err) {

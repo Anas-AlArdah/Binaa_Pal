@@ -6,6 +6,7 @@ import PageProfileIndex from './pages/profile/PageProfileIndex';
 import Crafts from './pages/CraftsmanProfile/Crafts';
 import CraftDetails from './pages/CraftsmanProfile/CraftDetails';
 import Homepage from './pages/Home/Homepage';
+import LoginPage from './pages/Login/LoginPage';
 
 function AppLayout() {
   return (
@@ -85,10 +86,27 @@ function App() {
                 >
                   Craftsman List Page
                 </Link>
+
+                <Link
+                  to="/login"
+                  style={{
+                    padding: '12px 24px',
+                    backgroundColor: '#363795',
+                    color: 'white',
+                    textDecoration: 'none',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                  }}
+                >
+                  Login Page
+                </Link>
               </div>
             </div>
           }
         />
+
+        {/* Standalone pages with their own Header/Footer */}
+        <Route path="/login" element={<LoginPage />} />
 
         <Route element={<AppLayout />}>
           <Route path="/home" element={<Homepage />} />

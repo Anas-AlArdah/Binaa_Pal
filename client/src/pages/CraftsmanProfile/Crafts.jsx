@@ -1,96 +1,51 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./Crafts.css";
-import {
-  FaThLarge,
-  FaPaintRoller,
-  FaBolt,
-  FaWrench,
-  FaLayerGroup,
-  FaHammer,
-  FaWindowMaximize,
-} from "react-icons/fa";
-import { GiBrickWall } from "react-icons/gi";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { useNavigate } from "react-router-dom";
+import { fetchJson, getApiErrorMessage } from "../../utils/api";
+import { decorateCraft } from "./craftPresentation";
 
-export const crafts = [
-  {
-    id: 1,
-    name: "التبليط",
-    icon: <FaThLarge color="#3B82F6" />,
-    description:
-      "تبليط الأرضيات والجدران للحمامات والمطابخ والمساحات الخارجية",
-    workers: 2,
-  },
-  {
-    id: 2,
-    name: "الدهان",
-    icon: <FaPaintRoller color="#F97316" />,
-    description: "دهان داخلي وخارجي وتشطيبات وديكورات",
-    workers: 2,
-  },
-  {
-    id: 3,
-    name: "الكهرباء",
-    icon: <FaBolt color="#EAB308" />,
-    description: "تمديدات كهربائية، إنارة، لوحات، وتركيبات كهربائية",
-    workers: 2,
-  },
-  {
-    id: 4,
-    name: "السباكة",
-    icon: <FaWrench color="#06B6D4" />,
-    description: "تمديدات مياه، صرف صحي، سخانات، وتركيب الأدوات الصحية",
-    workers: 2,
-  },
-  {
-    id: 5,
-    name: "الجبس والأسقف",
-    icon: <FaLayerGroup color="#8B5CF6" />,
-    description: "أسقف مستعارة، جبس بورد، وديكورات جبسية",
-    workers: 2,
-  },
-  {
-    id: 6,
-    name: "النجارة",
-    icon: <FaHammer color="#A16207" />,
-    description: "أثاث مخصص، أبواب، مطابخ، وأعمال خشبية",
-    workers: 1,
-  },
-  {
-    id: 7,
-    name: "الألمنيوم والحديد",
-    icon: <FaWindowMaximize color="#64748B" />,
-    description: "شبابيك، أبواب، درابزين، وأعمال معدنية",
-    workers: 2,
-  },
-  {
-    id: 8,
-    name: "البناء والحجر",
-    icon: <GiBrickWall color="#DC2626" />,
-    description: "أعمال حجر، بناء بلوك، خرسانة، وجدران إنشائية",
-    workers: 2,
-  },
-];
+export { defaultCrafts as crafts } from "./craftPresentation";
 
 function Crafts() {
   const navigate = useNavigate();
+  const [crafts, setCrafts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const handleCraftClick = (craftName, craftId) => {
-    const slugMap = {
-      1: "tiling",
-      2: "painting",
-      3: "electrical",
-      4: "plumbing",
-      5: "gypsum",
-      6: "carpentry",
-      7: "aluminum",
-      8: "masonry",
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCrafts = async () => {
+      try {
+        const data = await fetchJson("/api/crafts");
+        const rows = Array.isArray(data) ? data : data?.crafts || [];
+
+        if (isMounted) {
+          setCrafts(rows.map(decorateCraft));
+          setError(null);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(getApiErrorMessage(err));
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     };
 
-    console.log("الصنعة المختارة:", craftName);
-    navigate(`/craftsman/${slugMap[craftId]}`);
+    loadCrafts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleCraftClick = (craft) => {
+    navigate(`/craftsman/${encodeURIComponent(craft.slug || craft.id)}`);
     window.scrollTo(0, 0);
   };
 
@@ -98,38 +53,50 @@ function Crafts() {
     <>
       <Header />
 
-
       <div className="crafts-page">
         <div className="crafts-container">
           <div className="crafts-header">
-            <h1>جميع الصنعات</h1>
-            <p>ابدأ باختيار الصنعة، ثم اطّلع على أفضل الصنايعية المتوفرين فيها</p>
+            <h1>{"\u062c\u0645\u064a\u0639 \u0627\u0644\u0635\u0646\u0639\u0627\u062a"}</h1>
+            <p>
+              {
+                "\u0627\u0628\u062f\u0623 \u0628\u0627\u062e\u062a\u064a\u0627\u0631 \u0627\u0644\u0635\u0646\u0639\u0629\u060c \u062b\u0645 \u0627\u0637\u0651\u0644\u0639 \u0639\u0644\u0649 \u0623\u0641\u0636\u0644 \u0627\u0644\u0635\u0646\u0627\u064a\u0639\u064a\u0629 \u0627\u0644\u0645\u062a\u0648\u0641\u0631\u064a\u0646 \u0641\u064a\u0647\u0627"
+              }
+            </p>
           </div>
 
-          <div className="crafts-grid">
-            {crafts.map((craft) => (
-              <div
-                className="cardBox"
-                key={craft.id}
-                onClick={() => handleCraftClick(craft.name, craft.id)}
-              >
-                <div className="card">
-                  <div className="craft-preview">
-                    <div className="craft-icon">{craft.icon}</div>
-                    <div className="h4">{craft.name}</div>
-                  </div>
+          {loading ? (
+            <div className="crafts-status">
+              {"\u062c\u0627\u0631\u064a \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u0635\u0646\u0639\u0627\u062a..."}
+            </div>
+          ) : error ? (
+            <div className="crafts-status error">{error}</div>
+          ) : crafts.length > 0 ? (
+            <div className="crafts-grid">
+              {crafts.map((craft) => (
+                <div className="cardBox" key={craft.id} onClick={() => handleCraftClick(craft)}>
+                  <div className="card">
+                    <div className="craft-preview">
+                      <div className="craft-icon">{craft.icon}</div>
+                      <div className="h4">{craft.name}</div>
+                    </div>
 
-                  <div className="content">
-                    <div className="h3">{craft.name}</div>
-                    <p>{craft.description}</p>
-                    <span className="workers-count">
-                      متوفر {craft.workers} صنايعية
-                    </span>
+                    <div className="content">
+                      <div className="h3">{craft.name}</div>
+                      <p>{craft.description}</p>
+                      <span className="workers-count">
+                        {"\u0645\u062a\u0648\u0641\u0631"} {craft.workers}{" "}
+                        {"\u0635\u0646\u0627\u064a\u0639\u064a\u0629"}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="crafts-status">
+              {"\u0644\u0627 \u062a\u0648\u062c\u062f \u0635\u0646\u0639\u0627\u062a \u0645\u062a\u0627\u062d\u0629 \u062d\u0627\u0644\u064a\u0627\u064b."}
+            </div>
+          )}
         </div>
       </div>
 

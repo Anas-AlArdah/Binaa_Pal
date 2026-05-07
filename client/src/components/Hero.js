@@ -3,6 +3,8 @@ import React from "react";
 import Footer from "./Footer";
 import Card from "./Card";
 import { useNavigate } from "react-router-dom";
+import SearchBox from "./SearchBox";
+import AIAssistant from "./AIAssistant";
 
 
 function Hero({craft = []}) {
@@ -57,117 +59,20 @@ function Hero({craft = []}) {
                         <div className="mx-auto mb-4" style={{ width: "60px", height: "4px", background: "#F5A623" }}></div>
 
                         <div className="d-flex justify-content-center">
-                            <Card />
+                            <SearchBox />
                         </div>
                     </div>
 
-                    <div className="d-flex justify-content-center flex-wrap gap-2 mt-3">
-                        {["سباكة", "كهرباء", "نجارة", "بلاط", "دهان"].map(tag => (
-                            <span
-                                key={tag}
-                                className="badge rounded-pill bg-light border px-3 py-2 text-dark"
-                                style={{ cursor: "pointer" }}
-                            >
-          {tag}
-        </span>
-                        ))}
-                    </div>
+
 
                 </div>
             </div>
 
 
             <div className="text-center my-5">
-                <div className="mt-5 mx-auto" style={{ maxWidth: "700px" }}>
+               <AIAssistant/>
 
-                    {/* العنوان */}
-                    <div className="mb-4">
-            <span style={{
-                background: "#1A6B8A",
-                color: "white",
-                padding: "6px 18px",
-                borderRadius: "20px",
-                fontSize: "0.85rem",
-                fontWeight: "500"
-            }}>
-                ✨ مدعوم بالذكاء الاصطناعي
-            </span>
-                        <h2 className="fw-bold mt-3" style={{ color: "#1A6B8A", fontSize: "2rem" }}>
-                            المساعد الذكي
-                        </h2>
-                        <p className="text-muted">اكتب ما تحتاجه وسيجد لك أفضل حرفي</p>
-                    </div>
 
-                    {/* صندوق المحادثة */}
-                    <div style={{
-                        background: "#f8f9fa",
-                        border: "1px solid #e0e0e0",
-                        borderRadius: "16px",
-                        padding: "20px",
-                        minHeight: "200px",
-                        marginBottom: "16px",
-                        textAlign: "right"
-                    }}>
-                        {/* رسالة المساعد */}
-                        <div className="d-flex align-items-start gap-2 mb-3">
-                            <div style={{
-                                background: "#1A6B8A",
-                                color: "white",
-                                borderRadius: "50%",
-                                width: "36px",
-                                height: "36px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: "1rem",
-                                flexShrink: 0
-                            }}>
-                                🤖
-                            </div>
-                            <div style={{
-                                background: "white",
-                                border: "1px solid #e0e0e0",
-                                borderRadius: "12px",
-                                padding: "12px 16px",
-                                textAlign: "right",
-                                fontSize: "0.95rem",
-                                color: "#333"
-                            }}>
-                                مرحباً! أنا مساعدك الذكي. أخبرني ماذا تحتاج وسأجد لك أفضل الحرفيين 👷
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* حقل الإدخال */}
-                    <div className="d-flex gap-2">
-                        <input
-                            type="text"
-                            className="form-control"
-                            placeholder=" ...مثال: أحتاج كهربائي لتركيب لمبات"
-                            style={{
-                                borderRadius: "12px",
-                                border: "1px solid #1A6B8A",
-                                padding: "12px 16px",
-                                fontSize: "0.95rem",
-                                boxShadow: "none"
-                            }}
-                        />
-                        <button
-                            className="btn"
-                            style={{
-                                background: 'linear-gradient(to right, #1A6B8A, #1A6B8A)',
-                                color: "white",
-                                borderRadius: "12px",
-                                padding: "12px 20px",
-                                fontWeight: "600",
-                                whiteSpace: "nowrap"
-                            }}
-                        >
-                            إرسال ➤
-                        </button>
-                    </div>
-
-                </div>
             </div>
 
             <div className="d-flex justify-content-center flex-wrap gap-2">

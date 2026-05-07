@@ -1,5 +1,5 @@
 
-const User=require("../models/User");
+const {User,Role}=require("../models");
 
 async function createUser(req, res) {
     try{
@@ -13,14 +13,14 @@ async function createUser(req, res) {
             role_id: req.body.role_id,
 
         })
-        res.send(user)
+        res.status(201).json(user);
 
 
 
     }catch(err){
         res.status(500).json({
             message: "Failed to create user. Please try again later.",
-            error: err.message  // بيعطيك سبب الخطأ بالضبط
+            error: err.message
         });
 
     }
@@ -28,7 +28,12 @@ async function createUser(req, res) {
 
 async function getUserByID(req, res) {
     try {
-        const user = await User.findByPk(req.params.id)
+        const user = await User.findByPk(req.params.id,{
+            include: {
+                model: Role,
+                as: "role"
+            }
+        })
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -44,11 +49,11 @@ async function getUserByID(req, res) {
 }
 async function deleteUser(req,res){
     try{
-        const user=await User.findByPk(req.parmas.id)
+        const user=await User.findByPk(req.params.id)
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        user.destroy()
+       await user.destroy()
         res.status(200).json({ message: "Successfully deleted" });
     } catch (err) {
         res.status(500).json({
@@ -60,7 +65,7 @@ async function deleteUser(req,res){
 }
 async function updateUser(req,res){
     try {
-        const user= await User.findByPk(req.parmas.id)
+        const user= await User.findByPk(req.params.id)
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
@@ -81,9 +86,9 @@ async function updateUser(req,res){
             error: err.message
         });
 }}
-function getAllUsers(req,res){
+async function getAllUsers(req,res){
     try{
-        const user= User.findAll()
+        const user=await User.findAll()
         res.status(200).json(user);
     }catch(err){
         res.status(500).json({
