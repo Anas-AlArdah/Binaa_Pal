@@ -11,11 +11,14 @@ const buildApiBaseUrl = () => {
     return '';
   }
 
-  const { protocol, hostname, port } = window.location;
+  const { hostname } = window.location;
   const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
 
-  if (isLocalHost && port !== '5000') {
-    return `${protocol}//${hostname}:5000`;
+  // In local development, we use the proxy defined in package.json.
+  // By returning an empty string, the request will go to the same origin (the dev server),
+  // which then proxies it to the backend.
+  if (isLocalHost) {
+    return '';
   }
 
   return '';
