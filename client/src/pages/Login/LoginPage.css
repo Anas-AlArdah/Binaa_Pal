@@ -1,0 +1,434 @@
+/* ===== LOGIN PAGE ===== */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+
+.login-page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: #f0f4ff;
+    font-family: 'Cairo', sans-serif;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* ---- Animated background blobs ---- */
+.login-bg-blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+    animation: blobFloat 8s ease-in-out infinite alternate;
+}
+
+.blob-1 {
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, #4f8ef7, #363795);
+    top: -120px;
+    left: -100px;
+    animation-duration: 9s;
+}
+
+.blob-2 {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, #005c97, #00c6ff);
+    bottom: 50px;
+    right: -80px;
+    animation-duration: 11s;
+    animation-delay: 1.5s;
+}
+
+.blob-3 {
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, #7b52ab, #005c97);
+    top: 40%;
+    left: 55%;
+    animation-duration: 13s;
+    animation-delay: 3s;
+}
+
+@keyframes blobFloat {
+    0%   { transform: translate(0, 0) scale(1); }
+    50%  { transform: translate(30px, -20px) scale(1.05); }
+    100% { transform: translate(-20px, 30px) scale(0.95); }
+}
+
+/* ---- Wrapper ---- */
+.login-form-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 120px 20px 80px;
+    position: relative;
+    z-index: 1;
+}
+
+/* ---- Card ---- */
+.login-card {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    padding: 48px 44px;
+    border-radius: 24px;
+    box-shadow:
+        0 8px 32px rgba(31, 38, 135, 0.15),
+        0 2px 8px rgba(0, 0, 0, 0.06);
+    width: 100%;
+    max-width: 460px;
+    animation: cardSlideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes cardSlideUp {
+    from { opacity: 0; transform: translateY(32px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Brand Header ---- */
+.brand-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.brand-icon {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.brand-name {
+    font-size: 22px;
+    font-weight: 800;
+    background: linear-gradient(to left, #005c97, #363795);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+}
+
+/* ---- Title ---- */
+.login-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin-bottom: 6px;
+}
+
+.login-subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 28px;
+}
+
+/* ---- Toggle Sign In / Sign Up ---- */
+.toggle-container {
+    display: flex;
+    background: #e8eef7;
+    border-radius: 12px;
+    padding: 5px;
+    gap: 4px;
+    margin-bottom: 28px;
+}
+
+.toggle-btn {
+    flex: 1;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #6b7280;
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 10px 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.toggle-btn.active {
+    background: linear-gradient(135deg, #005c97, #363795);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(54, 55, 149, 0.3);
+}
+
+.toggle-btn:not(.active):hover {
+    background: rgba(0, 92, 151, 0.08);
+    color: #005c97;
+}
+
+/* ---- Form ---- */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-label-custom {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    text-align: right;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    right: 14px;
+    font-size: 16px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.form-input-custom {
+    width: 100%;
+    padding: 12px 44px 12px 44px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 12px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    color: #1a1a2e;
+    background: #fafbff;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    text-align: right;
+    direction: rtl;
+}
+
+.form-input-custom:focus {
+    outline: none;
+    border-color: #005c97;
+    box-shadow: 0 0 0 3px rgba(0, 92, 151, 0.12);
+    background: #fff;
+}
+
+.form-input-custom::placeholder {
+    color: #adb5bd;
+}
+
+.toggle-password {
+    position: absolute;
+    left: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    color: #9ca3af;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.toggle-password:hover {
+    color: #005c97;
+    transform: scale(1.1);
+}
+
+/* ---- Forgot Password ---- */
+.forgot-password-row {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: -6px;
+}
+
+.forgot-link {
+    font-size: 13px;
+    color: #005c97;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.forgot-link:hover {
+    color: #363795;
+    text-decoration: underline;
+}
+
+/* ---- User Type Toggle ---- */
+.user-type-toggle {
+    display: flex;
+    gap: 12px;
+}
+
+.user-type-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border: 2px solid #d1d5db;
+    border-radius: 12px;
+    background: #fafbff;
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.user-type-btn.active {
+    border-color: #005c97;
+    background: linear-gradient(135deg, rgba(0,92,151,0.08), rgba(54,55,149,0.08));
+    color: #005c97;
+    box-shadow: 0 0 0 3px rgba(0, 92, 151, 0.1);
+}
+
+.user-type-btn:not(.active):hover {
+    border-color: #9ca3af;
+    background: #f3f4f6;
+}
+
+.user-type-icon {
+    font-size: 18px;
+}
+
+/* ---- Submit Button ---- */
+.submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #005c97 0%, #363795 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 4px;
+    letter-spacing: 0.3px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.submit-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(54, 55, 149, 0.35);
+}
+
+.submit-btn:hover::after {
+    opacity: 1;
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+/* ---- Divider ---- */
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+}
+
+/* ---- Social Login ---- */
+.social-login {
+    display: flex;
+    gap: 12px;
+}
+
+.social-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 11px 16px;
+    border-radius: 12px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: 1.5px solid #e5e7eb;
+    background: #fff;
+    color: #374151;
+}
+
+.social-btn:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+/* ---- Switch Text ---- */
+.switch-text {
+    text-align: center;
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 20px;
+    margin-bottom: 0;
+}
+
+.switch-link {
+    background: none;
+    border: none;
+    color: #005c97;
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 4px;
+    padding: 0;
+    text-decoration: underline;
+    transition: color 0.2s;
+}
+
+.switch-link:hover {
+    color: #363795;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 500px) {
+    .login-card {
+        padding: 32px 24px;
+    }
+
+    .login-title {
+        font-size: 20px;
+    }
+
+    .blob-1, .blob-2, .blob-3 {
+        display: none;
+    }
+}

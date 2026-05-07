@@ -23,7 +23,7 @@ function Header() {
 
                     {/* Logo */}
                     <Link className="navbar-brand fw-bold fs-3 text-white" to="/home">
-                        Bina Pall
+                        Binaa Pal
                     </Link>
 
                     {/* Toggle */}
