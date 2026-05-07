@@ -7,6 +7,7 @@ const userRouter = require('./routes/userRouter');
 const roleRouter = require('./routes/roleRouter');
 const requestRouter = require('./routes/requestRouter');
 const workerProfileRouter = require('./routes/workerProfileRouter');
+const craftRouter = require('./routes/craftRouter');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -21,6 +22,7 @@ app.use('/api/users', userRouter);
 app.use('/api/roles', roleRouter);
 app.use('/api/requests', requestRouter);
 app.use('/api/worker-profiles', workerProfileRouter);
+app.use('/api/crafts', craftRouter);
 
 // Database Connection & Server Start
 async function startServer() {

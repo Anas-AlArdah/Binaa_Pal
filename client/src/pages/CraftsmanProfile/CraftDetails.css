@@ -108,6 +108,21 @@
   gap: 24px;
 }
 
+.craft-details-status {
+  background: #fff;
+  border: 1px solid #e3ddd4;
+  border-radius: 18px;
+  color: #555;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 34px 20px;
+  text-align: center;
+}
+
+.craft-details-status.error {
+  color: #b23b3b;
+}
+
 /* ============================================== */
 /* ستايلات الكرت الجديد (Uiverse Profile Card) */
 /* ============================================== */
