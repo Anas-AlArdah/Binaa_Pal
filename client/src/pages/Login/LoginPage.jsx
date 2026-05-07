@@ -8,10 +8,13 @@ import './LoginPage.css';
 const text = {
     welcomeBack: '\u0645\u0631\u062d\u0628\u0627\u064b \u0628\u0639\u0648\u062f\u062a\u0643',
     createAccount: '\u0625\u0646\u0634\u0627\u0621 \u062d\u0633\u0627\u0628 \u062c\u062f\u064a\u062f',
+    adminWelcome: 'دخول الآدمن',
     loginSubtitle: '\u0633\u062c\u0651\u0644 \u062f\u062e\u0648\u0644\u0643 \u0644\u0644\u0648\u0635\u0648\u0644 \u0625\u0644\u0649 \u062d\u0633\u0627\u0628\u0643',
     registerSubtitle: '\u0627\u0646\u0636\u0645 \u0625\u0644\u0649 \u0645\u0646\u0635\u0629 \u0628\u0646\u0651\u0627\u0621 \u0628\u0627\u0644 \u0627\u0644\u064a\u0648\u0645',
+    adminSubtitle: 'سجّل دخولك لإدارة منصة Binaa Pal',
     login: '\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644',
     register: '\u0625\u0646\u0634\u0627\u0621 \u062d\u0633\u0627\u0628',
+    admin: 'الآدمن',
     firstname: '\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u0623\u0648\u0644',
     firstnamePlaceholder: '\u0623\u062f\u062e\u0644 \u0627\u0633\u0645\u0643 \u0627\u0644\u0623\u0648\u0644',
     lastname: '\u0627\u0644\u0627\u0633\u0645 \u0627\u0644\u062b\u0627\u0646\u064a',
@@ -29,21 +32,27 @@ const text = {
     hasAccount: '\u0644\u062f\u064a\u0643 \u062d\u0633\u0627\u0628 \u0628\u0627\u0644\u0641\u0639\u0644\u061f',
     loggingIn: '\u062c\u0627\u0631\u064a \u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644...',
     registering: '\u062c\u0627\u0631\u064a \u0625\u0646\u0634\u0627\u0621 \u0627\u0644\u062d\u0633\u0627\u0628...',
+    adminLoggingIn: 'جاري التحقق من الآدمن...',
     loginSuccess: '\u062a\u0645 \u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644 \u0628\u0646\u062c\u0627\u062d.',
     registerSuccess: '\u062a\u0645 \u0625\u0646\u0634\u0627\u0621 \u0627\u0644\u062d\u0633\u0627\u0628 \u0628\u0646\u062c\u0627\u062d.',
+    adminSuccess: 'تم تسجيل دخول الآدمن بنجاح.',
+    adminSubmit: 'دخول لوحة الآدمن',
 };
 
 function LoginPage() {
     const navigate = useNavigate();
-    const [isLogin, setIsLogin] = useState(true);
+    const [formMode, setFormMode] = useState('login');
     const [userType, setUserType] = useState('client');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const isLogin = formMode === 'login';
+    const isRegister = formMode === 'register';
+    const isAdmin = formMode === 'admin';
 
     const toggleForm = (mode) => {
-        setIsLogin(mode === 'login');
+        setFormMode(mode);
         setError('');
         setSuccess('');
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -59,6 +68,16 @@ function LoginPage() {
         }
     };
 
+    const persistAdminAuth = (data) => {
+        if (data?.token) {
+            localStorage.setItem('binaa_admin_token', data.token);
+        }
+
+        if (data?.admin) {
+            localStorage.setItem('binaa_admin_user', JSON.stringify(data.admin));
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -71,7 +90,7 @@ function LoginPage() {
             password: String(formData.get('password') || ''),
         };
 
-        if (!isLogin) {
+        if (isRegister) {
             payload.firstname = String(formData.get('firstname') || '').trim();
             payload.lastname = String(formData.get('lastname') || '').trim();
             payload.phone = String(formData.get('phone') || '').trim();
@@ -80,11 +99,28 @@ function LoginPage() {
         }
 
         try {
-            const data = await fetchJson(isLogin ? '/api/auth/login' : '/api/auth/register', {
+            const endpoint = isAdmin
+                ? '/api/auth/admin-login'
+                : isLogin
+                    ? '/api/auth/login'
+                    : '/api/auth/register';
+
+            const data = await fetchJson(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
+
+            if (isAdmin) {
+                persistAdminAuth(data);
+                setSuccess(text.adminSuccess);
+
+                setTimeout(() => {
+                    navigate('/admin');
+                }, 600);
+
+                return;
+            }
 
             persistAuth(data);
             setSuccess(isLogin ? text.loginSuccess : text.registerSuccess);
@@ -114,10 +150,10 @@ function LoginPage() {
                     </div>
 
                     <h2 className="login-title">
-                        {isLogin ? text.welcomeBack : text.createAccount}
+                        {isAdmin ? text.adminWelcome : isLogin ? text.welcomeBack : text.createAccount}
                     </h2>
                     <p className="login-subtitle">
-                        {isLogin ? text.loginSubtitle : text.registerSubtitle}
+                        {isAdmin ? text.adminSubtitle : isLogin ? text.loginSubtitle : text.registerSubtitle}
                     </p>
 
                     <div className="toggle-container mb-4">
@@ -132,10 +168,18 @@ function LoginPage() {
                         <button
                             id="btn-toggle-register"
                             type="button"
-                            className={`toggle-btn ${!isLogin ? 'active' : ''}`}
+                            className={`toggle-btn ${isRegister ? 'active' : ''}`}
                             onClick={() => toggleForm('register')}
                         >
                             {text.register}
+                        </button>
+                        <button
+                            id="btn-toggle-admin"
+                            type="button"
+                            className={`toggle-btn ${isAdmin ? 'active' : ''}`}
+                            onClick={() => toggleForm('admin')}
+                        >
+                            {text.admin}
                         </button>
                     </div>
 
@@ -143,7 +187,7 @@ function LoginPage() {
                     {success && <div className="auth-alert auth-alert-success">{success}</div>}
 
                     <form onSubmit={handleSubmit} className="login-form">
-                        {!isLogin && (
+                        {isRegister && (
                             <div className="name-fields-grid">
                                 <div className="form-group">
                                     <label className="form-label-custom" htmlFor="firstname">{text.firstname}</label>
@@ -195,7 +239,7 @@ function LoginPage() {
                             </div>
                         </div>
 
-                        {!isLogin && (
+                        {isRegister && (
                             <>
                                 <div className="form-group">
                                     <label className="form-label-custom" htmlFor="phone">{text.phone}</label>
@@ -269,7 +313,7 @@ function LoginPage() {
                             </div>
                         </div>
 
-                        {!isLogin && (
+                        {isRegister && (
                             <div className="form-group">
                                 <label className="form-label-custom">{text.iAm}</label>
                                 <div className="user-type-toggle">
@@ -303,11 +347,13 @@ function LoginPage() {
                             className="submit-btn"
                             disabled={loading}
                         >
-                            {loading ? (isLogin ? text.loggingIn : text.registering) : (isLogin ? text.login : text.register)}
+                            {loading
+                                ? (isAdmin ? text.adminLoggingIn : isLogin ? text.loggingIn : text.registering)
+                                : (isAdmin ? text.adminSubmit : isLogin ? text.login : text.register)}
                         </button>
                     </form>
 
-                    <p className="switch-text">
+                    {!isAdmin && <p className="switch-text">
                         {isLogin ? text.noAccount : text.hasAccount}
                         <button
                             type="button"
@@ -317,7 +363,7 @@ function LoginPage() {
                         >
                             {isLogin ? text.register : text.login}
                         </button>
-                    </p>
+                    </p>}
                 </div>
             </div>
 

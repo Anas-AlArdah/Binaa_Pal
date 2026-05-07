@@ -14,6 +14,7 @@ const assistantRoutes = require('./routes/Assistantrouter');
 const searchRoutes = require('./routes/aiSearchRouter');
 const skillRoutes = require('./routes/skillRouter');
 const workerSkillRoutes = require('./routes/workerskillRouter');
+const adminRoutes = require('./routes/adminRouter');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -33,6 +34,7 @@ app.use('/api/assistant', assistantRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/skills', skillRoutes);
 app.use('/api/workerskills', workerSkillRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Legacy aliases kept so older team work still runs on the same backend.
 app.use('/auth', authRoutes);
@@ -46,6 +48,7 @@ app.use('/assistant', assistantRoutes);
 app.use('/search', searchRoutes);
 app.use('/skills', skillRoutes);
 app.use('/workerskills', workerSkillRoutes);
+app.use('/admin', adminRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is working 🚀');

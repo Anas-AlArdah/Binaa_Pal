@@ -7,6 +7,7 @@ import Crafts from './pages/CraftsmanProfile/Crafts';
 import CraftDetails from './pages/CraftsmanProfile/CraftDetails';
 import Homepage from './pages/Home/Homepage';
 import LoginPage from './pages/Login/LoginPage';
+import AdminPage from './pages/Admin/AdminPage';
 
 function AppLayout() {
   return (
@@ -100,6 +101,7 @@ function App() {
                 >
                   Login Page
                 </Link>
+
               </div>
             </div>
           }
@@ -107,6 +109,7 @@ function App() {
 
         {/* Standalone pages with their own Header/Footer */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/admin" element={<AdminPage />} />
 
         <Route element={<AppLayout />}>
           <Route path="/home" element={<Homepage />} />
