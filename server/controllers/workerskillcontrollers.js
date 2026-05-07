@@ -1,6 +1,12 @@
-const { Worker_Skill } = require('../models');
+const { Worker_Skill,Skill } = require('../models');
 
 async function addWorkerSkill(req, res) {
+    const { worker_id, skill_id } = req.body;
+
+    // ✅ تحقق من الإدخال أولاً
+    if (!worker_id || !skill_id) {
+        return res.status(400).json({ message: "worker_id and skill_id are required." });
+    }
     try {
         const workerSkill = await Worker_Skill.create({
             worker_id: req.body.worker_id,
@@ -8,6 +14,7 @@ async function addWorkerSkill(req, res) {
         });
         res.status(201).json(workerSkill);
     } catch (err) {
+        console.log(err);
         res.status(500).json({
             message: "Failed to add worker skill.",
             error: err.message
@@ -18,7 +25,17 @@ async function addWorkerSkill(req, res) {
 async function getWorkerSkillsByWorkerId(req, res) {
     try {
         const workerSkills = await Worker_Skill.findAll({
-            where: { worker_id: req.params.worker_id }
+            where: {
+                worker_id: req.params.worker_id,
+            },
+            include: [
+                {
+                    model: Skill,
+                    attributes: ['skill_name'],
+                    as: 'skill',
+
+                }
+            ]
         });
         res.status(200).json(workerSkills);
     } catch (err) {

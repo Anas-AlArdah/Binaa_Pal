@@ -10,26 +10,29 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Worker_Skill.belongsTo(models.User, {
-        foreignKey: 'worker_id',
-        as: 'worker'
-      });
-
-      Worker_Skill.belongsTo(models.WorkerProfile, {
+      // define association here
+      Worker_Skill.belongsTo(models.WorkerProfile , {
         foreignKey: 'worker_id',
         targetKey: 'user_id',
         as: 'worker_profile'
       });
-
-      Worker_Skill.belongsTo(models.Skill, {
+      Worker_Skill.belongsTo(models.Skill,{
         foreignKey: 'skill_id',
         as: 'skill'
       });
     }
   }
   Worker_Skill.init({
-    worker_id: DataTypes.INTEGER,
-    skill_id: DataTypes.INTEGER
+    worker_id: {
+        type: DataTypes.INTEGER,
+    primaryKey: true,
+    allowNull: false},
+      skill_id: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          primaryKey: true,
+          references: { model: 'Skills', key: 'id' }
+      }
   }, {
     sequelize,
     modelName: 'Worker_Skill',

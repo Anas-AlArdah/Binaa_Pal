@@ -28,9 +28,12 @@ async function createUser(req, res) {
 
 async function getUserByID(req, res) {
     try {
+        {
+        }
         const user = await User.findByPk(req.params.id,{
             include: {
                 model: Role,
+                attributes:['type'],
                 as: "role"
             }
         })
