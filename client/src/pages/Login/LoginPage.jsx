@@ -47,14 +47,43 @@ function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [formValues, setFormValues] = useState({
+        email: '',
+        password: '',
+        firstname: '',
+        lastname: '',
+        phone: '',
+        location: '',
+    });
     const isLogin = formMode === 'login';
     const isRegister = formMode === 'register';
     const isAdmin = formMode === 'admin';
+
+    const resetFormValues = () => {
+        setFormValues({
+            email: '',
+            password: '',
+            firstname: '',
+            lastname: '',
+            phone: '',
+            location: '',
+        });
+        setShowPassword(false);
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormValues((currentValues) => ({
+            ...currentValues,
+            [name]: value,
+        }));
+    };
 
     const toggleForm = (mode) => {
         setFormMode(mode);
         setError('');
         setSuccess('');
+        resetFormValues();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -84,17 +113,16 @@ function LoginPage() {
         setError('');
         setSuccess('');
 
-        const formData = new FormData(e.currentTarget);
         const payload = {
-            email: String(formData.get('email') || '').trim(),
-            password: String(formData.get('password') || ''),
+            email: formValues.email.trim(),
+            password: formValues.password,
         };
 
         if (isRegister) {
-            payload.firstname = String(formData.get('firstname') || '').trim();
-            payload.lastname = String(formData.get('lastname') || '').trim();
-            payload.phone = String(formData.get('phone') || '').trim();
-            payload.location = String(formData.get('location') || '').trim();
+            payload.firstname = formValues.firstname.trim();
+            payload.lastname = formValues.lastname.trim();
+            payload.phone = formValues.phone.trim();
+            payload.location = formValues.location.trim();
             payload.userType = userType;
         }
 
@@ -186,7 +214,7 @@ function LoginPage() {
                     {error && <div className="auth-alert auth-alert-error">{error}</div>}
                     {success && <div className="auth-alert auth-alert-success">{success}</div>}
 
-                    <form onSubmit={handleSubmit} className="login-form">
+                    <form onSubmit={handleSubmit} className="login-form" autoComplete="off">
                         {isRegister && (
                             <div className="name-fields-grid">
                                 <div className="form-group">
@@ -199,6 +227,8 @@ function LoginPage() {
                                             type="text"
                                             className="form-input-custom"
                                             placeholder={text.firstnamePlaceholder}
+                                            value={formValues.firstname}
+                                            onChange={handleInputChange}
                                             required
                                             disabled={loading}
                                         />
@@ -215,6 +245,8 @@ function LoginPage() {
                                             type="text"
                                             className="form-input-custom"
                                             placeholder={text.lastnamePlaceholder}
+                                            value={formValues.lastname}
+                                            onChange={handleInputChange}
                                             required
                                             disabled={loading}
                                         />
@@ -233,6 +265,9 @@ function LoginPage() {
                                     type="email"
                                     className="form-input-custom"
                                     placeholder={isAdmin ? 'admin@example.com' : 'you@example.com'}
+                                    value={formValues.email}
+                                    onChange={handleInputChange}
+                                    autoComplete="off"
                                     required
                                     disabled={loading}
                                 />
@@ -251,6 +286,8 @@ function LoginPage() {
                                             type="tel"
                                             className="form-input-custom"
                                             placeholder={text.phonePlaceholder}
+                                            value={formValues.phone}
+                                            onChange={handleInputChange}
                                             required
                                             disabled={loading}
                                         />
@@ -267,6 +304,8 @@ function LoginPage() {
                                             type="text"
                                             className="form-input-custom"
                                             placeholder={text.locationPlaceholder}
+                                            value={formValues.location}
+                                            onChange={handleInputChange}
                                             required
                                             disabled={loading}
                                         />
@@ -285,6 +324,9 @@ function LoginPage() {
                                     type={showPassword ? 'text' : 'password'}
                                     className="form-input-custom"
                                     placeholder="••••••••"
+                                    value={formValues.password}
+                                    onChange={handleInputChange}
+                                    autoComplete="new-password"
                                     required
                                     minLength="6"
                                     disabled={loading}
