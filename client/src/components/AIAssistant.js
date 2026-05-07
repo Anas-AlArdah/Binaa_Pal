@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
+import { fetchJson } from '../utils/api';
 
 const SUGGESTIONS = [
     'عندي تسريب مية',
@@ -34,14 +34,13 @@ export default function AIAssistant() {
         setLoading(true);
 
         try {
-            const res = await fetch('http://localhost:3001/assistant', {
+            const data = await fetchJson('/api/assistant', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     messages: newMessages.map(m => ({ role: m.role, content: m.content })),
                 }),
             });
-            const data = await res.json();
             setMessages([...newMessages, { role: 'assistant', content: data.reply }]);
         } catch {
             setMessages([...newMessages, { role: 'assistant', content: 'حدث خطأ، حاول مرة ثانية.' }]);

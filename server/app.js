@@ -1,36 +1,70 @@
 const express = require('express');
-const app = express();
 const cors = require('cors');
 const db = require('./models');
 require('dotenv').config();
 
-app.use(cors());
-app.use(express.json());
-
+const authRoutes = require('./routes/authRouter');
 const userRoutes = require('./routes/userRouter');
 const roleRoutes = require('./routes/roleRouter');
 const requestRoutes = require('./routes/requestRouter');
-const offerRouter = require("./routes/offerRouter");
-const assistantRouter = require('./routes/Assistantrouter');
-const searchRouter = require('./routes/aiSearchRouter');
-const skillRouter = require('./routes/skillRouter');
-const workerskillRouter = require('./routes/workerskillRouter');
+const workerProfileRoutes = require('./routes/workerProfileRouter');
+const craftRoutes = require('./routes/craftRouter');
+const offerRoutes = require('./routes/offerRouter');
+const assistantRoutes = require('./routes/Assistantrouter');
+const searchRoutes = require('./routes/aiSearchRouter');
+const skillRoutes = require('./routes/skillRouter');
+const workerSkillRoutes = require('./routes/workerskillRouter');
 
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+app.use(cors());
+app.use(express.json());
+
+// Unified API namespace used by the current frontend.
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/requests', requestRoutes);
+app.use('/api/worker-profiles', workerProfileRoutes);
+app.use('/api/crafts', craftRoutes);
+app.use('/api/offers', offerRoutes);
+app.use('/api/assistant', assistantRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/skills', skillRoutes);
+app.use('/api/workerskills', workerSkillRoutes);
+
+// Legacy aliases kept so older team work still runs on the same backend.
+app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/roles', roleRoutes);
 app.use('/requests', requestRoutes);
-app.use("/offers", offerRouter);
-app.use('/assistant', assistantRouter);
-app.use('/search', searchRouter);
-app.use('/skills', skillRouter);
-app.use('/workerskills', workerskillRouter);
+app.use('/worker-profiles', workerProfileRoutes);
+app.use('/crafts', craftRoutes);
+app.use('/offers', offerRoutes);
+app.use('/assistant', assistantRoutes);
+app.use('/search', searchRoutes);
+app.use('/skills', skillRoutes);
+app.use('/workerskills', workerSkillRoutes);
 
 app.get('/', (req, res) => {
-    res.send('API is working 🚀');
+  res.send('API is working 🚀');
 });
 
-app.listen(3001, () => {
-    console.log('Server is running on port 3001');
-});
+async function startServer() {
+  await db.sequelize.authenticate();
+  console.log('Connected to MySQL via Sequelize');
 
-module.exports = app;
+  return app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
+
+if (require.main === module) {
+  startServer().catch((error) => {
+    console.error('Database connection error:', error);
+    process.exit(1);
+  });
+}
+
+module.exports = { app, startServer };

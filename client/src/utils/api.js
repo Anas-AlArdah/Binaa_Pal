@@ -11,11 +11,14 @@ const buildApiBaseUrl = () => {
     return '';
   }
 
-  const { protocol, hostname, port } = window.location;
+  const { hostname } = window.location;
   const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
 
-  if (isLocalHost && port !== '5000') {
-    return `${protocol}//${hostname}:5000`;
+  // In local development, we use the proxy defined in package.json.
+  // By returning an empty string, the request will go to the same origin (the dev server),
+  // which then proxies it to the backend.
+  if (isLocalHost) {
+    return '';
   }
 
   return '';
@@ -46,7 +49,7 @@ export const getApiErrorMessage = (
   }
 
   if (error instanceof TypeError) {
-    return 'تعذر الاتصال بالخادم الخلفي. تأكد من تشغيل مجلد server على المنفذ 5000.';
+    return 'تعذر الاتصال بالخادم الخلفي. تأكد من تشغيل مجلد server على المنفذ 3001.';
   }
 
   if (error instanceof Error && error.message) {
@@ -81,7 +84,7 @@ export async function fetchJson(path, options = {}) {
 
     if (looksLikeHtml) {
       throw new ApiError(
-        'تم استلام صفحة HTML بدل JSON من الـ API. إذا كنت تعمل محلياً، تأكد أن الباكند يعمل على المنفذ 5000.',
+        'تم استلام صفحة HTML بدل JSON من الـ API. إذا كنت تعمل محلياً، تأكد أن الباكند يعمل على المنفذ 3001.',
         response.status,
         rawBody
       );

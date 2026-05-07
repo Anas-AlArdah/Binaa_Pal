@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { fetchJson } from '../utils/api';
 
 const QUICK = ['دهان', 'بلاط', 'نجارة', 'كهرباء', 'سباكة', 'تكييف'];
 
@@ -16,13 +17,13 @@ export default function SearchBox() {
         setLoading(true);
         setSearched(true);
         try {
-            const res = await fetch(`http://localhost:3001/search?q=${encodeURIComponent(q)}`);
-            const data = await res.json();
+            const data = await fetchJson(`/api/search?q=${encodeURIComponent(q)}`);
             setResults(data.workers || []);
             setFilters(data.filters || null);
         } catch (err) {
             console.error(err);
             setResults([]);
+            setFilters(null);
         } finally {
             setLoading(false);
         }
