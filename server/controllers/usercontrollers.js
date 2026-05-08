@@ -1,5 +1,5 @@
 
-const {User,Role}=require("../models");
+const {User,Role,WorkerProfile}=require("../models");
 
 async function createUser(req, res) {
     try{
@@ -28,11 +28,20 @@ async function createUser(req, res) {
 
 async function getUserByID(req, res) {
     try {
+        {
+        }
         const user = await User.findByPk(req.params.id,{
-            include: {
-                model: Role,
-                as: "role"
-            }
+           include:[
+               {
+                   model: Role,
+                   as: 'role',
+                   attributes: ['type', ]
+               },{
+                model: WorkerProfile,
+                as: 'worker_profile',
+                attributes: ['id', 'bio', 'major']
+            }]
+
         })
         if (!user) {
             return res.status(404).json({ message: "User not found" });

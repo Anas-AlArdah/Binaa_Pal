@@ -17,19 +17,16 @@ module.exports = (sequelize, DataTypes) => {
         User.hasMany(models.Worker_Skill, {
             foreignKey: 'worker_id',
             as: 'worker_skills'
+
         });
-        User.hasOne(models.WorkerProfile, {
+        User.hasMany(models.Review, {
+            foreignKey: 'user_id',
+            as: 'reviews'
+        });
+        User.hasOne(models.WorkerProfile,{
             foreignKey: 'user_id',
             as: 'worker_profile'
-        });
-        // User.hasMany(models.Review, {
-        //     foreignKey: 'user_id',
-        //     as: 'reviews'
-        // });
-        // User.hasOne(models.Worker_PROFILE,{
-        //     foreignKey: 'user_id',
-        //     as: 'worker_profile'
-        // })
+        })
         User.hasMany(models.Request,{
             foreignKey: 'user_id',
             as: 'request'

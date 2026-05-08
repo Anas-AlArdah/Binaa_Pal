@@ -14,10 +14,26 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: 'skill_id',
             as: 'worker_skills'
         });
-    }
+
+      Skill.belongsToMany(models.WorkerProfile, {
+      through: models.Worker_Skill,
+      foreignKey: 'skill_id',
+      otherKey: 'worker_id',
+      as: 'workers'
+  });
+}
+
+
   }
   Skill.init({
-    skill_name: DataTypes.STRING
+    skill_name:{
+
+      type:  DataTypes.STRING,
+    allowNull: false,
+    validate: {
+          notEmpty: true
+    }
+    }
   }, {
     sequelize,
     modelName: 'Skill',

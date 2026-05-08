@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { fetchJson } from '../utils/api';
-
+import { Link } from 'react-router-dom';
 const QUICK = ['دهان', 'بلاط', 'نجارة', 'كهرباء', 'سباكة', 'تكييف'];
 
 export default function SearchBox() {
@@ -17,19 +16,19 @@ export default function SearchBox() {
         setLoading(true);
         setSearched(true);
         try {
-            const data = await fetchJson(`/api/search?q=${encodeURIComponent(q)}`);
+            const res = await fetch(`http://localhost:3001/search?q=${encodeURIComponent(q)}`);
+            const data = await res.json();
             setResults(data.workers || []);
             setFilters(data.filters || null);
         } catch (err) {
             console.error(err);
             setResults([]);
-            setFilters(null);
         } finally {
             setLoading(false);
         }
     };
 
-    const initials = (name) => name.split(' ').map(w => w[0]).join('').slice(0, 2);
+
 
     return (
         <div style={{ direction: 'rtl', width: '100%' }}>
@@ -102,18 +101,19 @@ export default function SearchBox() {
                 <div style={{ padding: '1.5rem', maxWidth: 700, margin: '0 auto' }}>
 
                     {/* AI فهم شو */}
-                    {filters && (
-                        <div style={{
-                            background: '#E1F5EE', borderRadius: 8, padding: '8px 14px',
-                            fontSize: 13, color: '#0F6E56', marginBottom: 12,
-                            display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center',
-                        }}>
-                            <span>🤖 فهمت:</span>
-                            {filters.skill    && <span>خدمة: <strong>{filters.skill}</strong></span>}
-                            {filters.location && <span>مدينة: <strong>{filters.location}</strong></span>}
-                            {filters.name     && <span>اسم: <strong>{filters.name}</strong></span>}
-                        </div>
-                    )}
+                    {/*{filters && (*/}
+                    {/*    <div style={{*/}
+                    {/*        background: '#E1F5EE', borderRadius: 8, padding: '8px 14px',*/}
+                    {/*        fontSize: 13, color: '#0F6E56', marginBottom: 12,*/}
+                    {/*        display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center',*/}
+                    {/*    }}>*/}
+                    {/*        <span>🤖 فهمت:</span>*/}
+                    {/*        {filters.skill    && <span>خدمة: <strong>{filters.skill}</strong></span>}*/}
+                    {/*        {filters.location && <span>مدينة: <strong>{filters.location}</strong></span>}*/}
+                    {/*        {filters.name     && <span>اسم: <strong>{filters.name}</strong></span>}*/}
+
+                    {/*    </div>*/}
+                    {/*)}*/}
 
                     {loading ? (
                         <p style={{ textAlign: 'center', color: '#666' }}>جاري البحث...</p>
@@ -125,11 +125,13 @@ export default function SearchBox() {
                                 {results.length} نتيجة
                             </p>
                             {results.map(w => (
-                                <div key={w.id} style={{
+                                <Link to={`/profile/${w.workerProfileId}`} key={w.id}
+                                      style={{
                                     display: 'flex', alignItems: 'center', gap: 12,
                                     padding: 14, border: '0.5px solid #e0e0e0',
                                     borderRadius: 12, marginBottom: 8, background: '#fff',
                                     cursor: 'pointer', transition: 'border-color 0.15s',
+                                    textDecoration: 'none',
                                 }}
                                      onMouseEnter={e => e.currentTarget.style.borderColor = '#1D6E8F'}
                                      onMouseLeave={e => e.currentTarget.style.borderColor = '#e0e0e0'}
@@ -140,11 +142,16 @@ export default function SearchBox() {
                                         alignItems: 'center', justifyContent: 'center',
                                         fontSize: 14, fontWeight: 500, color: '#0F6E56', flexShrink: 0,
                                     }}>
-                                        {initials(w.name)}
+                                        {(w.name)}
                                     </div>
+                                    <div style={{ fontSize: 12, marginTop: 4 }}>
+                                         {w.rating }
+                                    </div>
+
+
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontWeight: 500, fontSize: 14 }}>{w.name}</div>
-                                        <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>📍 {w.location}</div>
+
+                                        <div style={{ fontSize: 14, color: '#0d0e15', marginTop: 2 }}>📍 {w.location}</div>
                                         <div style={{ display: 'flex', gap: 5, marginTop: 6, flexWrap: 'wrap' }}>
                                             {w.skills.map(s => (
                                                 <span key={s} style={{
@@ -155,7 +162,7 @@ export default function SearchBox() {
                                         </div>
                                     </div>
                                     <div style={{ fontSize: 12, color: '#555' }}>{w.phone}</div>
-                                </div>
+                                </Link>
                             ))}
                         </>
                     )}

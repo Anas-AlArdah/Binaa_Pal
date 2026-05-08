@@ -70,7 +70,7 @@ function Footer() {
                     </div>
 
                     <p style={{ fontSize: "13px", color: "#aaa" }}>
-                        © 2025 أُستاذ - جميع الحقوق محفوظة
+                        © 2026 أُستاذ - جميع الحقوق محفوظة
                     </p>
 
                 </div>

@@ -22,8 +22,9 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Unified API namespace used by the current frontend.
+//Unified API namespace used by the current frontend.
 app.use('/api/auth', authRoutes);
+console.log("users route loaded");
 app.use('/api/users', userRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/requests', requestRoutes);
@@ -36,7 +37,7 @@ app.use('/api/skills', skillRoutes);
 app.use('/api/workerskills', workerSkillRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Legacy aliases kept so older team work still runs on the same backend.
+//Legacy aliases kept so older team work still runs on the same backend.
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/roles', roleRoutes);

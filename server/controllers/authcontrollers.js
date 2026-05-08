@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User, Role } = require('../models');
+const { User, Role,WorkerProfile } = require('../models');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'binaa_pal_dev_secret';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -51,7 +51,9 @@ function sanitizeUser(user) {
           type: plainUser.role.type,
         }
       : null,
+      worker_profile: plainUser.worker_profile || null,
   };
+
 }
 
 function createToken(user) {
@@ -87,16 +89,22 @@ function sanitizeAdmin(email) {
 }
 
 async function findUserByEmail(email) {
-  return User.findOne({
-    where: { email },
-    include: [
-      {
-        model: Role,
-        as: 'role',
-        attributes: ['id', 'type'],
-      },
-    ],
-  });
+    return User.findOne({
+        where: { email },
+        include: [
+            {
+                model: Role,
+                as: 'role',
+                attributes: ['id', 'type'],
+            },
+            {
+                model: WorkerProfile,
+                as: 'worker_profile',
+                attributes: ['id', 'bio', 'major'],
+                required: false,
+            },
+        ],
+    });
 }
 
 async function getOrCreateRole(type) {
