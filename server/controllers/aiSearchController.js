@@ -1,4 +1,4 @@
-const { User, Skill, Worker_Skill } = require('../models');
+const { User, Skill, Worker_Skill, WorkerProfile } = require('../models');
 const { Op } = require('sequelize');
 const axios = require('axios');
 
@@ -41,7 +41,7 @@ async function aiSearch(req, res) {
         const filters = await extractFiltersWithAI(q);
         console.log('Filters from AI:', filters);
 
-        const userWhere = { };
+        const userWhere = { role_id: 2 };
         if (filters.name) {
             userWhere[Op.or] = [
                 { firstname: { [Op.like]: `%${filters.name}%` } },
@@ -74,11 +74,18 @@ async function aiSearch(req, res) {
                         },
                     ],
                 },
+                {
+                    model: WorkerProfile,
+                    as: 'worker_profile',
+                    required: false,
+                    attributes: ['id'],
+                }
             ],
         });
 
         const result = workers.map(u => ({
             id: u.id,
+            workerProfileId: u.worker_profile?.id || null,
             name: `${u.firstname} ${u.lastname}`,
             location: u.location,
             phone: u.phone,

@@ -101,19 +101,19 @@ export default function SearchBox() {
                 <div style={{ padding: '1.5rem', maxWidth: 700, margin: '0 auto' }}>
 
                     {/* AI فهم شو */}
-                    {filters && (
-                        <div style={{
-                            background: '#E1F5EE', borderRadius: 8, padding: '8px 14px',
-                            fontSize: 13, color: '#0F6E56', marginBottom: 12,
-                            display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center',
-                        }}>
-                            <span>🤖 فهمت:</span>
-                            {filters.skill    && <span>خدمة: <strong>{filters.skill}</strong></span>}
-                            {filters.location && <span>مدينة: <strong>{filters.location}</strong></span>}
-                            {filters.name     && <span>اسم: <strong>{filters.name}</strong></span>}
+                    {/*{filters && (*/}
+                    {/*    <div style={{*/}
+                    {/*        background: '#E1F5EE', borderRadius: 8, padding: '8px 14px',*/}
+                    {/*        fontSize: 13, color: '#0F6E56', marginBottom: 12,*/}
+                    {/*        display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center',*/}
+                    {/*    }}>*/}
+                    {/*        <span>🤖 فهمت:</span>*/}
+                    {/*        {filters.skill    && <span>خدمة: <strong>{filters.skill}</strong></span>}*/}
+                    {/*        {filters.location && <span>مدينة: <strong>{filters.location}</strong></span>}*/}
+                    {/*        {filters.name     && <span>اسم: <strong>{filters.name}</strong></span>}*/}
 
-                        </div>
-                    )}
+                    {/*    </div>*/}
+                    {/*)}*/}
 
                     {loading ? (
                         <p style={{ textAlign: 'center', color: '#666' }}>جاري البحث...</p>
@@ -125,7 +125,8 @@ export default function SearchBox() {
                                 {results.length} نتيجة
                             </p>
                             {results.map(w => (
-                                <Link to="/profile" key={w.id} style={{
+                                <Link to={`/profile/${w.workerProfileId}`} key={w.id}
+                                      style={{
                                     display: 'flex', alignItems: 'center', gap: 12,
                                     padding: 14, border: '0.5px solid #e0e0e0',
                                     borderRadius: 12, marginBottom: 8, background: '#fff',
