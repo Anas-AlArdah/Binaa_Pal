@@ -56,17 +56,17 @@ function Crafts() {
       <div className="crafts-page">
         <div className="crafts-container">
           <div className="crafts-header">
-            <h1>{"\u062c\u0645\u064a\u0639 \u0627\u0644\u0635\u0646\u0639\u0627\u062a"}</h1>
+            <h1>{"جميع الصنعات"}</h1>
             <p>
               {
-                "\u0627\u0628\u062f\u0623 \u0628\u0627\u062e\u062a\u064a\u0627\u0631 \u0627\u0644\u0635\u0646\u0639\u0629\u060c \u062b\u0645 \u0627\u0637\u0651\u0644\u0639 \u0639\u0644\u0649 \u0623\u0641\u0636\u0644 \u0627\u0644\u0635\u0646\u0627\u064a\u0639\u064a\u0629 \u0627\u0644\u0645\u062a\u0648\u0641\u0631\u064a\u0646 \u0641\u064a\u0647\u0627"
+                "ابدأ باختيار الصنعة، ثم اطّلع على أفضل الصنايعية المتوفرين فيها"
               }
             </p>
           </div>
 
           {loading ? (
             <div className="crafts-status">
-              {"\u062c\u0627\u0631\u064a \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u0635\u0646\u0639\u0627\u062a..."}
+              {"جاري تحميل الصنعات..."}
             </div>
           ) : error ? (
             <div className="crafts-status error">{error}</div>
@@ -84,8 +84,8 @@ function Crafts() {
                       <div className="h3">{craft.name}</div>
                       <p>{craft.description}</p>
                       <span className="workers-count">
-                        {"\u0645\u062a\u0648\u0641\u0631"} {craft.workers}{" "}
-                        {"\u0635\u0646\u0627\u064a\u0639\u064a\u0629"}
+                        {"متوفر"} {craft.workers}{" "}
+                        {"صنايعية"}
                       </span>
                     </div>
                   </div>
@@ -94,7 +94,7 @@ function Crafts() {
             </div>
           ) : (
             <div className="crafts-status">
-              {"\u0644\u0627 \u062a\u0648\u062c\u062f \u0635\u0646\u0639\u0627\u062a \u0645\u062a\u0627\u062d\u0629 \u062d\u0627\u0644\u064a\u0627\u064b."}
+              {"لا توجد صنعات متاحة حالياً."}
             </div>
           )}
         </div>
