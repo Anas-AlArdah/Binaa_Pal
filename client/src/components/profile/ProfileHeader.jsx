@@ -1,178 +1,188 @@
 import React from 'react';
-import { Box, Typography, Button, Avatar, Stack, Chip, useTheme, useMediaQuery } from '@mui/material';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import StarIcon from '@mui/icons-material/Star';
-import WorkspacePremiumRoundedIcon from '@mui/icons-material/WorkspacePremiumRounded';
-import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
-import VerifiedIcon from '@mui/icons-material/Verified';
+import { Avatar, Box, Button, Chip, Stack, Typography } from '@mui/material';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
+import StarBorderRoundedIcon from '@mui/icons-material/StarBorderRounded';
+import WorkOutlineRoundedIcon from '@mui/icons-material/WorkOutlineRounded';
+import { getFirstPortfolioImage } from '../../utils/workerProfile';
+
+function formatPriceRange(profile) {
+  if (profile?.min_price && profile?.max_price) {
+    return `${profile.min_price} - ${profile.max_price} شيكل`;
+  }
+
+  if (profile?.min_price) {
+    return `ابتداءً من ${profile.min_price} شيكل`;
+  }
+
+  if (profile?.max_price) {
+    return `حتى ${profile.max_price} شيكل`;
+  }
+
+  return 'حسب الاتفاق';
+}
 
 const ProfileHeader = ({ profile }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
   if (!profile) return null;
-  const { user } = profile;
 
-  const averageRating = profile.reviews && profile.reviews.length > 0
-    ? (profile.reviews.reduce((acc, curr) => acc + curr.rating, 0) / profile.reviews.length).toFixed(1)
-    : 'جديد';
+  const { user } = profile;
+  const heroImage = profile.profile_image || getFirstPortfolioImage(profile.portfolio_items || profile.p_images);
+  const reviewCount = profile.reviews?.length || 0;
+  const averageRating =
+    reviewCount > 0
+      ? (profile.reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviewCount).toFixed(1)
+      : 'جديد';
+
+  const quickStats = [
+    { label: 'التقييم', value: averageRating },
+    { label: 'عدد المراجعات', value: reviewCount },
+    { label: 'الانضمام', value: profile.createdAt ? new Date(profile.createdAt).getFullYear() : 'حديثًا' },
+    { label: 'نطاق السعر', value: formatPriceRange(profile) },
+  ];
 
   return (
     <Box
       sx={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        flexWrap: { xs: 'wrap', md: 'nowrap' },
-        gap: 4,
-        p: { xs: 1, sm: 1 },
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1.4fr) minmax(280px, 360px)' },
+        gap: 3,
       }}
     >
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4} alignItems="flex-start">
-        <Box sx={{ position: 'relative' }}>
-          <Avatar
-            src={user.image || "/images/pf1.jpg"}
-            alt={`${user.firstname} ${user.lastname}`}
-            sx={{
-              width: { xs: 120, sm: 160 },
-              height: { xs: 120, sm: 160 },
-              border: '6px solid #fff',
-              boxShadow: '0 15px 45px rgba(66, 52, 32, 0.12)',
-              borderRadius: '32px',
-            }}
-          />
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: 12,
-              right: -8,
-              bgcolor: '#fff',
-              borderRadius: '50%',
-              p: 0.5,
-              display: 'flex',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-            }}
-          >
-            <VerifiedIcon sx={{ color: '#556b2f', fontSize: 32 }} />
-          </Box>
-        </Box>
+      <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start', flexDirection: { xs: 'column', sm: 'row' } }}>
+        <Avatar
+          src={heroImage || '/images/pf1.jpg'}
+          alt={`${user.firstname} ${user.lastname}`}
+          sx={{
+            width: { xs: 104, sm: 132 },
+            height: { xs: 104, sm: 132 },
+            borderRadius: '22px',
+            border: '1px solid #d9d2c7',
+            boxShadow: '0 8px 20px rgba(15, 23, 42, 0.08)',
+          }}
+        />
 
-        <Box>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }} sx={{ mb: 2 }}>
-            <Typography variant="h4" sx={{ color: '#2d2a26', fontWeight: 900, fontSize: { xs: '28px', sm: '38px' }, letterSpacing: '-0.02em' }}>
-              {user.firstname} {user.lastname}
-            </Typography>
+        <Box sx={{ flex: 1 }}>
+          <Stack direction="row" spacing={1.2} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
             <Chip
-              icon={<WorkspacePremiumRoundedIcon sx={{ fontSize: '1rem !important', color: '#fff !important' }} />}
-              label="حرفي موثّق ذهبي"
+              label="متاح للعمل"
+              size="small"
               sx={{
-                bgcolor: '#556b2f',
-                color: '#fff',
+                bgcolor: '#edf5ee',
+                color: '#256d3f',
+                border: '1px solid #c8e3d0',
                 fontWeight: 800,
-                borderRadius: '12px',
-                px: 1,
-                height: 32,
-                '& .MuiChip-label': { px: 1.5 }
+              }}
+            />
+            <Chip
+              label={profile.major || 'عامل مهني'}
+              size="small"
+              sx={{
+                bgcolor: '#f4efe8',
+                color: '#8f6b3f',
+                border: '1px solid #e3ddd4',
+                fontWeight: 800,
               }}
             />
           </Stack>
 
-          <Typography sx={{ color: '#556b2f', fontWeight: 800, mb: 2, fontSize: '20px', display: 'flex', alignItems: 'center', gap: 1 }}>
-            {profile.major || 'حرفي مهني معتمد'}
+          <Typography sx={{ fontSize: { xs: '28px', sm: '34px' }, fontWeight: 900, color: '#1f1f1f', mb: 1 }}>
+            {user.firstname} {user.lastname}
           </Typography>
 
-          <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ mb: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#6f685d', bgcolor: '#f8f6f2', px: 2, py: 0.8, borderRadius: '10px', border: '1px solid rgba(0,0,0,0.05)' }}>
-              <LocationOnIcon sx={{ fontSize: '18px', color: '#c49e5c' }} />
-              <Typography sx={{ fontWeight: 700, fontSize: '14px' }}>{user.location || 'فلسطين'}</Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#6f685d', bgcolor: '#fdf8ef', px: 2, py: 0.8, borderRadius: '10px', border: '1px solid rgba(196, 158, 92, 0.2)' }}>
-              <StarIcon sx={{ fontSize: '18px', color: '#c49e5c' }} />
-              <Typography sx={{ fontWeight: 800, fontSize: '14px', color: '#2d2a26' }}>{averageRating}</Typography>
-              <Typography sx={{ fontWeight: 600, fontSize: '13px' }}>({profile.reviews?.length || 0} تقييم)</Typography>
-            </Box>
+          <Stack direction="row" spacing={1.2} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
+            <Chip
+              icon={<LocationOnOutlinedIcon sx={{ fontSize: '18px !important' }} />}
+              label={user.location || 'فلسطين'}
+              sx={{ bgcolor: '#f8f6f2', border: '1px solid #e3ddd4', fontWeight: 700, borderRadius: '12px' }}
+            />
+            <Chip
+              icon={<PhoneOutlinedIcon sx={{ fontSize: '18px !important' }} />}
+              label={user.phone || 'غير مضاف'}
+              sx={{ bgcolor: '#f8f6f2', border: '1px solid #e3ddd4', fontWeight: 700, borderRadius: '12px' }}
+            />
+            <Chip
+              icon={<StarBorderRoundedIcon sx={{ fontSize: '18px !important' }} />}
+              label={`${averageRating} (${reviewCount})`}
+              sx={{ bgcolor: '#fff8eb', border: '1px solid #ead8b3', fontWeight: 700, borderRadius: '12px' }}
+            />
           </Stack>
 
-          <Typography sx={{ color: '#6f685d', maxWidth: 700, lineHeight: 1.9, fontSize: '16.5px', fontWeight: 500 }}>
-            {profile.bio || 'لم يتم إضافة وصف بعد.'}
+          <Typography sx={{ color: '#736d65', lineHeight: 1.95, fontSize: '15.5px', maxWidth: 680 }}>
+            {profile.bio || 'لم يتم إضافة وصف مختصر لهذا العامل بعد.'}
           </Typography>
         </Box>
-      </Stack>
+      </Box>
 
-
-      <Stack spacing={2.5} sx={{ minWidth: { xs: '100%', md: 280 }, mt: { xs: 2, md: 0 } }}>
-        <Box
-          sx={{
-            p: 3,
-            borderRadius: '24px',
-            border: '1px solid rgba(85, 107, 47, 0.15)',
-            background: 'linear-gradient(145deg, #fdfaf5, #f5f8f2)',
-            textAlign: 'center',
-            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
-          }}
-        >
-          <Typography sx={{ color: '#556b2f', fontSize: '12px', fontWeight: 800, mb: 1, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-            حالة العمل الحالية
+      <Box
+        sx={{
+          background: '#fbfaf8',
+          border: '1px solid #d9d2c7',
+          borderRadius: '18px',
+          p: 2.25,
+        }}
+      >
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+          <WorkOutlineRoundedIcon sx={{ color: '#5c7c43', fontSize: 22 }} />
+          <Typography sx={{ color: '#1f1f1f', fontWeight: 900, fontSize: '18px' }}>
+            ملخص سريع
           </Typography>
-          <Typography sx={{ color: '#2d2a26', fontSize: '32px', fontWeight: 900, lineHeight: 1.1, mb: 1 }}>
-            متاح الآن
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 1.5 }}>
-            <Box sx={{ width: 8, height: 8, bgcolor: '#4caf50', borderRadius: '50%', animation: 'pulse 2s infinite' }} />
-            <Typography sx={{ color: '#6f685d', fontSize: '14px', fontWeight: 600 }}>
-              جاهز للبدء فوراً
-            </Typography>
-          </Box>
-        </Box>
+        </Stack>
 
-        <Stack direction="column" spacing={1.5}>
-          <Button 
-            variant="contained" 
-            fullWidth
-            startIcon={<PhoneRoundedIcon sx={{ ml: 1, mr: -0.5 }} />}
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2.5 }}>
+          {quickStats.map((item) => (
+            <Box
+              key={item.label}
             sx={{
-              bgcolor: '#556b2f',
-              '&:hover': { bgcolor: '#405123', transform: 'translateY(-2px)' },
-              borderRadius: '16px',
-              py: 2,
+                border: '1px solid #e3ddd4',
+                borderRadius: '14px',
+                p: 1.5,
+                bgcolor: '#fff',
+              }}
+            >
+              <Typography sx={{ fontSize: '12px', color: '#736d65', fontWeight: 700, mb: 0.6 }}>
+                {item.label}
+              </Typography>
+              <Typography sx={{ fontSize: '15px', color: '#1f1f1f', fontWeight: 800, lineHeight: 1.5 }}>
+                {item.value}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+
+        <Stack spacing={1.2}>
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{
+              bgcolor: '#5c7c43',
+              '&:hover': { bgcolor: '#4d6a37' },
+              borderRadius: '12px',
+              py: 1.4,
+              boxShadow: 'none',
               fontWeight: 800,
-              fontSize: '17px',
-              boxShadow: '0 10px 25px rgba(85, 107, 47, 0.2)',
-              transition: 'all 0.3s ease',
-              textTransform: 'none'
+              textTransform: 'none',
             }}
           >
-            طلب خدمة مباشرة
+            طلب خدمة
           </Button>
-          <Button 
-            variant="outlined" 
+          <Button
+            variant="outlined"
             fullWidth
             sx={{
               borderColor: '#e3ddd4',
-              color: '#2d2a26',
-              '&:hover': { borderColor: '#556b2f', bgcolor: 'rgba(85, 107, 47, 0.04)' },
-              borderRadius: '16px',
-              py: 1.8,
+              color: '#1f1f1f',
+              borderRadius: '12px',
+              py: 1.3,
               fontWeight: 700,
-              fontSize: '16px',
+              textTransform: 'none',
             }}
           >
-            مشاهدة جدول المواعيد
+            عرض الأعمال
           </Button>
         </Stack>
-      </Stack>
-      
-      <style>{`
-        @keyframes pulse {
-          0% { transform: scale(0.95); opacity: 0.8; }
-          50% { transform: scale(1.1); opacity: 1; }
-          100% { transform: scale(0.95); opacity: 0.8; }
-        }
-      `}</style>
+      </Box>
     </Box>
   );
 };
 
 export default ProfileHeader;
-
-

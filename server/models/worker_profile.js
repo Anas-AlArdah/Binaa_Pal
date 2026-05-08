@@ -23,6 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       });
       WorkerProfile.hasMany(models.Worker_Skill, {
         foreignKey: 'worker_id',
+        sourceKey: 'user_id',
         as: 'worker_skills'
       });
     }
@@ -34,7 +35,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     bio: DataTypes.TEXT,
     major: DataTypes.STRING,
-    p_images: DataTypes.TEXT, // Portfolio images
+    profile_image: DataTypes.TEXT('long'),
+    p_images: DataTypes.TEXT('long'), // Portfolio data
     min_price: DataTypes.DECIMAL(10, 2),
     max_price: DataTypes.DECIMAL(10, 2)
   }, {

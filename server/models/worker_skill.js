@@ -17,6 +17,7 @@ module.exports = (sequelize, DataTypes) => {
 
       Worker_Skill.belongsTo(models.WorkerProfile, {
         foreignKey: 'worker_id',
+        targetKey: 'user_id',
         as: 'worker_profile'
       });
 

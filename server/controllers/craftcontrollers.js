@@ -1,5 +1,6 @@
 const { Op, fn, col } = require('sequelize');
 const { Skill, Worker_Skill, User, WorkerProfile, Review } = require('../models');
+const { getFirstPortfolioImage, getProfileImage } = require('../utils/workerProfileData');
 
 const CRAFT_METADATA = [
   {
@@ -238,13 +239,6 @@ function getExperience(profile) {
   return `${Math.max(1, years)} years`;
 }
 
-function getFirstPortfolioImage(profile) {
-  return String(profile?.p_images || '')
-    .split(',')
-    .map((image) => image.trim())
-    .filter(Boolean)[0] || null;
-}
-
 function getReviewStats(profile) {
   const reviews = Array.isArray(profile?.reviews) ? profile.reviews : [];
   const ratings = reviews
@@ -333,7 +327,7 @@ function buildWorker({ workerId, craft, user, profile, skillNames }) {
     price: formatPrice(profile),
     priceSort: getPriceSort(profile),
     availableNow: true,
-    imageUrl: getFirstPortfolioImage(profile),
+    imageUrl: getProfileImage(profile) || getFirstPortfolioImage(profile),
   };
 }
 
@@ -414,7 +408,7 @@ async function getWorkersByCraft(req, res) {
         where: {
           [Op.or]: [{ id: { [Op.in]: workerIds } }, { user_id: { [Op.in]: workerIds } }],
         },
-        attributes: ['id', 'user_id', 'bio', 'major', 'p_images', 'min_price', 'max_price', 'createdAt'],
+        attributes: ['id', 'user_id', 'bio', 'major', 'profile_image', 'p_images', 'min_price', 'max_price', 'createdAt'],
         include,
       })).map(toPlain);
     }
