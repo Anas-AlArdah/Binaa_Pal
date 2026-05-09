@@ -6,66 +6,66 @@ const CRAFT_METADATA = [
   {
     slug: 'tiling',
     iconKey: 'tiling',
-    name: '\u0627\u0644\u062a\u0628\u0644\u064a\u0637',
+    name: 'التبليط',
     description:
-      '\u062a\u0628\u0644\u064a\u0637 \u0627\u0644\u0623\u0631\u0636\u064a\u0627\u062a \u0648\u0627\u0644\u062c\u062f\u0631\u0627\u0646',
-    keywords: ['tiling', 'tile', 'ceramic', '\u062a\u0628\u0644\u064a\u0637', '\u0628\u0644\u0627\u0637'],
+      'تبليط الأرضيات والجدران',
+    keywords: ['tiling', 'tile', 'ceramic', 'تبليط', 'بلاط'],
   },
   {
     slug: 'painting',
     iconKey: 'painting',
-    name: '\u0627\u0644\u062f\u0647\u0627\u0646',
+    name: 'الدهان',
     description:
-      '\u062f\u0647\u0627\u0646 \u062f\u0627\u062e\u0644\u064a \u0648\u062e\u0627\u0631\u062c\u064a \u0648\u062a\u0634\u0637\u064a\u0628\u0627\u062a',
-    keywords: ['painting', 'paint', '\u062f\u0647\u0627\u0646', '\u062f\u0647\u0646'],
+      'دهان داخلي وخارجي وتشطيبات',
+    keywords: ['painting', 'paint', 'دهان', 'دهن'],
   },
   {
     slug: 'electrical',
     iconKey: 'electrical',
-    name: '\u0627\u0644\u0643\u0647\u0631\u0628\u0627\u0621',
+    name: 'الكهرباء',
     description:
-      '\u062a\u0645\u062f\u064a\u062f\u0627\u062a \u0643\u0647\u0631\u0628\u0627\u0626\u064a\u0629 \u0648\u0625\u0646\u0627\u0631\u0629 \u0648\u0635\u064a\u0627\u0646\u0629',
-    keywords: ['electrical', 'electric', '\u0643\u0647\u0631\u0628'],
+      'تمديدات كهربائية وإنارة وصيانة',
+    keywords: ['electrical', 'electric', 'كهرب'],
   },
   {
     slug: 'plumbing',
     iconKey: 'plumbing',
-    name: '\u0627\u0644\u0633\u0628\u0627\u0643\u0629',
+    name: 'السباكة',
     description:
-      '\u062a\u0645\u062f\u064a\u062f\u0627\u062a \u0645\u064a\u0627\u0647 \u0648\u0635\u0631\u0641 \u0635\u062d\u064a \u0648\u0633\u062e\u0627\u0646\u0627\u062a',
-    keywords: ['plumbing', 'plumber', '\u0633\u0628\u0627\u0643', '\u0645\u064a\u0627\u0647'],
+      'تمديدات مياه وصرف صحي وسخانات',
+    keywords: ['plumbing', 'plumber', 'سباك', 'مياه'],
   },
   {
     slug: 'gypsum',
     iconKey: 'gypsum',
-    name: '\u0627\u0644\u062c\u0628\u0633 \u0648\u0627\u0644\u0623\u0633\u0642\u0641',
+    name: 'الجبس والأسقف',
     description:
-      '\u0623\u0633\u0642\u0641 \u0645\u0633\u062a\u0639\u0627\u0631\u0629 \u0648\u062c\u0628\u0633 \u0628\u0648\u0631\u062f \u0648\u062f\u064a\u0643\u0648\u0631\u0627\u062a',
-    keywords: ['gypsum', 'drywall', '\u062c\u0628\u0633', '\u0623\u0633\u0642\u0641', '\u0627\u0633\u0642\u0641'],
+      'أسقف مستعارة وجبس بورد وديكورات',
+    keywords: ['gypsum', 'drywall', 'جبس', 'أسقف', 'اسقف'],
   },
   {
     slug: 'carpentry',
     iconKey: 'carpentry',
-    name: '\u0627\u0644\u0646\u062c\u0627\u0631\u0629',
+    name: 'النجارة',
     description:
-      '\u0623\u062b\u0627\u062b \u0645\u062e\u0635\u0635 \u0648\u0623\u0628\u0648\u0627\u0628 \u0648\u0645\u0637\u0627\u0628\u062e \u0648\u0623\u0639\u0645\u0627\u0644 \u062e\u0634\u0628\u064a\u0629',
-    keywords: ['carpentry', 'carpenter', '\u0646\u062c\u0627\u0631'],
+      'أثاث مخصص وأبواب ومطابخ وأعمال خشبية',
+    keywords: ['carpentry', 'carpenter', 'نجار'],
   },
   {
     slug: 'aluminum',
     iconKey: 'aluminum',
-    name: '\u0627\u0644\u0623\u0644\u0645\u0646\u064a\u0648\u0645 \u0648\u0627\u0644\u062d\u062f\u064a\u062f',
+    name: 'الألمنيوم والحديد',
     description:
-      '\u0634\u0628\u0627\u0628\u064a\u0643 \u0648\u0623\u0628\u0648\u0627\u0628 \u0648\u0623\u0639\u0645\u0627\u0644 \u0645\u0639\u062f\u0646\u064a\u0629',
-    keywords: ['aluminum', 'aluminium', 'metal', '\u0623\u0644\u0645\u0646\u064a\u0648\u0645', '\u0627\u0644\u0645\u0646\u064a\u0648\u0645', '\u062d\u062f\u064a\u062f'],
+      'شبابيك وأبواب وأعمال معدنية',
+    keywords: ['aluminum', 'aluminium', 'metal', 'ألمنيوم', 'المنيوم', 'حديد'],
   },
   {
     slug: 'masonry',
     iconKey: 'masonry',
-    name: '\u0627\u0644\u0628\u0646\u0627\u0621 \u0648\u0627\u0644\u062d\u062c\u0631',
+    name: 'البناء والحجر',
     description:
-      '\u0623\u0639\u0645\u0627\u0644 \u062d\u062c\u0631 \u0648\u0628\u0646\u0627\u0621 \u0648\u062c\u062f\u0631\u0627\u0646 \u0625\u0646\u0634\u0627\u0626\u064a\u0629',
-    keywords: ['masonry', 'building', 'stone', '\u0628\u0646\u0627\u0621', '\u062d\u062c\u0631', '\u0628\u0644\u0648\u0643'],
+      'أعمال حجر وبناء وجدران إنشائية',
+    keywords: ['masonry', 'building', 'stone', 'بناء', 'حجر', 'بلوك'],
   },
 ];
 
