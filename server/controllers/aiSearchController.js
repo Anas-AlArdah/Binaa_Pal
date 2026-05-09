@@ -38,8 +38,21 @@ async function aiSearch(req, res) {
         const { q } = req.query;
         if (!q) return res.status(400).json({ success: false, message: 'اكتب شي تبحث عنه' });
 
-        const filters = await extractFiltersWithAI(q);
-        console.log('Filters from AI:', filters);
+        let filters = { skill: null, location: null, name: null };
+        
+        // Try AI first if key exists
+        if (GROQ_API_KEY) {
+            try {
+                filters = await extractFiltersWithAI(q);
+                console.log('Filters from AI:', filters);
+            } catch (aiErr) {
+                console.error('AI Search failed, falling back to manual:', aiErr.message);
+                filters = manualExtractFilters(q);
+            }
+        } else {
+            console.log('No AI Key found, using manual search');
+            filters = manualExtractFilters(q);
+        }
 
         const userWhere = { role_id: 2 };
         if (filters.name) {
@@ -95,9 +108,38 @@ async function aiSearch(req, res) {
         res.json({ success: true, filters, count: result.length, workers: result });
 
     } catch (err) {
-        console.error(err.response?.data || err.message);
-        res.status(500).json({ success: false, message: 'حدث خطأ', error: err.message });
+        console.error('Search Error:', err.message);
+        res.status(500).json({ success: false, message: 'حدث خطأ في البحث', error: err.message });
     }
+}
+
+function manualExtractFilters(text) {
+    const filters = { skill: null, location: null, name: null };
+    const cities = ['القدس', 'رام الله', 'نابلس', 'الخليل', 'جنين', 'طولكرم', 'قلقيلية', 'بيت لحم', 'أريحا', 'سلفيت', 'طوباس', 'غزة'];
+    const commonSkills = ['كهرباء', 'سباكة', 'نجارة', 'دهان', 'بناء', 'تكييف', 'تبريد', 'حدادة', 'ألمنيوم', 'تبليط', 'قصارة', 'جبص', 'تنظيف', 'نقل'];
+
+    // Search for city
+    for (const city of cities) {
+        if (text.includes(city)) {
+            filters.location = city;
+            break;
+        }
+    }
+
+    // Search for skill
+    for (const skill of commonSkills) {
+        if (text.includes(skill)) {
+            filters.skill = skill;
+            break;
+        }
+    }
+
+    // If no skill/location found, maybe it's a name
+    if (!filters.skill && !filters.location) {
+        filters.name = text.trim();
+    }
+
+    return filters;
 }
 
 module.exports = { aiSearch };
