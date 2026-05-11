@@ -209,6 +209,12 @@
     gap: 16px;
 }
 
+.worker-craft-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
 .form-label-custom {
     font-size: 14px;
     font-weight: 600;
@@ -254,6 +260,11 @@
 
 .form-input-custom::placeholder {
     color: #adb5bd;
+}
+
+select.form-input-custom {
+    appearance: none;
+    cursor: pointer;
 }
 
 .toggle-password {
@@ -473,6 +484,10 @@
     }
 
     .name-fields-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .worker-craft-fields {
         grid-template-columns: 1fr;
     }
 }

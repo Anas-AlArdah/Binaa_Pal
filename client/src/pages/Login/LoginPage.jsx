@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
@@ -28,6 +28,12 @@ const text = {
     iAm: '\u0623\u0646\u0627:',
     client: '\u0639\u0645\u064a\u0644',
     worker: '\u0639\u0627\u0645\u0644',
+    primaryCraft: '\u0627\u0644\u0635\u0646\u0639\u0629 \u0627\u0644\u0623\u0633\u0627\u0633\u064a\u0629',
+    primaryCraftPlaceholder: '\u0627\u062e\u062a\u0631 \u0627\u0644\u0635\u0646\u0639\u0629',
+    secondaryCraft: '\u0635\u0646\u0639\u0629 \u062b\u0627\u0646\u064a\u0629 \u0028\u0627\u062e\u062a\u064a\u0627\u0631\u064a\u0029',
+    secondaryCraftPlaceholder: '\u0628\u062f\u0648\u0646 \u0635\u0646\u0639\u0629 \u062b\u0627\u0646\u064a\u0629',
+    craftsLoading: '\u062c\u0627\u0631\u064a \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u0635\u0646\u0639\u0627\u062a...',
+    craftsLoadError: '\u062a\u0639\u0630\u0631 \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u0635\u0646\u0639\u0627\u062a.',
     noAccount: '\u0644\u064a\u0633 \u0644\u062f\u064a\u0643 \u062d\u0633\u0627\u0628\u061f',
     hasAccount: '\u0644\u062f\u064a\u0643 \u062d\u0633\u0627\u0628 \u0628\u0627\u0644\u0641\u0639\u0644\u061f',
     loggingIn: '\u062c\u0627\u0631\u064a \u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644...',
@@ -44,6 +50,8 @@ function LoginPage() {
     const [formMode, setFormMode] = useState('login');
     const [userType, setUserType] = useState('client');
     const [showPassword, setShowPassword] = useState(false);
+    const [skills, setSkills] = useState([]);
+    const [skillsLoading, setSkillsLoading] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -54,10 +62,43 @@ function LoginPage() {
         lastname: '',
         phone: '',
         location: '',
+        primarySkillId: '',
+        secondarySkillId: '',
     });
     const isLogin = formMode === 'login';
     const isRegister = formMode === 'register';
     const isAdmin = formMode === 'admin';
+    const isWorkerRegister = isRegister && userType === 'worker';
+
+    useEffect(() => {
+        if (!isWorkerRegister || skills.length > 0) {
+            return;
+        }
+
+        let isMounted = true;
+        setSkillsLoading(true);
+
+        fetchJson('/api/skills')
+            .then((data) => {
+                if (isMounted) {
+                    setSkills(Array.isArray(data) ? data : []);
+                }
+            })
+            .catch((err) => {
+                if (isMounted) {
+                    setError(getApiErrorMessage(err, text.craftsLoadError));
+                }
+            })
+            .finally(() => {
+                if (isMounted) {
+                    setSkillsLoading(false);
+                }
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, [isWorkerRegister, skills.length]);
 
     const resetFormValues = () => {
         setFormValues({
@@ -67,6 +108,8 @@ function LoginPage() {
             lastname: '',
             phone: '',
             location: '',
+            primarySkillId: '',
+            secondarySkillId: '',
         });
         setShowPassword(false);
     };
@@ -76,7 +119,22 @@ function LoginPage() {
         setFormValues((currentValues) => ({
             ...currentValues,
             [name]: value,
+            ...(name === 'primarySkillId' && currentValues.secondarySkillId === value
+                ? { secondarySkillId: '' }
+                : {}),
         }));
+    };
+
+    const handleUserTypeChange = (type) => {
+        setUserType(type);
+
+        if (type !== 'worker') {
+            setFormValues((currentValues) => ({
+                ...currentValues,
+                primarySkillId: '',
+                secondarySkillId: '',
+            }));
+        }
     };
 
     const toggleForm = (mode) => {
@@ -124,6 +182,14 @@ function LoginPage() {
             payload.phone = formValues.phone.trim();
             payload.location = formValues.location.trim();
             payload.userType = userType;
+
+            if (userType === 'worker') {
+                payload.primarySkillId = Number(formValues.primarySkillId);
+
+                if (formValues.secondarySkillId) {
+                    payload.secondarySkillId = Number(formValues.secondarySkillId);
+                }
+            }
         }
 
         try {
@@ -215,6 +281,87 @@ function LoginPage() {
                     {success && <div className="auth-alert auth-alert-success">{success}</div>}
 
                     <form onSubmit={handleSubmit} className="login-form" autoComplete="off">
+                        {isRegister && (
+                            <div className="form-group">
+                                <label className="form-label-custom">{text.iAm}</label>
+                                <div className="user-type-toggle">
+                                    <button
+                                        id="btn-type-client"
+                                        type="button"
+                                        className={`user-type-btn ${userType === 'client' ? 'active' : ''}`}
+                                        onClick={() => handleUserTypeChange('client')}
+                                        disabled={loading}
+                                    >
+                                        <span className="user-type-icon">{'\uD83D\uDC64'}</span>
+                                        <span>{text.client}</span>
+                                    </button>
+                                    <button
+                                        id="btn-type-worker"
+                                        type="button"
+                                        className={`user-type-btn ${userType === 'worker' ? 'active' : ''}`}
+                                        onClick={() => handleUserTypeChange('worker')}
+                                        disabled={loading}
+                                    >
+                                        <span className="user-type-icon">{'\uD83D\uDEE0\uFE0F'}</span>
+                                        <span>{text.worker}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {isWorkerRegister && (
+                            <div className="worker-craft-fields">
+                                <div className="form-group">
+                                    <label className="form-label-custom" htmlFor="primarySkillId">{text.primaryCraft}</label>
+                                    <div className="input-wrapper">
+                                        <span className="input-icon">{'\uD83D\uDEE0\uFE0F'}</span>
+                                        <select
+                                            id="primarySkillId"
+                                            name="primarySkillId"
+                                            className="form-input-custom"
+                                            value={formValues.primarySkillId}
+                                            onChange={handleInputChange}
+                                            required
+                                            disabled={loading || skillsLoading}
+                                        >
+                                            <option value="">
+                                                {skillsLoading ? text.craftsLoading : text.primaryCraftPlaceholder}
+                                            </option>
+                                            {skills.map((skill) => (
+                                                <option key={skill.id} value={skill.id}>
+                                                    {skill.skill_name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label-custom" htmlFor="secondarySkillId">{text.secondaryCraft}</label>
+                                    <div className="input-wrapper">
+                                        <span className="input-icon">{'\u002B'}</span>
+                                        <select
+                                            id="secondarySkillId"
+                                            name="secondarySkillId"
+                                            className="form-input-custom"
+                                            value={formValues.secondarySkillId}
+                                            onChange={handleInputChange}
+                                            disabled={loading || skillsLoading || !formValues.primarySkillId}
+                                        >
+                                            <option value="">{text.secondaryCraftPlaceholder}</option>
+                                            {skills
+                                                .filter((skill) => String(skill.id) !== String(formValues.primarySkillId))
+                                                .map((skill) => (
+                                                    <option key={skill.id} value={skill.id}>
+                                                        {skill.skill_name}
+                                                    </option>
+                                                ))}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {isRegister && (
                             <div className="name-fields-grid">
                                 <div className="form-group">
@@ -354,34 +501,6 @@ function LoginPage() {
                                 </button>
                             </div>
                         </div>
-
-                        {isRegister && (
-                            <div className="form-group">
-                                <label className="form-label-custom">{text.iAm}</label>
-                                <div className="user-type-toggle">
-                                    <button
-                                        id="btn-type-client"
-                                        type="button"
-                                        className={`user-type-btn ${userType === 'client' ? 'active' : ''}`}
-                                        onClick={() => setUserType('client')}
-                                        disabled={loading}
-                                    >
-                                        <span className="user-type-icon">{'\uD83D\uDC64'}</span>
-                                        <span>{text.client}</span>
-                                    </button>
-                                    <button
-                                        id="btn-type-worker"
-                                        type="button"
-                                        className={`user-type-btn ${userType === 'worker' ? 'active' : ''}`}
-                                        onClick={() => setUserType('worker')}
-                                        disabled={loading}
-                                    >
-                                        <span className="user-type-icon">{'\uD83D\uDEE0\uFE0F'}</span>
-                                        <span>{text.worker}</span>
-                                    </button>
-                                </div>
-                            </div>
-                        )}
 
                         <button
                             id="btn-submit"

@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User, Role,WorkerProfile } = require('../models');
+const { User, Role, WorkerProfile, Skill, Worker_Skill, sequelize } = require('../models');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'binaa_pal_dev_secret';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -24,6 +24,16 @@ function normalizeUserType(userType) {
 
 function cleanString(value) {
   return String(value || '').trim();
+}
+
+function normalizeSkillIds(values) {
+  return [
+    ...new Set(
+      values
+        .map((value) => Number(value))
+        .filter((value) => Number.isInteger(value) && value > 0)
+    ),
+  ];
 }
 
 function isBcryptHash(password) {
@@ -117,6 +127,8 @@ async function getOrCreateRole(type) {
 }
 
 async function register(req, res) {
+  let transaction;
+
   try {
     const email = normalizeEmail(req.body.email);
     const password = String(req.body.password || '');
@@ -125,6 +137,12 @@ async function register(req, res) {
     const phone = cleanString(req.body.phone);
     const location = cleanString(req.body.location);
     const roleType = normalizeUserType(req.body.userType);
+    const primarySkillId = Number(req.body.primarySkillId);
+    const requestedSkillIds = normalizeSkillIds([
+      primarySkillId,
+      req.body.secondarySkillId,
+      ...(Array.isArray(req.body.skillIds) ? req.body.skillIds : []),
+    ]);
 
     if (!firstname || !lastname || !email || !password || !phone || !location) {
       return res.status(400).json({
@@ -136,14 +154,37 @@ async function register(req, res) {
       return res.status(400).json({ message: 'Password must be at least 6 characters.' });
     }
 
+    if (roleType === 'Worker' && (!Number.isInteger(primarySkillId) || primarySkillId <= 0)) {
+      return res.status(400).json({ message: 'Primary craft is required for worker accounts.' });
+    }
+
     const existingUser = await findUserByEmail(email);
 
     if (existingUser) {
       return res.status(409).json({ message: 'Email is already registered.' });
     }
 
+    const selectedSkills = roleType === 'Worker'
+      ? await Skill.findAll({
+          where: { id: requestedSkillIds },
+          attributes: ['id', 'skill_name'],
+          raw: true,
+        })
+      : [];
+
+    if (roleType === 'Worker' && selectedSkills.length !== requestedSkillIds.length) {
+      return res.status(400).json({ message: 'One or more selected crafts do not exist.' });
+    }
+
+    const primarySkill = selectedSkills.find((skill) => Number(skill.id) === primarySkillId);
+
+    if (roleType === 'Worker' && !primarySkill) {
+      return res.status(400).json({ message: 'Primary craft is required for worker accounts.' });
+    }
+
     const role = await getOrCreateRole(roleType);
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    transaction = await sequelize.transaction();
     const user = await User.create({
       firstname,
       lastname,
@@ -152,13 +193,38 @@ async function register(req, res) {
       phone,
       location,
       role_id: role.id,
-    });
+    }, { transaction });
+
+    if (roleType === 'Worker') {
+      await WorkerProfile.create({
+        user_id: user.id,
+        major: primarySkill.skill_name,
+      }, { transaction });
+
+      await Worker_Skill.bulkCreate(
+        selectedSkills.map((skill) => ({
+          worker_id: user.id,
+          skill_id: skill.id,
+        })),
+        { transaction }
+      );
+    }
+
+    await transaction.commit();
+    transaction = null;
+
     const userWithRole = await User.findByPk(user.id, {
       include: [
         {
           model: Role,
           as: 'role',
           attributes: ['id', 'type'],
+        },
+        {
+          model: WorkerProfile,
+          as: 'worker_profile',
+          attributes: ['id', 'bio', 'major'],
+          required: false,
         },
       ],
     });
@@ -170,6 +236,10 @@ async function register(req, res) {
       user: sanitizeUser(userWithRole),
     });
   } catch (error) {
+    if (transaction) {
+      await transaction.rollback();
+    }
+
     res.status(500).json({
       message: 'Failed to create account.',
       error: error.message,

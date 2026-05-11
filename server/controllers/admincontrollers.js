@@ -88,6 +88,73 @@ function calculateAverageRating(reviews = []) {
   return Number((total / ratings.length).toFixed(1));
 }
 
+function toPlain(model) {
+  return model && typeof model.get === 'function' ? model.get({ plain: true }) : model;
+}
+
+function uniqueNumbers(values) {
+  return [...new Set(values.map((value) => Number(value)).filter((value) => Number.isFinite(value)))];
+}
+
+async function getSkillNamesByProfileId(workerProfiles) {
+  const profiles = workerProfiles.map(toPlain).filter(Boolean);
+  const userIds = uniqueNumbers(profiles.map((profile) => profile.user_id));
+  const profileIds = uniqueNumbers(profiles.map((profile) => profile.id));
+  const lookupIds = uniqueNumbers([...userIds, ...profileIds]);
+
+  if (lookupIds.length === 0) {
+    return new Map();
+  }
+
+  const skillLinks = await Worker_Skill.findAll({
+    where: { worker_id: { [Op.in]: lookupIds } },
+    include: [
+      {
+        model: Skill,
+        as: 'skill',
+        attributes: ['id', 'skill_name'],
+      },
+    ],
+  }).catch(() => []);
+  const skillNamesByWorkerId = new Map();
+
+  skillLinks.map(toPlain).forEach((link) => {
+    const workerId = Number(link.worker_id);
+    const skillName = link.skill?.skill_name;
+
+    if (!Number.isFinite(workerId) || !skillName) {
+      return;
+    }
+
+    if (!skillNamesByWorkerId.has(workerId)) {
+      skillNamesByWorkerId.set(workerId, []);
+    }
+
+    skillNamesByWorkerId.get(workerId).push(skillName);
+  });
+
+  return new Map(
+    profiles.map((profile) => {
+      const userId = Number(profile.user_id);
+      const profileId = Number(profile.id);
+      const userSkillNames = skillNamesByWorkerId.get(userId) || [];
+      const fallbackProfileSkillNames =
+        userSkillNames.length === 0 && !userIds.includes(profileId)
+          ? skillNamesByWorkerId.get(profileId) || []
+          : [];
+      const skillNames = [...new Set([...userSkillNames, ...fallbackProfileSkillNames])];
+
+      return [profileId, skillNames];
+    })
+  );
+}
+
+function formatWorkerService(worker, skillNamesByProfileId) {
+  const skillNames = skillNamesByProfileId.get(Number(worker.id)) || [];
+
+  return skillNames.length > 0 ? skillNames.join('، ') : worker.major || 'Not specified';
+}
+
 async function countSafely(model, options = {}) {
   try {
     return await model.count(options);
@@ -171,7 +238,7 @@ async function getDashboard(req, res) {
       WorkerProfile.findAll({
         limit: 5,
         order: [['createdAt', 'DESC']],
-        attributes: ['id', 'major', 'bio', 'min_price', 'max_price', 'createdAt'],
+        attributes: ['id', 'user_id', 'major', 'bio', 'min_price', 'max_price', 'createdAt'],
         include: [
           {
             model: User,
@@ -189,6 +256,8 @@ async function getDashboard(req, res) {
       }).catch(() => []),
     ]);
 
+    const recentWorkerSkillsByProfileId = await getSkillNamesByProfileId(recentWorkers);
+
     res.status(200).json({
       stats,
       recentRequests: recentRequests.map((request) => ({
@@ -202,7 +271,7 @@ async function getDashboard(req, res) {
       recentWorkers: recentWorkers.map((worker) => ({
         id: worker.id,
         name: formatUserName(worker.user),
-        service: worker.major || 'Not specified',
+        service: formatWorkerService(worker, recentWorkerSkillsByProfileId),
         city: worker.user?.location || 'Not specified',
         priceRange:
           worker.min_price && worker.max_price
@@ -332,6 +401,8 @@ async function getWorkers(req, res) {
       ],
     });
 
+    const workerSkillsByProfileId = await getSkillNamesByProfileId(rows);
+
     res.status(200).json({
       items: rows.map((worker) => ({
         id: worker.id,
@@ -341,6 +412,7 @@ async function getWorkers(req, res) {
         phone: worker.user?.phone || null,
         city: worker.user?.location || null,
         major: worker.major,
+        skill_names: workerSkillsByProfileId.get(Number(worker.id)) || [],
         bio: worker.bio,
         min_price: worker.min_price,
         max_price: worker.max_price,

@@ -5,7 +5,7 @@ import {
   FaBriefcase,
   FaMapMarkerAlt,
   FaMoneyBillWave,
-  FaShieldAlt,
+  FaRegClock,
   FaStar,
 } from "react-icons/fa";
 import Header from "../../components/Header";
@@ -43,7 +43,8 @@ function normalizeWorker(worker, craft) {
     secondarySkill,
     rating: normalizeNumber(worker.rating),
     reviewsCount: normalizeNumber(worker.reviewsCount),
-    verifiedCount: normalizeNumber(worker.verifiedCount),
+    punctualityRating: normalizeNumber(worker.punctualityRating),
+    punctualityCount: normalizeNumber(worker.punctualityCount),
     experience: worker.experience || "N/A",
     price: worker.price || "N/A",
     priceSort: normalizeNumber(worker.priceSort, Number.MAX_SAFE_INTEGER),
@@ -127,7 +128,7 @@ function CraftDetails() {
     }
 
     if (selectedSort === SORT_OPTIONS[0]) {
-      result.sort((a, b) => b.rating - a.rating || b.verifiedCount - a.verifiedCount);
+      result.sort((a, b) => b.rating - a.rating || b.reviewsCount - a.reviewsCount);
     } else if (selectedSort === SORT_OPTIONS[1]) {
       result.sort((a, b) => a.priceSort - b.priceSort);
     } else if (selectedSort === SORT_OPTIONS[2]) {
@@ -239,11 +240,11 @@ function CraftDetails() {
                             </span>
                           </div>
                           <div className="detail-item" style={{ marginRight: "auto" }}>
-                            <FaShieldAlt className="icon-green" />
+                            <FaRegClock className="icon-green" />
                             <span>
-                              {worker.verifiedCount}{" "}
+                              {worker.punctualityCount > 0 ? `${worker.punctualityRating}/5` : "N/A"}{" "}
                               <small className="text-gray">
-                                {"مصادقة"}
+                                {"\u0627\u0644\u0627\u0644\u062a\u0632\u0627\u0645"}
                               </small>
                             </span>
                           </div>

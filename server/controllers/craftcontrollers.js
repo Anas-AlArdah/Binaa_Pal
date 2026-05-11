@@ -1,4 +1,4 @@
-const { Op, fn, col } = require('sequelize');
+const { Op } = require('sequelize');
 const { Skill, Worker_Skill, User, WorkerProfile, Review } = require('../models');
 const { getFirstPortfolioImage, getProfileImage } = require('../utils/workerProfileData');
 
@@ -118,13 +118,50 @@ async function getSkillRows() {
 
 async function getWorkerCountBySkillId() {
   try {
-    const counts = await Worker_Skill.findAll({
-      attributes: ['skill_id', [fn('COUNT', fn('DISTINCT', col('worker_id'))), 'workers']],
-      group: ['skill_id'],
-      raw: true,
+    const skillLinks = await Worker_Skill.findAll({
+      include: [
+        {
+          model: Skill,
+          as: 'skill',
+          attributes: ['id', 'skill_name'],
+        },
+      ],
+    });
+    const workerIds = uniqueNumbers(skillLinks.map((linkModel) => toPlain(linkModel).worker_id));
+    const profiles = workerIds.length > 0
+      ? (await WorkerProfile.findAll({
+        where: {
+          [Op.or]: [{ id: { [Op.in]: workerIds } }, { user_id: { [Op.in]: workerIds } }],
+        },
+        attributes: ['id', 'user_id', 'major'],
+        raw: true,
+      }))
+      : [];
+    const profileById = new Map(profiles.map((profile) => [Number(profile.id), profile]));
+    const profileByUserId = new Map(profiles.map((profile) => [Number(profile.user_id), profile]));
+    const workersBySkillId = new Map();
+
+    skillLinks.forEach((linkModel) => {
+      const link = toPlain(linkModel);
+      const skillId = Number(link.skill_id);
+      const workerId = Number(link.worker_id);
+      const profile = resolveProfileForSkill(workerId, profileByUserId, profileById);
+      const workerKey = profile?.id ? `profile:${profile.id}` : `worker:${workerId}`;
+
+      if (!Number.isFinite(skillId) || !Number.isFinite(workerId)) {
+        return;
+      }
+
+      if (!workersBySkillId.has(skillId)) {
+        workersBySkillId.set(skillId, new Set());
+      }
+
+      workersBySkillId.get(skillId).add(workerKey);
     });
 
-    return new Map(counts.map((row) => [Number(row.skill_id), Number(row.workers) || 0]));
+    return new Map(
+      Array.from(workersBySkillId.entries()).map(([skillId, workers]) => [skillId, workers.size])
+    );
   } catch (error) {
     return new Map();
   }
@@ -244,16 +281,20 @@ function getReviewStats(profile) {
   const ratings = reviews
     .map((review) => Number(review.rating))
     .filter((rating) => Number.isFinite(rating));
+  const punctualityRatings = reviews
+    .map((review) => Number(review.punctuality))
+    .filter((rating) => Number.isFinite(rating));
 
-  if (ratings.length === 0) {
-    return { rating: 0, reviewsCount: 0 };
-  }
-
-  const average = ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length;
+  const average = (values) =>
+    values.length > 0
+      ? Number((values.reduce((sum, rating) => sum + rating, 0) / values.length).toFixed(1))
+      : 0;
 
   return {
-    rating: Number(average.toFixed(1)),
+    rating: average(ratings),
     reviewsCount: ratings.length,
+    punctualityRating: average(punctualityRatings),
+    punctualityCount: punctualityRatings.length,
   };
 }
 
@@ -300,12 +341,22 @@ function getSkillNamesForWorker(identifiers, skillNamesByWorkerId) {
   ];
 }
 
+function resolveProfileForSkill(workerId, profileByUserId, profileById) {
+  const normalizedWorkerId = Number(workerId);
+  const profileByUser = profileByUserId.get(normalizedWorkerId) || null;
+
+  if (profileByUser) {
+    return profileByUser;
+  }
+
+  return profileById.get(normalizedWorkerId) || null;
+}
+
 function buildWorker({ workerId, craft, user, profile, skillNames }) {
   const stats = getReviewStats(profile);
   const location = user?.location || '';
   const secondarySkill =
     skillNames.find((skillName) => skillName !== craft.name && skillName !== craft.skill_name) ||
-    profile?.major ||
     '';
 
   return {
@@ -322,7 +373,8 @@ function buildWorker({ workerId, craft, user, profile, skillNames }) {
     skills: skillNames,
     rating: stats.rating,
     reviewsCount: stats.reviewsCount,
-    verifiedCount: stats.reviewsCount ? Math.round(stats.rating * 20) : 0,
+    punctualityRating: stats.punctualityRating,
+    punctualityCount: stats.punctualityCount,
     experience: getExperience(profile),
     price: formatPrice(profile),
     priceSort: getPriceSort(profile),
@@ -400,7 +452,7 @@ async function getWorkersByCraft(req, res) {
         include.push({
           model: Review,
           as: 'reviews',
-          attributes: ['id', 'rating', 'comment', 'date'],
+          attributes: ['id', 'rating', 'punctuality', 'comment', 'date'],
         });
       }
 
@@ -441,13 +493,38 @@ async function getWorkersByCraft(req, res) {
       ],
     });
     const skillNamesByWorkerId = groupSkillNamesByWorkerId(allSkillLinks);
+    const skillNamesByProfileId = new Map();
+
+    allSkillLinks.forEach((linkModel) => {
+      const link = toPlain(linkModel);
+      const skillName = link.skill?.skill_name;
+      const profile = resolveProfileForSkill(link.worker_id, profileByUserId, profileById);
+      const profileId = Number(profile?.id);
+
+      if (!Number.isFinite(profileId) || !skillName) {
+        return;
+      }
+
+      if (!skillNamesByProfileId.has(profileId)) {
+        skillNamesByProfileId.set(profileId, new Set());
+      }
+
+      skillNamesByProfileId.get(profileId).add(skillName);
+    });
     const seenWorkers = new Set();
     const workers = [];
 
-    workerIds.forEach((workerId) => {
-      const profile = profileById.get(workerId) || profileByUserId.get(workerId) || null;
-      const user = userById.get(workerId) || profile?.user || userById.get(Number(profile?.user_id)) || null;
+    selectedSkillLinks.forEach((selectedSkillLink) => {
+      const workerId = Number(selectedSkillLink.worker_id);
+      const profile = resolveProfileForSkill(workerId, profileByUserId, profileById);
+      const user = profile?.user || userById.get(Number(profile?.user_id)) || userById.get(workerId) || null;
       const identifiers = uniqueNumbers([workerId, profile?.id, profile?.user_id, user?.id]);
+      const profileSkillNames = profile?.id
+        ? Array.from(skillNamesByProfileId.get(Number(profile.id)) || [])
+        : [];
+      const skillNames = profileSkillNames.length > 0
+        ? profileSkillNames
+        : getSkillNamesForWorker(identifiers, skillNamesByWorkerId);
       const dedupeKey = profile?.id ? `profile:${profile.id}` : user?.id ? `user:${user.id}` : `worker:${workerId}`;
 
       if (seenWorkers.has(dedupeKey)) {
@@ -462,7 +539,7 @@ async function getWorkersByCraft(req, res) {
           craft,
           user,
           profile,
-          skillNames: getSkillNamesForWorker(identifiers, skillNamesByWorkerId),
+          skillNames,
         })
       );
     });

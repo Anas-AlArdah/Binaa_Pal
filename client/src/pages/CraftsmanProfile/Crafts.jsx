@@ -51,8 +51,6 @@ function Crafts() {
 
   return (
     <>
-      <Header />
-
       <div className="crafts-page">
         <div className="crafts-container">
           <div className="crafts-header">
