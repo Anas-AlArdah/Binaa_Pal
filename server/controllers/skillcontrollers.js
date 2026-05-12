@@ -1,4 +1,4 @@
-const { Skill } = require('../models');
+const { Skill, Worker_Skill } = require('../models');
 
 async function createSkill(req, res) {
     try {
@@ -42,14 +42,28 @@ async function getAllSkills(req, res) {
 }
 
 async function deleteSkill(req, res) {
+    const transaction = await Skill.sequelize.transaction();
+
     try {
-        const skill = await Skill.findByPk(req.params.id);
+        const skill = await Skill.findByPk(req.params.id, { transaction });
         if (!skill) {
+            await transaction.rollback();
             return res.status(404).json({ message: 'Skill not found' });
         }
-        await skill.destroy();
-        res.status(200).json({ message: 'Skill deleted successfully' });
+
+        const removedWorkerLinks = await Worker_Skill.destroy({
+            where: { skill_id: skill.id },
+            transaction,
+        });
+
+        await skill.destroy({ transaction });
+        await transaction.commit();
+        res.status(200).json({ message: 'Skill deleted successfully', removedWorkerLinks });
     } catch (err) {
+        if (!transaction.finished) {
+            await transaction.rollback();
+        }
+
         res.status(500).json({
             message: 'Error deleting skill',
             error: err.message

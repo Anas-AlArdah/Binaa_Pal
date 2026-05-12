@@ -468,7 +468,85 @@ async function getCrafts(req, res) {
   }
 }
 
+async function createCraft(req, res) {
+  try {
+    const skillName = String(req.body.skill_name || req.body.name || '').trim();
+
+    if (!skillName) {
+      return res.status(400).json({ message: 'Craft name is required.' });
+    }
+
+    const existingSkill = await Skill.findOne({
+      where: { skill_name: skillName },
+    });
+
+    if (existingSkill) {
+      return res.status(409).json({ message: 'Craft already exists.' });
+    }
+
+    const skill = await Skill.create({ skill_name: skillName });
+
+    res.status(201).json({
+      item: {
+        id: skill.id,
+        name: skill.skill_name,
+        createdAt: skill.createdAt,
+        workersCount: 0,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Failed to create admin craft.',
+      error: error.message,
+    });
+  }
+}
+
+async function deleteCraft(req, res) {
+  const craftId = Number(req.params.id);
+
+  if (!Number.isFinite(craftId) || craftId <= 0) {
+    return res.status(400).json({ message: 'Invalid craft id.' });
+  }
+
+  const transaction = await Skill.sequelize.transaction();
+
+  try {
+    const skill = await Skill.findByPk(craftId, { transaction });
+
+    if (!skill) {
+      await transaction.rollback();
+      return res.status(404).json({ message: 'Craft not found.' });
+    }
+
+    const removedWorkerLinks = await Worker_Skill.destroy({
+      where: { skill_id: skill.id },
+      transaction,
+    });
+
+    await skill.destroy({ transaction });
+    await transaction.commit();
+
+    res.status(200).json({
+      message: 'Craft deleted successfully.',
+      deletedId: craftId,
+      removedWorkerLinks,
+    });
+  } catch (error) {
+    if (!transaction.finished) {
+      await transaction.rollback();
+    }
+
+    res.status(500).json({
+      message: 'Failed to delete admin craft.',
+      error: error.message,
+    });
+  }
+}
+
 module.exports = {
+  createCraft,
+  deleteCraft,
   getCrafts,
   getDashboard,
   getRequests,

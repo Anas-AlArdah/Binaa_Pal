@@ -12,5 +12,7 @@ router.get('/users', adminController.getUsers);
 router.get('/workers', adminController.getWorkers);
 router.get('/requests', adminController.getRequests);
 router.get('/crafts', adminController.getCrafts);
+router.post('/crafts', adminController.createCraft);
+router.delete('/crafts/:id', adminController.deleteCraft);
 
 module.exports = router;

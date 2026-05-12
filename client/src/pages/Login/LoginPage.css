@@ -262,6 +262,21 @@
     color: #adb5bd;
 }
 
+.form-input-custom::-ms-reveal,
+.form-input-custom::-ms-clear {
+    display: none;
+    height: 0;
+    width: 0;
+}
+
+.form-input-custom::-webkit-credentials-auto-fill-button,
+.form-input-custom::-webkit-contacts-auto-fill-button {
+    visibility: hidden;
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+}
+
 select.form-input-custom {
     appearance: none;
     cursor: pointer;
