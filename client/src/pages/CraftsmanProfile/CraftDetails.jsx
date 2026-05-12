@@ -244,7 +244,7 @@ function CraftDetails() {
                             <span>
                               {worker.punctualityCount > 0 ? `${worker.punctualityRating}/5` : "N/A"}{" "}
                               <small className="text-gray">
-                                {"\u0627\u0644\u0627\u0644\u062a\u0632\u0627\u0645"}
+                                الالتزام
                               </small>
                             </span>
                           </div>
