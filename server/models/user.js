@@ -25,7 +25,8 @@ module.exports = (sequelize, DataTypes) => {
         });
         User.hasOne(models.WorkerProfile,{
             foreignKey: 'user_id',
-            as: 'worker_profile'
+            as: 'worker_profile',
+            onDelete: 'CASCADE',
         })
         User.hasMany(models.Request,{
             foreignKey: 'user_id',

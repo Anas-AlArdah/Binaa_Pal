@@ -97,9 +97,24 @@ async function updateUser(req,res){
 }}
 async function getAllUsers(req,res){
     try{
-        const user=await User.findAll()
+        const user=await User.findAll({
+            include:[
+                {
+                    model:Role,
+                    as: 'role',
+                    attributes: ['type', ]
+                },
+                {
+                    model:WorkerProfile,
+                    as: 'worker_profile',
+                    attributes: ['id', 'bio', 'major']
+
+                }
+            ]
+        })
         res.status(200).json(user);
     }catch(err){
+
         res.status(500).json({
             message: "Failed to get users. Please try again later.",
             error: err.message

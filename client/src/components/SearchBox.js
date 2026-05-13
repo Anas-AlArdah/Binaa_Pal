@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom';
-const QUICK = ['دهان', 'بلاط', 'نجارة', 'كهرباء', 'سباكة', 'تكييف'];
+
 
 export default function SearchBox() {
     const [query, setQuery]     = useState('');
@@ -8,14 +8,29 @@ export default function SearchBox() {
     const [filters, setFilters] = useState(null);
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
+const[skills, setSkills] = useState([]);
+   useEffect(() => {
 
-    const handleSearch = async (overrideQuery) => {
+   const getskills = async () => {
+      try {
+        const res=await  fetch('http://localhost:3001/skills')
+          const json=await res.json()
+          setSkills(json)
+
+      }catch(err){
+          console.log(err)
+      }
+   }
+   getskills();
+   },[])
+        const handleSearch = async (overrideQuery) => {
         const q = overrideQuery || query;
         if (!q.trim()) return;
 
         setLoading(true);
         setSearched(true);
         try {
+
             const res = await fetch(`http://localhost:3001/search?q=${encodeURIComponent(q)}`);
             const data = await res.json();
             setResults(data.workers || []);
@@ -81,17 +96,31 @@ export default function SearchBox() {
 
                 {/* Quick Chips */}
                 <div  style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',}}>
-                    {QUICK.map(skill => (
-                        <button  key={skill}
-                                onClick={() => { setQuery(skill); handleSearch(skill); }}
+                    {skills.slice(0,5).map(s => (
+                        <button
+
+                            key={s.skill_name}
+                                onClick={() => { setQuery(s.skill_name); handleSearch(s.skill_name); }}
                                 style={{
+                                    height: 40,
+                                    width: '15%',
                                     padding: '5px 16px',
-                                    background: 'rgba(255,255,255,0.15)',
-                                    border: '1.5px solid rgba(255,255,255,10.35)',
-                                    borderRadius: 999, fontSize: 16, color: '#052828',
+                                    background: 'rgba(15,39,39,0.15)',
+                                    border: '1.9px solid rgba(255,255,255,10.35)',
+                                    borderRadius: 999, fontSize: 16, color: '#16171b',
                                     cursor: 'pointer', fontFamily: 'inherit',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    textAlign: 'center',
+
                                 }}
-                        >{skill}</button>
+                            onMouseEnter={e => e.currentTarget.style.borderColor = '#1D6E8F'}
+                            onMouseLeave={e => e.currentTarget.style.borderColor = '#b4eaea'}
+                         >
+                            {s.skill_name}
+
+                        </button>
                     ))}
                 </div>
             </div>
@@ -100,7 +129,7 @@ export default function SearchBox() {
             {searched && (
                 <div style={{ padding: '1.5rem', maxWidth: 700, margin: '0 auto' }}>
 
-                    {/* AI فهم شو */}
+                    {/* AI فهم شو*/}
                     {/*{filters && (*/}
                     {/*    <div style={{*/}
                     {/*        background: '#E1F5EE', borderRadius: 8, padding: '8px 14px',*/}
@@ -121,49 +150,67 @@ export default function SearchBox() {
                         <p style={{ textAlign: 'center', color: '#666' }}>لا توجد نتائج</p>
                     ) : (
                         <>
-                            <p style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
-                                {results.length} نتيجة
-                            </p>
+                            <p style={{ fontSize: 13, color: '#666', marginBottom: 1 }}>
+                                {results.length} نتائج                            </p>
+                            <div
+                            style={{
+                            height: "200px",
+                            overflowY: "auto",
+                                overflowX: "hidden",
+                        }}
+                            >
                             {results.map(w => (
-                                <Link to={`/profile/${w.workerProfileId}`} key={w.id}
-                                      style={{
-                                    display: 'flex', alignItems: 'center', gap: 12,
-                                    padding: 14, border: '0.5px solid #e0e0e0',
-                                    borderRadius: 12, marginBottom: 8, background: '#fff',
-                                    cursor: 'pointer', transition: 'border-color 0.15s',
-                                    textDecoration: 'none',
-                                }}
-                                     onMouseEnter={e => e.currentTarget.style.borderColor = '#1D6E8F'}
-                                     onMouseLeave={e => e.currentTarget.style.borderColor = '#e0e0e0'}
-                                >
-                                    <div style={{
-                                        width: 42, height: 42, borderRadius: '50%',
-                                        background: '#E1F5EE', display: 'flex',
-                                        alignItems: 'center', justifyContent: 'center',
-                                        fontSize: 14, fontWeight: 500, color: '#0F6E56', flexShrink: 0,
-                                    }}>
-                                        {(w.name)}
-                                    </div>
-                                    <div style={{ fontSize: 12, marginTop: 4 }}>
-                                         {w.rating }
+                                <Link
+                                    to={`/profile/${w.workerProfileId}`}
+                                    key={w.id}
+                                    style={{
+                                         display: "flex", gap: 12, padding: 14,
+                                        border: "1px solid #e0e0e0", borderRadius: 12, marginBottom: 10,
+                                        background: "rgba(189,205,183,0.71)", textDecoration: "none", color: "inherit", alignItems: "center"}}>
+
+                                    <div
+                                        style={{
+                                            width: 60, height: 60, borderRadius: "50%", background: "#E1F5EE",
+                                            display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold",
+                                            color: "#0F6E56", flexShrink: 0, fontSize: 14,
+                                        }}
+                                    >
+                                        {w.name?.charAt(0)}
                                     </div>
 
+                                    {/* MIDDLE - INFO */}
+                                    <div style={{ flex: 1, minWidth: 0 }}>
 
-                                    <div style={{ flex: 1 }}>
 
-                                        <div style={{ fontSize: 14, color: '#0d0e15', marginTop: 2 }}>📍 {w.location}</div>
-                                        <div style={{ display: 'flex', gap: 5, marginTop: 6, flexWrap: 'wrap' }}>
-                                            {w.skills.map(s => (
-                                                <span key={s} style={{
-                                                    padding: '2px 8px', background: '#E1F5EE',
-                                                    color: '#0F6E56', borderRadius: 999, fontSize: 11,
-                                                }}>{s}</span>
+                                        <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4,}}>
+                                            <div style={{fontSize: 16, fontWeight: "600", color: "#0d0e15",}}>
+                                                {w.name}
+                                            </div>
+
+
+                                        </div>
+                                        <div style={{fontSize: 15, color: "#555", marginBottom: 6,}}>
+                                            📍 {w.location}
+                                        </div>
+
+                                        <div style={{display: "flex", gap: 5, flexWrap: "wrap",}}>
+                                            {w.skills.map((s) => (
+                                                <span
+                                                    key={s}
+                                                    style={{
+                                                        padding: "3px 8px", background: "#E1F5EE", color: "#0F6E56",
+                                                        borderRadius: 999, fontSize: 12,}}
+                                                >{s}</span>
                                             ))}
                                         </div>
                                     </div>
-                                    <div style={{ fontSize: 12, color: '#555' }}>{w.phone}</div>
+
+                                    <div style={{fontSize: 12, color: "#666", whiteSpace: "nowrap",}}>
+                                        📞 {w.phone}
+                                    </div>
                                 </Link>
                             ))}
+                            </div>
                         </>
                     )}
                 </div>
