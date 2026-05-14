@@ -117,6 +117,8 @@ function App() {
           <Route path="/profile/:id" element={<PageProfile />} />
           <Route path="/craftsman" element={<Crafts />} />
           <Route path="/craftsman/:slug" element={<CraftDetails />} />
+
+
         </Route>
       </Routes>
     </Router>
@@ -124,3 +126,23 @@ function App() {
 }
 
 export default App;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

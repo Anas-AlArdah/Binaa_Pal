@@ -43,21 +43,37 @@ const normalizeProfile = (profile) => ({
     '',
 });
 
+
 function formatPriceRange(profile) {
   if (profile?.min_price && profile?.max_price) {
     return `${profile.min_price} - ${profile.max_price} شيكل`;
   }
 
+
+
   if (profile?.min_price) {
     return `ابتداءً من ${profile.min_price} شيكل`;
   }
+
+
+
 
   if (profile?.max_price) {
     return `حتى ${profile.max_price} شيكل`;
   }
 
+
+
+
   return 'حسب طبيعة المشروع';
 }
+
+
+
+
+
+
+
 
 const PageProfile = () => {
   const navigate = useNavigate();
@@ -70,9 +86,18 @@ const PageProfile = () => {
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+
+
+
   useEffect(() => {
     let isMounted = true;
     window.scrollTo(0, 0);
+
+
+
+
+
+
 
     const fetchProfile = async () => {
       try {
@@ -80,6 +105,14 @@ const PageProfile = () => {
           fetchJson(`/api/worker-profiles/${id}`),
           fetchJson('/api/skills').catch(() => []),
         ]);
+
+
+
+
+
+
+
+
 
         if (isMounted) {
           setProfile(normalizeProfile(data));

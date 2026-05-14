@@ -3,6 +3,12 @@ const cors = require('cors');
 const db = require('./models');
 require('dotenv').config();
 
+// ================= Routes =================
+
+const availabilityRoutes = require('./routes/availabilityRoutes');
+const photoRoutes = require('./routes/photoRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+
 const authRoutes = require('./routes/authRouter');
 const userRoutes = require('./routes/userRouter');
 const roleRoutes = require('./routes/roleRouter');
@@ -19,12 +25,18 @@ const adminRoutes = require('./routes/adminRouter');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// ================= Middlewares =================
+
 app.use(cors());
 app.use(express.json());
 
-//Unified API namespace used by the current frontend.
+// ================= API Routes =================
+
+app.use('/api/availability', availabilityRoutes);
+app.use('/api/photo', photoRoutes);
+app.use('/api/projects', projectRoutes);
+
 app.use('/api/auth', authRoutes);
-console.log("users route loaded");
 app.use('/api/users', userRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/requests', requestRoutes);
@@ -37,38 +49,31 @@ app.use('/api/skills', skillRoutes);
 app.use('/api/workerskills', workerSkillRoutes);
 app.use('/api/admin', adminRoutes);
 
-//Legacy aliases kept so older team work still runs on the same backend.
-app.use('/auth', authRoutes);
-app.use('/users', userRoutes);
-app.use('/roles', roleRoutes);
-app.use('/requests', requestRoutes);
-app.use('/worker-profiles', workerProfileRoutes);
-app.use('/crafts', craftRoutes);
-app.use('/offers', offerRoutes);
-app.use('/assistant', assistantRoutes);
-app.use('/search', searchRoutes);
-app.use('/skills', skillRoutes);
-app.use('/workerskills', workerSkillRoutes);
-app.use('/admin', adminRoutes);
+// ================= Test Route =================
 
 app.get('/', (req, res) => {
   res.send('API is working 🚀');
 });
 
-async function startServer() {
-  await db.sequelize.authenticate();
-  console.log('Connected to MySQL via Sequelize');
+// ================= Start Server =================
 
-  return app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
+async function startServer() {
+  try {
+    await db.sequelize.authenticate();
+
+    console.log('Connected to MySQL via Sequelize');
+
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+
+  } catch (error) {
+    console.error('Database connection error:', error);
+  }
 }
 
 if (require.main === module) {
-  startServer().catch((error) => {
-    console.error('Database connection error:', error);
-    process.exit(1);
-  });
+  startServer();
 }
 
 module.exports = { app, startServer };

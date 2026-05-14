@@ -1,10 +1,11 @@
 {
   "development": {
     "username": "root",
-    "password": "osama12345",
-    "database": "BinaaPall2",
+    "password": "mohammad@124",
+    "database": "binaaPall2",
     "host": "localhost",
     "port": 3306,
+
     "dialect": "mysql"
   },
   "test": {
