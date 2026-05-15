@@ -73,17 +73,6 @@ const iconByKey = {
   default: <FaThLarge color="#3B82F6" />,
 };
 
-const fallbackWorkerCounts = {
-  tiling: 2,
-  painting: 2,
-  electrical: 2,
-  plumbing: 2,
-  gypsum: 2,
-  carpentry: 1,
-  aluminum: 2,
-  masonry: 2,
-};
-
 export function decorateCraft(craft = {}) {
   const slug = craft.slug || String(craft.id || "");
   const fallback = fallbackPresentation[slug] || {};
@@ -105,6 +94,6 @@ export const defaultCrafts = Object.entries(fallbackPresentation).map(([slug, cr
     id: index + 1,
     slug,
     ...craft,
-    workers: fallbackWorkerCounts[slug] || 0,
+    workers: 0,
   })
 );
