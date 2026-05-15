@@ -9,11 +9,12 @@ export default function SearchBox() {
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
 const[skills, setSkills] = useState([]);
+
    useEffect(() => {
 
    const getskills = async () => {
       try {
-        const res=await  fetch('http://localhost:3001/skills')
+        const res=await  fetch('http://localhost:3001/api/skills')
           const json=await res.json()
           setSkills(json)
 
@@ -31,7 +32,7 @@ const[skills, setSkills] = useState([]);
         setSearched(true);
         try {
 
-            const res = await fetch(`http://localhost:3001/search?q=${encodeURIComponent(q)}`);
+            const res = await fetch(`http://localhost:3001/api/search?q=${encodeURIComponent(q)}`);
             const data = await res.json();
             setResults(data.workers || []);
             setFilters(data.filters || null);
@@ -153,11 +154,11 @@ const[skills, setSkills] = useState([]);
                             <p style={{ fontSize: 13, color: '#666', marginBottom: 1 }}>
                                 {results.length} نتائج                            </p>
                             <div
-                            style={{
-                            height: "200px",
-                            overflowY: "auto",
-                                overflowX: "hidden",
-                        }}
+                                style={{
+                                    height: "200px",
+                                    overflowY: "auto",
+                                    overflowX: "hidden",
+                                }}
                             >
                             {results.map(w => (
                                 <Link

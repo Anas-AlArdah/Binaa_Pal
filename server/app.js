@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config({ quiet: true });
 const db = require('./models');
-require('dotenv').config();
 
 // ================= Routes =================
 
@@ -13,6 +13,7 @@ const authRoutes = require('./routes/authRouter');
 const userRoutes = require('./routes/userRouter');
 const roleRoutes = require('./routes/roleRouter');
 const requestRoutes = require('./routes/requestRouter');
+const workerRequestRoutes = require('./routes/workerRequestRouter');
 const workerProfileRoutes = require('./routes/workerProfileRouter');
 const craftRoutes = require('./routes/craftRouter');
 const offerRoutes = require('./routes/offerRouter');
@@ -40,6 +41,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/requests', requestRoutes);
+app.use('/api/worker-request', workerRequestRoutes);
 app.use('/api/worker-profiles', workerProfileRoutes);
 app.use('/api/crafts', craftRoutes);
 app.use('/api/offers', offerRoutes);

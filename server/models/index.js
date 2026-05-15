@@ -4,9 +4,21 @@ const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
 const process = require('process');
+require('dotenv').config({ quiet: true });
+
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
+const baseConfig = require(__dirname + '/../config/config.json')[env];
+const envOrDefault = (key, fallback) =>
+  Object.prototype.hasOwnProperty.call(process.env, key) ? process.env[key] : fallback;
+const config = {
+  ...baseConfig,
+  username: envOrDefault('DB_USERNAME', baseConfig.username),
+  password: envOrDefault('DB_PASSWORD', baseConfig.password),
+  database: envOrDefault('DB_NAME', envOrDefault('DB_DATABASE', baseConfig.database)),
+  host: envOrDefault('DB_HOST', baseConfig.host),
+  port: Number(envOrDefault('DB_PORT', baseConfig.port || 3306)),
+};
 const db = {};
 
 let sequelize;

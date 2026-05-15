@@ -3,7 +3,7 @@ const { Worker_Skill,Skill } = require('../models');
 async function addWorkerSkill(req, res) {
     const { worker_id, skill_id } = req.body;
 
-    // ✅ تحقق من الإدخال أولاً
+  
     if (!worker_id || !skill_id) {
         return res.status(400).json({ message: "worker_id and skill_id are required." });
     }
@@ -75,3 +75,4 @@ module.exports = {
     getWorkerSkillsByWorkerId,
     removeWorkerSkill
 };
+

@@ -4,6 +4,7 @@ import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
 import StarBorderRoundedIcon from '@mui/icons-material/StarBorderRounded';
 import WorkOutlineRoundedIcon from '@mui/icons-material/WorkOutlineRounded';
+import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
 import { getFirstPortfolioImage } from '../../utils/workerProfile';
 
 function formatPriceRange(profile) {
@@ -85,8 +86,9 @@ const ProfileHeader = ({ profile }) => {
             />
           </Stack>
 
-          <Typography sx={{ fontSize: { xs: '28px', sm: '34px' }, fontWeight: 900, color: '#1f1f1f', mb: 1 }}>
+          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '28px', sm: '34px' }, fontWeight: 900, color: '#1f1f1f', mb: 1 }}>
             {user.firstname} {user.lastname}
+            <VerifiedRoundedIcon sx={{ color: '#5c7c43', fontSize: { xs: '24px', sm: '28px' } }} titleAccess="صنايعي موثق" />
           </Typography>
 
           <Stack direction="row" spacing={1.2} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>

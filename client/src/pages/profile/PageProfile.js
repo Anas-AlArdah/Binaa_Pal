@@ -18,6 +18,7 @@ import ProfileAiReview from '../../components/profile/ProfileAiReview';
 import ProfileAvailability from '../../components/profile/ProfileAvailability';
 import ProfilePortfolio from '../../components/profile/ProfilePortfolio';
 import ProfileRegions from '../../components/profile/ProfileRegions';
+import ProfileVideoStats from '../../components/profile/ProfileVideoStats';
 import ProfileReviews from '../../components/profile/ProfileReviews';
 import ProfileEditDialog from '../../components/profile/ProfileEditDialog';
 import { ApiError, fetchJson, getApiErrorMessage } from '../../utils/api';
@@ -68,6 +69,29 @@ function formatPriceRange(profile) {
   return 'حسب طبيعة المشروع';
 }
 
+const WORKER_REQUEST_TEXT = {
+  button: '\u0637\u0644\u0628 \u0627\u0644\u0639\u0627\u0645\u0644',
+  sending: '\u062c\u0627\u0631\u064a \u0625\u0631\u0633\u0627\u0644 \u0627\u0644\u0637\u0644\u0628...',
+  success:
+    '\u062a\u0645 \u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0627\u0644\u0639\u0627\u0645\u0644 \u0628\u0646\u062c\u0627\u062d\u060c \u062a\u062d\u0642\u0642 \u0645\u0646 \u0628\u0631\u064a\u062f\u0643 \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a.',
+  error:
+    '\u062a\u0639\u0630\u0631 \u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0627\u0644\u0639\u0627\u0645\u0644. \u062d\u0627\u0648\u0644 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649.',
+  fallbackName: 'Binaa Test Client',
+  fallbackEmail: 'client@example.com',
+};
+
+function getStoredAuthUser() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    return JSON.parse(window.localStorage.getItem('binaa_auth_user') || 'null');
+  } catch (error) {
+    return null;
+  }
+}
+
 
 
 
@@ -85,6 +109,8 @@ const PageProfile = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [requestSending, setRequestSending] = useState(false);
+  const [requestError, setRequestError] = useState('');
 
 
 
@@ -203,6 +229,41 @@ const PageProfile = () => {
     }
   };
 
+  const handleRequestWorker = async () => {
+    const authUser = getStoredAuthUser();
+    const clientName = `${authUser?.firstname || ''} ${authUser?.lastname || ''}`.trim() ||
+      WORKER_REQUEST_TEXT.fallbackName;
+    const payload = {
+      clientName,
+      clientEmail: String(authUser?.email || WORKER_REQUEST_TEXT.fallbackEmail).trim(),
+      clientUserId: authUser?.id,
+      workerId: profile.user_id || profile.user?.id,
+      workerName: fullName,
+      profileId: profile.id || Number(id),
+      craftName: profile.major || profile.skill_names?.[0] || '',
+      city: profile.user?.location || '',
+    };
+
+    setRequestSending(true);
+    setRequestError('');
+
+    try {
+      await fetchJson('/api/worker-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      setSuccessMessage(WORKER_REQUEST_TEXT.success);
+    } catch (err) {
+      setRequestError(getApiErrorMessage(err, WORKER_REQUEST_TEXT.error));
+    } finally {
+      setRequestSending(false);
+    }
+  };
+
   return (
     <div className="profile-page">
       <Container maxWidth="lg" className="profile-shell">
@@ -276,6 +337,10 @@ const PageProfile = () => {
                 </div>
               )}
 
+              <div className="profile-panel" style={{ padding: 0, background: 'transparent', border: 'none' }}>
+                <ProfileVideoStats />
+              </div>
+
               <div className="profile-panel">
                 <ProfileStats profile={profile} />
               </div>
@@ -299,6 +364,16 @@ const PageProfile = () => {
                   <strong>{profile.user.phone || 'غير مضاف'}</strong>
                 </div>
                 <div className="profile-contact-card__row">
+                  <span>الواتساب</span>
+                  <strong>
+                    {profile.user.phone ? (
+                      <a href={`https://wa.me/${profile.user.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ color: '#25d366', textDecoration: 'none' }}>
+                        مراسلة واتساب
+                      </a>
+                    ) : 'غير مضاف'}
+                  </strong>
+                </div>
+                <div className="profile-contact-card__row">
                   <span>المنطقة</span>
                   <strong>{profile.user.location || 'غير محددة'}</strong>
                 </div>
@@ -306,9 +381,26 @@ const PageProfile = () => {
                   <span>نطاق السعر</span>
                   <strong>{priceRange}</strong>
                 </div>
-                <button type="button" className="profile-contact-card__action">
-                  تواصل مع العامل
+                <button
+                  type="button"
+                  className="profile-contact-card__action"
+                  onClick={handleRequestWorker}
+                  disabled={requestSending}
+                >
+                  {requestSending ? (
+                    <>
+                      <CircularProgress size={18} sx={{ color: '#fff' }} />
+                      <span>{WORKER_REQUEST_TEXT.sending}</span>
+                    </>
+                  ) : (
+                    WORKER_REQUEST_TEXT.button
+                  )}
                 </button>
+                {requestError && (
+                  <div className="profile-contact-card__error" role="alert">
+                    {requestError}
+                  </div>
+                )}
               </div>
             </Box>
           </Grid>
