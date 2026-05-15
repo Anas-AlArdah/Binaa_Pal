@@ -6,3 +6,4 @@ const { chat } = require('../controllers/Assistantcontroller');
 router.post('/', chat);
 
 module.exports = router;
+

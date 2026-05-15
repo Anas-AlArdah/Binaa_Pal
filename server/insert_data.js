@@ -11,7 +11,7 @@ async function insertUltraMassiveData() {
   console.log('Connected to database. Starting ultra massive data insertion...');
 
   try {
-    // Cleanup
+    // Cleanup to start fresh with the ultra set
     await connection.query("SET FOREIGN_KEY_CHECKS = 0");
     await connection.query("TRUNCATE TABLE Offers");
     await connection.query("TRUNCATE TABLE Requests");
