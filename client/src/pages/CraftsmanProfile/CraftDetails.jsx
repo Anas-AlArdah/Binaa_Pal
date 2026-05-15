@@ -49,7 +49,7 @@ function normalizeWorker(worker, craft) {
     experience: worker.experience || "N/A",
     price: worker.price || "N/A",
     priceSort: normalizeNumber(worker.priceSort, Number.MAX_SAFE_INTEGER),
-    availableNow: worker.availableNow !== false,
+    availableNow: Boolean(worker.availableNow),
     imageUrl: worker.imageUrl || null,
   };
 }

@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Skill, Worker_Skill, User, WorkerProfile, Review } = require('../models');
+const { Skill, Worker_Skill, User, WorkerProfile, Review, Availability } = require('../models');
 const { getFirstPortfolioImage, getProfileImage } = require('../utils/workerProfileData');
 
 const CRAFT_METADATA = [
@@ -70,6 +70,8 @@ const CRAFT_METADATA = [
 ];
 
 const OPTIONAL_SKILL_COLUMNS = ['slug', 'description', 'icon_key'];
+const APP_TIME_ZONE = process.env.APP_TIME_ZONE || process.env.TZ || 'Asia/Hebron';
+const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 function normalizeText(value) {
   return String(value || '')
@@ -298,6 +300,116 @@ function getReviewStats(profile) {
   };
 }
 
+function getCurrentAvailabilityContext(now = new Date()) {
+  try {
+    const day = new Intl.DateTimeFormat('en-US', {
+      weekday: 'long',
+      timeZone: APP_TIME_ZONE,
+    }).format(now);
+    const timeParts = new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+      timeZone: APP_TIME_ZONE,
+    }).formatToParts(now);
+    const hour = Number(timeParts.find((part) => part.type === 'hour')?.value);
+    const minute = Number(timeParts.find((part) => part.type === 'minute')?.value);
+    const dayIndex = DAYS_OF_WEEK.indexOf(day);
+
+    if (!Number.isFinite(hour) || !Number.isFinite(minute) || dayIndex < 0) {
+      throw new Error('Invalid availability time context');
+    }
+
+    return {
+      day,
+      previousDay: DAYS_OF_WEEK[(dayIndex + DAYS_OF_WEEK.length - 1) % DAYS_OF_WEEK.length],
+      minutes: hour * 60 + minute,
+    };
+  } catch (error) {
+    const dayIndex = now.getDay();
+
+    return {
+      day: DAYS_OF_WEEK[dayIndex],
+      previousDay: DAYS_OF_WEEK[(dayIndex + DAYS_OF_WEEK.length - 1) % DAYS_OF_WEEK.length],
+      minutes: now.getHours() * 60 + now.getMinutes(),
+    };
+  }
+}
+
+function parseTimeToMinutes(value) {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.getHours() * 60 + value.getMinutes();
+  }
+
+  const [hour, minute] = String(value).split(':').map((part) => Number(part));
+
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
+    return null;
+  }
+
+  return hour * 60 + minute;
+}
+
+function isAvailabilityRecordActive(record, context) {
+  if (!record?.is_available) {
+    return false;
+  }
+
+  const startMinutes = parseTimeToMinutes(record.start_time);
+  const endMinutes = parseTimeToMinutes(record.end_time);
+  const recordDay = record.day_of_week;
+
+  if (!Number.isFinite(startMinutes) || !Number.isFinite(endMinutes) || !recordDay) {
+    return false;
+  }
+
+  if (startMinutes < endMinutes) {
+    return (
+      recordDay === context.day &&
+      context.minutes >= startMinutes &&
+      context.minutes < endMinutes
+    );
+  }
+
+  if (startMinutes > endMinutes) {
+    return (
+      (recordDay === context.day && context.minutes >= startMinutes) ||
+      (recordDay === context.previousDay && context.minutes < endMinutes)
+    );
+  }
+
+  return recordDay === context.day;
+}
+
+function isWorkerAvailableNow(records, context) {
+  return records.some((record) => isAvailabilityRecordActive(record, context));
+}
+
+function groupAvailabilityByUserId(records) {
+  const grouped = new Map();
+
+  records.forEach((recordModel) => {
+    const record = toPlain(recordModel);
+    const userId = Number(record?.user_id);
+
+    if (!Number.isFinite(userId)) {
+      return;
+    }
+
+    if (!grouped.has(userId)) {
+      grouped.set(userId, []);
+    }
+
+    grouped.get(userId).push(record);
+  });
+
+  return grouped;
+}
+
 function getCity(location) {
   return String(location || '')
     .split(/,|\u060c/)
@@ -352,12 +464,14 @@ function resolveProfileForSkill(workerId, profileByUserId, profileById) {
   return profileById.get(normalizedWorkerId) || null;
 }
 
-function buildWorker({ workerId, craft, user, profile, skillNames }) {
+function buildWorker({ workerId, craft, user, profile, skillNames, availabilityByUserId, availabilityContext }) {
   const stats = getReviewStats(profile);
   const location = user?.location || '';
   const secondarySkill =
     skillNames.find((skillName) => skillName !== craft.name && skillName !== craft.skill_name) ||
     '';
+  const availabilityUserId = Number(user?.id || profile?.user_id || workerId);
+  const availabilityRecords = availabilityByUserId.get(availabilityUserId) || [];
 
   return {
     id: profile?.id || user?.id || workerId,
@@ -378,7 +492,7 @@ function buildWorker({ workerId, craft, user, profile, skillNames }) {
     experience: getExperience(profile),
     price: formatPrice(profile),
     priceSort: getPriceSort(profile),
-    availableNow: true,
+    availableNow: isWorkerAvailableNow(availabilityRecords, availabilityContext),
     imageUrl: getProfileImage(profile) || getFirstPortfolioImage(profile),
   };
 }
@@ -437,6 +551,7 @@ async function getWorkersByCraft(req, res) {
 
     const workerProfileTableExists = await tableExists(WorkerProfile.getTableName());
     const reviewTableExists = await tableExists(Review.getTableName());
+    const availabilityTableExists = await tableExists(Availability.getTableName());
     let profiles = [];
 
     if (workerProfileTableExists) {
@@ -474,6 +589,21 @@ async function getWorkersByCraft(req, res) {
         userById.set(Number(profile.user.id), profile.user);
       }
     });
+
+    const availabilityUserIds = uniqueNumbers([
+      ...workerIds,
+      ...profiles.map((profile) => profile.user_id),
+      ...Array.from(userById.keys()),
+    ]);
+    const availabilityRecords = availabilityTableExists && availabilityUserIds.length > 0
+      ? await Availability.findAll({
+        where: { user_id: { [Op.in]: availabilityUserIds } },
+        attributes: ['user_id', 'day_of_week', 'start_time', 'end_time', 'is_available'],
+        raw: true,
+      })
+      : [];
+    const availabilityByUserId = groupAvailabilityByUserId(availabilityRecords);
+    const availabilityContext = getCurrentAvailabilityContext();
 
     const skillLookupIds = uniqueNumbers([
       ...workerIds,
@@ -540,6 +670,8 @@ async function getWorkersByCraft(req, res) {
           user,
           profile,
           skillNames,
+          availabilityByUserId,
+          availabilityContext,
         })
       );
     });

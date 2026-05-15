@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import "./Crafts.css";
-import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { useNavigate } from "react-router-dom";
 import { fetchJson, getApiErrorMessage } from "../../utils/api";
