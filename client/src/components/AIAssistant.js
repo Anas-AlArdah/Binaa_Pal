@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { fetchJson } from '../utils/api';
 
 const SUGGESTIONS = [
-    'عندي تسريب مية',
+    'عندي تسريب مياه',
     'الكهرباء مقطوعة',
     'الباب ما بيقفل',
     'في شقوق بالجدار',
@@ -20,9 +20,6 @@ export default function AIAssistant() {
     const [loading, setLoading] = useState(false);
     const bottomRef = useRef(null);
 
-    useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
 
     const sendMessage = async (text) => {
         const userText = text || input.trim();
