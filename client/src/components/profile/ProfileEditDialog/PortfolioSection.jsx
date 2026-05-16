@@ -4,13 +4,35 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import { prepareImageFile } from '../../../utils/workerProfile';
 
 const PortfolioSection = ({
     items,
     addPortfolioItem,
     removePortfolioItem,
     updatePortfolioItem,
-}) => (
+    onError,
+}) => {
+    const handleImageUpload = async (event, index) => {
+        const file = event.target.files?.[0];
+        event.target.value = '';
+
+        if (!file) return;
+
+        try {
+            const imageDataUrl = await prepareImageFile(file, {
+                maxWidth: 1200,
+                maxHeight: 1200,
+                quality: 0.78,
+            });
+            updatePortfolioItem(index, 'image', imageDataUrl);
+        } catch (error) {
+            console.error('Project image upload error:', error);
+            onError?.('تعذر تجهيز صورة المشروع للحفظ');
+        }
+    };
+
+    return (
     <Stack spacing={2}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="h6" sx={{ fontWeight: 900, color: '#2d2a26' }}>
@@ -88,16 +110,7 @@ const PortfolioSection = ({
                                         type="file"
                                         hidden
                                         accept="image/*"
-                                        onChange={(event) => {
-                                            const file = event.target.files?.[0];
-                                            if (file) {
-                                                updatePortfolioItem(
-                                                    index,
-                                                    'image',
-                                                    URL.createObjectURL(file)
-                                                );
-                                            }
-                                        }}
+                                        onChange={(event) => handleImageUpload(event, index)}
                                     />
                                 </Button>
 
@@ -183,6 +196,7 @@ const PortfolioSection = ({
             ))}
         </Stack>
     </Stack>
-);
+    );
+};
 
 export default PortfolioSection;
