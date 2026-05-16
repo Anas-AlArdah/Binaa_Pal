@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+
 const {
     getAllPhotos,
     getPhotoById,
@@ -9,22 +10,23 @@ const {
     deletePhoto,
 } = require('../controllers/photoControllers');
 
-// GET /api/photos                          → all photos (with project info)
+// GET /api/photos
 router.get('/', getAllPhotos);
 
-// GET /api/photos/:id                      → single photo by ph_id
-router.get('/:id', getPhotoById);
-
-// GET /api/photos/project/:projectId       → photos for a specific project
+// مهم: هذا لازم قبل /:id
+// GET /api/photos/project/:projectId
 router.get('/project/:projectId', getPhotosByProject);
 
-// POST /api/photos                         → add new photo
+// GET /api/photos/:id
+router.get('/:id', getPhotoById);
+
+// POST /api/photos
 router.post('/', createPhoto);
 
-// PUT /api/photos/:id                      → update photo
+// PUT /api/photos/:id
 router.put('/:id', updatePhoto);
 
-// DELETE /api/photos/:id                   → delete photo
+// DELETE /api/photos/:id
 router.delete('/:id', deletePhoto);
 
 module.exports = router;

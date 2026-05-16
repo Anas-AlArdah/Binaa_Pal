@@ -36,6 +36,7 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/photo', photoRoutes);
+app.use('/api/photos', photoRoutes);
 app.use('/api/projects', projectRoutes);
 
 app.use('/api/auth', authRoutes);

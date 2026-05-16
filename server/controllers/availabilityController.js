@@ -68,10 +68,20 @@ const getAvailabilityByUser = async (req, res) => {
 
         const records = await Availability.findAll({
             where: { user_id: userId },
-            order: [['day_of_week', 'ASC'], ['start_time', 'ASC']],
+            order: [['day_of_week', 'ASC'], ['updatedAt', 'DESC'], ['av_id', 'DESC']],
         });
 
-        return res.status(200).json(records);
+        const seenDays = new Set();
+        const latestRecordsByDay = records.filter((record) => {
+            if (seenDays.has(record.day_of_week)) {
+                return false;
+            }
+
+            seenDays.add(record.day_of_week);
+            return true;
+        });
+
+        return res.status(200).json(latestRecordsByDay);
 
     } catch (error) {
         console.error('getAvailabilityByUser error:', error);
@@ -116,16 +126,29 @@ const createAvailability = async (req, res) => {
             });
         }
 
-        const record = await Availability.create({
-            user_id,
-            day_of_week,
-            start_time,
-            end_time,
-            is_available: is_available ?? true
+        const existingRecord = await Availability.findOne({
+            where: { user_id, day_of_week },
+            order: [['updatedAt', 'DESC'], ['av_id', 'DESC']],
         });
 
+        const record = existingRecord
+            ? await existingRecord.update({
+                start_time,
+                end_time,
+                is_available: is_available ?? true
+            })
+            : await Availability.create({
+                user_id,
+                day_of_week,
+                start_time,
+                end_time,
+                is_available: is_available ?? true
+            });
+
         return res.status(201).json({
-            message: 'Availability created successfully',
+            message: existingRecord
+                ? 'Availability updated successfully'
+                : 'Availability created successfully',
             availability: record,
         });
 

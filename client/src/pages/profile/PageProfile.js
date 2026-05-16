@@ -50,6 +50,26 @@ const normalizeProfile = (profile) => ({
     '',
 });
 
+const getProfileUserId = (profile) => {
+  const value = profile?.user?.id ?? profile?.user_id ?? profile?.worker_id;
+  const userId = Number(value);
+  return Number.isInteger(userId) && userId > 0 ? userId : null;
+};
+
+const withAvailability = async (profile) => {
+  const userId = getProfileUserId(profile);
+
+  if (!userId) {
+    return profile;
+  }
+
+  const availability = await fetchJson(`/api/availability/user/${userId}`).catch(() => []);
+  return {
+    ...profile,
+    availability: Array.isArray(availability) ? availability : [],
+  };
+};
+
 
 function formatPriceRange(profile) {
   if (profile?.min_price && profile?.max_price) {
@@ -139,16 +159,10 @@ const PageProfile = () => {
           fetchJson('/api/skills').catch(() => []),
         ]);
 
-
-
-
-
-
-
-
+        const dataWithAvailability = await withAvailability(data);
 
         if (isMounted) {
-          setProfile(normalizeProfile(data));
+          setProfile(normalizeProfile(dataWithAvailability));
           setSkills(Array.isArray(skillRows) ? skillRows : []);
           setError(null);
         }
@@ -234,7 +248,9 @@ const PageProfile = () => {
         body: JSON.stringify(payload),
       });
 
-      setProfile(normalizeProfile(updatedProfile));
+      const updatedProfileWithAvailability = await withAvailability(updatedProfile);
+
+      setProfile(normalizeProfile(updatedProfileWithAvailability));
       setEditOpen(false);
       setSuccessMessage('تم تحديث البروفايل بنجاح.');
       return updatedProfile;

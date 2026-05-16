@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+
 const {
     getAllProjects,
     getProjectById,
@@ -9,22 +10,22 @@ const {
     deleteProject,
 } = require('../controllers/projectControllers');
 
-// GET /api/projects              → all projects (with photos)
+// GET /api/projects
 router.get('/', getAllProjects);
 
-// GET /api/projects/:id          → single project by pro_id
-router.get('/:id', getProjectById);
-
-// GET /api/projects/user/:userId → projects filtered by user
+// GET /api/projects/user/:userId
 router.get('/user/:userId', getProjectsByUser);
 
-// POST /api/projects             → create new project
+// GET /api/projects/:id
+router.get('/:id', getProjectById);
+
+// POST /api/projects
 router.post('/', createProject);
 
-// PUT /api/projects/:id          → update project
+// PUT /api/projects/:id
 router.put('/:id', updateProject);
 
-// DELETE /api/projects/:id       → delete project (cascades photos)
+// DELETE /api/projects/:id
 router.delete('/:id', deleteProject);
 
 module.exports = router;

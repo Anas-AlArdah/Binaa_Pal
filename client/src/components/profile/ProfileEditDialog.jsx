@@ -1,1055 +1,396 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
-  Autocomplete,
-  Avatar,
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  IconButton,
-  Stack,
-  TextField,
-  Typography,
+    Alert,
+    Box,
+    Button,
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    Divider,
+    Stack,
 } from '@mui/material';
-
-import EditRoundedIcon from '@mui/icons-material/EditRounded';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
-import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
-import { normalizePortfolioItems, prepareImageFile } from '../../utils/workerProfile';
+import { getApiUrl } from '../../utils/api';
+import AvailabilitySection from './ProfileEditDialog/AvailabilitySection';
+import PasswordSection from './ProfileEditDialog/PasswordSection';
+import PersonalInfoSection from './ProfileEditDialog/PersonalInfoSection';
+import PortfolioSection from './ProfileEditDialog/PortfolioSection';
+import ProfileEditDialogTitle from './ProfileEditDialog/ProfileEditDialogTitle';
+import {
+    DAY_MAP,
+    buildAvailabilityForm,
+    buildInitialForm,
+    buildProfileFormPatch,
+    createEmptyPortfolioItem,
+    getProfileUserId,
+    parseProjectMeta,
+} from './ProfileEditDialog/profileEditDialogUtils';
 
-const EMPTY_PORTFOLIO_ITEM = {
-  title: '',
-  image: '',
-  tag: '',
-  description: '',
-  video: '',
+const readJson = async (response) => {
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+        throw new Error(data?.message || `Request failed with status ${response.status}`);
+    }
+
+    return data;
 };
 
-const DAY_MAPPING = [
-  { ar: 'الأحد', en: 'Sunday' },
-  { ar: 'الإثنين', en: 'Monday' },
-  { ar: 'الثلاثاء', en: 'Tuesday' },
-  { ar: 'الأربعاء', en: 'Wednesday' },
-  { ar: 'الخميس', en: 'Thursday' },
-  { ar: 'الجمعة', en: 'Friday' },
-  { ar: 'السبت', en: 'Saturday' },
-];
+const mapProjectsToPortfolioItems = (projects) =>
+    Array.isArray(projects) && projects.length > 0
+        ? projects.map((project) => {
+            const meta = parseProjectMeta(project.description_p);
+            const firstPhoto = project.photos?.[0];
 
-const createEmptyAvailability = () => 
-  DAY_MAPPING.map(day => ({
-    day_of_week: day.en,
-    start_time: '08:00',
-    end_time: '17:00',
-    is_available: true
-  }));
-
-const createEmptyPortfolioFormItem = () => ({ ...EMPTY_PORTFOLIO_ITEM });
+            return {
+                pro_id: project.pro_id,
+                title: project.title_p || '',
+                description: meta.description || '',
+                tag: meta.tag || '',
+                video: meta.video || '',
+                image: firstPhoto?.image_url || '',
+            };
+        })
+        : [createEmptyPortfolioItem()];
 
 const ProfileEditDialog = ({
-                             open,
-                             profile,
-                             availableSkills,
-                             saving,
-                             onClose,
-                             onSave,
-                           }) => {
-  const [submitError, setSubmitError] = useState('');
+    open,
+    profile,
+    availableSkills = [],
+    saving,
+    onClose,
+    onSave,
+}) => {
+    const [submitError, setSubmitError] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+    const [loadingData, setLoadingData] = useState(false);
+    const [removedProjectIds, setRemovedProjectIds] = useState([]);
+    const [removedAvailabilityIds, setRemovedAvailabilityIds] = useState([]);
+    const [form, setForm] = useState(buildInitialForm);
 
-  const [form, setForm] = useState({
-    firstname: '',
-    lastname: '',
-    email: '',
-    phone: '',
-    whatsapp: '',
-    location: '',
-    bio: '',
-    major: '',
-    min_price: '',
-    max_price: '',
-    profile_image: '',
-    skill_ids: [],
-    service_regions: [],
-    current_password: '',
-    new_password: '',
-    confirm_password: '',
-    availability: createEmptyAvailability(),
-    portfolio_items: [createEmptyPortfolioFormItem()],
-  });
+    useEffect(() => {
+        if (!open || !profile) return;
 
-  useEffect(() => {
-    if (profile) {
-      const portfolioItems = normalizePortfolioItems(
-          profile?.portfolio_items || profile?.p_images
-      ).map((item) => ({
-        ...EMPTY_PORTFOLIO_ITEM,
-        ...item,
-      }));
+        const userId = getProfileUserId(profile);
 
-      setForm((prev) => ({
-        ...prev,
-        firstname: profile?.user?.firstname || '',
-        lastname: profile?.user?.lastname || '',
-        email: profile?.user?.email || '',
-        phone: profile?.user?.phone || '',
-        location: profile?.user?.location || '',
-        bio: profile?.bio || '',
-        major: profile?.major || '',
-        min_price: profile?.min_price || '',
-        max_price: profile?.max_price || '',
-        profile_image: profile?.profile_image || '',
-        skill_ids: Array.isArray(profile?.skill_ids)
-            ? profile.skill_ids
-            : [],
-        portfolio_items:
-            portfolioItems.length > 0
-                ? portfolioItems
-                : [createEmptyPortfolioFormItem()],
-        availability: Array.isArray(profile?.availability) && profile.availability.length > 0
-            ? profile.availability
-            : createEmptyAvailability(),
-      }));
-      setSubmitError('');
-    }
-  }, [profile]);
+        setSubmitError('');
+        setRemovedProjectIds([]);
+        setRemovedAvailabilityIds([]);
+        setForm((current) => ({
+            ...current,
+            ...buildProfileFormPatch(profile),
+        }));
 
-  const selectedSkills = useMemo(
-      () =>
-          availableSkills.filter((skill) =>
-              form.skill_ids.includes(skill.id)
-          ),
-      [availableSkills, form.skill_ids]
-  );
+        if (!userId) return;
 
-  const updateField = (field, value) => {
-    setForm((current) => ({
-      ...current,
-      [field]: value,
-    }));
-  };
+        const loadBackendData = async () => {
+            setLoadingData(true);
+            try {
+                const [projects, availability] = await Promise.all([
+                    fetch(getApiUrl(`/api/projects/user/${userId}`)).then(readJson),
+                    fetch(getApiUrl(`/api/availability/user/${userId}`)).then(readJson),
+                ]);
 
-  const updatePortfolioItem = (index, field, value) => {
-    setForm((current) => ({
-      ...current,
-      portfolio_items: current.portfolio_items.map((item, itemIndex) =>
-          itemIndex === index
-              ? { ...item, [field]: value }
-              : item
-      ),
-    }));
-  };
+                setForm((current) => ({
+                    ...current,
+                    portfolio_items: mapProjectsToPortfolioItems(projects),
+                    availability: buildAvailabilityForm(availability),
+                }));
+            } catch (error) {
+                console.error('تعذر تحميل البيانات:', error);
+                setSubmitError('تعذر تحميل البيانات من السيرفر');
+            } finally {
+                setLoadingData(false);
+            }
+        };
 
-  const updateAvailability = (index, field, value) => {
-    setForm((current) => ({
-      ...current,
-      availability: current.availability.map((item, itemIndex) =>
-          itemIndex === index
-              ? { ...item, [field]: value }
-              : item
-      ),
-    }));
-  };
+        loadBackendData();
+    }, [open, profile]);
 
-  const handleAddPortfolioItem = () => {
-    setForm((current) => ({
-      ...current,
-      portfolio_items: [
-        ...current.portfolio_items,
-        createEmptyPortfolioFormItem(),
-      ],
-    }));
-  };
+    const selectedSkills = useMemo(
+        () => availableSkills.filter((skill) => form.skill_ids.includes(skill.id)),
+        [availableSkills, form.skill_ids]
+    );
 
-  const handleRemovePortfolioItem = (index) => {
-    setForm((current) => ({
-      ...current,
-      portfolio_items: current.portfolio_items.filter(
-          (_, i) => i !== index
-      ),
-    }));
-  };
+    const updateField = (field, value) => {
+        setForm((current) => ({ ...current, [field]: value }));
+    };
 
-  const handleImageFileChange = async (event, onReady) => {
-    const input = event.target;
-    const file = input.files?.[0];
-    input.value = '';
+    const updatePortfolioItem = (index, field, value) => {
+        setForm((current) => ({
+            ...current,
+            portfolio_items: current.portfolio_items.map((item, itemIndex) =>
+                itemIndex === index ? { ...item, [field]: value } : item
+            ),
+        }));
+    };
 
-    if (!file) {
-      return;
-    }
+    const updateAvailabilityField = (day, field, value) => {
+        setForm((current) => ({
+            ...current,
+            availability: {
+                ...current.availability,
+                [day]: { ...(current.availability[day] || {}), [field]: value },
+            },
+        }));
+    };
 
-    try {
-      const imageDataUrl = await prepareImageFile(file, {
-        maxWidth: 1200,
-        maxHeight: 1200,
-        quality: 0.78,
-      });
-      onReady(imageDataUrl);
-      setSubmitError('');
-    } catch (error) {
-      setSubmitError(
-          error instanceof Error
-              ? error.message
-              : 'Failed to prepare the selected image.'
-      );
-    }
-  };
+    const addPortfolioItem = () => {
+        setForm((current) => ({
+            ...current,
+            portfolio_items: [...current.portfolio_items, createEmptyPortfolioItem()],
+        }));
+    };
 
-  const handleProfileImageChange = (event) =>
-      handleImageFileChange(event, (imageDataUrl) => {
-        updateField('profile_image', imageDataUrl);
-      });
+    const removePortfolioItem = (index) => {
+        setForm((current) => {
+            const item = current.portfolio_items[index];
 
-  const handlePortfolioImageChange = (index, event) =>
-      handleImageFileChange(event, (imageDataUrl) => {
-        updatePortfolioItem(index, 'image', imageDataUrl);
-      });
+            if (item?.pro_id) {
+                setRemovedProjectIds((ids) =>
+                    ids.includes(item.pro_id) ? ids : [...ids, item.pro_id]
+                );
+            }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+            return {
+                ...current,
+                portfolio_items: current.portfolio_items.filter((_, itemIndex) => itemIndex !== index),
+            };
+        });
+    };
 
-    if (
-        form.new_password &&
-        form.new_password !== form.confirm_password
-    ) {
-      setSubmitError('كلمتا المرور غير متطابقتين');
-      return;
-    }
+    const removeAvailabilityDay = (day) => {
+        setForm((current) => {
+            const availability = { ...current.availability };
 
-    try {
-      setSubmitError('');
-      await onSave(form);
-    } catch (error) {
-      setSubmitError(
-          error instanceof Error
-              ? error.message
-              : 'Failed to save the worker profile.'
-      );
-    }
-  };
+            if (availability[day]?.av_id) {
+                setRemovedAvailabilityIds((ids) =>
+                    ids.includes(availability[day].av_id)
+                        ? ids
+                        : [...ids, availability[day].av_id]
+                );
+            }
 
-  return (
-      <Dialog
-          open={open}
-          onClose={saving ? undefined : onClose}
-          fullWidth
-          maxWidth="lg"
-      >
-        <DialogTitle
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 2,
-              pb: 1.5,
-            }}
+            delete availability[day];
+            return { ...current, availability };
+        });
+    };
+
+    const savePortfolio = async (userId) => {
+        for (const proId of removedProjectIds) {
+            await fetch(getApiUrl(`/api/projects/${proId}`), {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+            }).then(readJson);
+        }
+
+        for (const item of form.portfolio_items) {
+            if (!item.title && !item.description && !item.image) continue;
+
+            const description_p = JSON.stringify({
+                description: item.description || '',
+                tag: item.tag || '',
+                video: item.video || '',
+            });
+
+            let proId = item.pro_id;
+
+            if (proId) {
+                await fetch(getApiUrl(`/api/projects/${proId}`), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title_p: item.title, description_p }),
+                }).then(readJson);
+            } else {
+                const created = await fetch(getApiUrl('/api/projects'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        title_p: item.title,
+                        description_p,
+                    }),
+                }).then(readJson);
+
+                proId = created?.project?.pro_id;
+
+                if (!proId) {
+                    throw new Error('تم إنشاء المشروع لكن لم يرجع الباك رقم pro_id');
+                }
+            }
+
+            if (item.image && proId) {
+                await fetch(getApiUrl('/api/photos'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image_url: item.image, pro_id: proId }),
+                }).then(readJson);
+            }
+        }
+    };
+
+    const saveAvailability = async (userId) => {
+        for (const avId of removedAvailabilityIds) {
+            await fetch(getApiUrl(`/api/availability/${avId}`), {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+            }).then(readJson);
+        }
+
+        for (const [arabicDay, times] of Object.entries(form.availability)) {
+            const englishDay = DAY_MAP[arabicDay];
+
+            if (!englishDay || !times.start_time || !times.end_time) continue;
+
+            if (times.av_id) {
+                await fetch(getApiUrl(`/api/availability/${times.av_id}`), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        start_time: times.start_time,
+                        end_time: times.end_time,
+                        is_available: true,
+                    }),
+                }).then(readJson);
+            } else {
+                await fetch(getApiUrl('/api/availability'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        day_of_week: englishDay,
+                        start_time: times.start_time,
+                        end_time: times.end_time,
+                        is_available: true,
+                    }),
+                }).then(readJson);
+            }
+        }
+    };
+
+    const handleSubmit = async (event) => {
+        event?.preventDefault();
+        setSubmitError('');
+
+        if (form.new_password && form.new_password !== form.confirm_password) {
+            setSubmitError('كلمتا المرور غير متطابقتين');
+            return;
+        }
+
+        const userId = getProfileUserId(profile);
+
+        if (!userId) {
+            setSubmitError('لم يتم العثور على معرف المستخدم');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            await savePortfolio(userId);
+            await saveAvailability(userId);
+            if (onSave) await onSave(form);
+            onClose();
+        } catch (error) {
+            console.error('خطأ أثناء الحفظ:', error);
+            setSubmitError(error.message || 'حدث خطأ أثناء الحفظ، حاول مجدداً');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const isLoading = isSaving || saving;
+
+    return (
+        <Dialog
+            open={open}
+            onClose={isLoading ? undefined : onClose}
+            fullWidth
+            maxWidth="lg"
         >
-          <Box>
-            <Typography
-                variant="h5"
-                sx={{
-                  fontWeight: 900,
-                  color: '#2d2a26',
-                }}
-            >
-              تعديل بروفايل العامل
-            </Typography>
+            <ProfileEditDialogTitle disabled={isLoading} onClose={onClose} />
 
-            <Typography
-                sx={{
-                  color: '#6f685d',
-                  fontSize: '14px',
-                  mt: 0.5,
-                }}
-            >
-              حدّث الصورة، النبذة، المهارات، ومعرض الأعمال من مكان واحد.
-            </Typography>
-          </Box>
-
-          <IconButton
-              onClick={onClose}
-              disabled={saving}
-          >
-            <CloseRoundedIcon />
-          </IconButton>
-        </DialogTitle>
-
-        <DialogContent
-            dividers
-            sx={{
-              px: { xs: 2, md: 3 },
-              py: 2.5,
-            }}
-        >
-          <Box
-              component="form"
-              onSubmit={handleSubmit}
-          >
-            <Stack spacing={3}>
-              {submitError && (
-                  <Alert severity="error">
-                    {submitError}
-                  </Alert>
-              )}
-
-              <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: {
-                      xs: '1fr',
-                      md: '220px 1fr',
-                    },
-                    gap: 3,
-                    alignItems: 'start',
-                  }}
-              >
-                <Box
-                    sx={{
-                      p: 2.5,
-                      borderRadius: '22px',
-                      border:
-                          '1px solid rgba(85, 107, 47, 0.14)',
-                      background:
-                          'linear-gradient(145deg, #faf8f3, #ffffff)',
-                    }}
-                >
-                  <Stack
-                      spacing={2}
-                      alignItems="center"
-                  >
-                    <Avatar
-                        src={form.profile_image}
-                        sx={{
-                          width: 136,
-                          height: 136,
-                          borderRadius: '28px',
-                        }}
-                    />
-
-                    <Typography
-                        sx={{
-                          fontWeight: 700,
-                          color: '#2d2a26',
-                        }}
-                    >
-                      صورة البروفايل
-                    </Typography>
-
-                    <Button
-                        component="label"
-                        variant="outlined"
-                        fullWidth
-                        startIcon={
-                          <AddPhotoAlternateRoundedIcon />
-                        }
-                        sx={{
-                          borderRadius: '14px',
-                          textTransform: 'none',
-                          fontWeight: 700,
-                        }}
-                    >
-                      رفع صورة
-
-                      <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleProfileImageChange}
-                          hidden
-                      />
-                    </Button>
-                  </Stack>
-                </Box>
-
-                <Stack spacing={2.2}>
-                  <Box
-                      sx={{
-                        display: 'grid',
-                        gridTemplateColumns: {
-                          xs: '1fr',
-                          md: '1fr 1fr',
-                        },
-                        gap: 2,
-                      }}
-                  >
-                    <TextField
-                        label="الاسم الأول"
-                        value={form.firstname}
-                        onChange={(e) =>
-                            updateField(
-                                'firstname',
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    />
-
-                    <TextField
-                        label="اسم العائلة"
-                        value={form.lastname}
-                        onChange={(e) =>
-                            updateField(
-                                'lastname',
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    />
-
-                    <TextField
-                        label="البريد الإلكتروني"
-                        value={form.email}
-                        onChange={(e) =>
-                            updateField(
-                                'email',
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    />
-
-                    <TextField
-                        label="رقم الهاتف"
-                        value={form.phone}
-                        onChange={(e) =>
-                            updateField(
-                                'phone',
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    />
-
-                    <TextField
-                        label="رقم الواتساب"
-                        value={form.whatsapp}
-                        onChange={(e) =>
-                            updateField(
-                                'whatsapp',
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    />
-
-                    <TextField
-                        label="الموقع"
-                        value={form.location}
-                        onChange={(e) =>
-                            updateField(
-                                'location',
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    />
-
-                    <TextField
-                        label="المسمى المهني"
-                        value={form.major}
-                        onChange={(e) =>
-                            updateField(
-                                'major',
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    />
-                  </Box>
-
-                  <TextField
-                      label="نبذة تعريفية"
-                      value={form.bio}
-                      onChange={(e) =>
-                          updateField(
-                              'bio',
-                              e.target.value
-                          )
-                      }
-                      multiline
-                      minRows={4}
-                      fullWidth
-                  />
-
-                  <Autocomplete
-                      multiple
-                      options={availableSkills}
-                      value={selectedSkills}
-                      onChange={(_, values) =>
-                          updateField(
-                              'skill_ids',
-                              values.map((v) => v.id)
-                          )
-                      }
-                      getOptionLabel={(option) =>
-                          option.skill_name
-                      }
-                      renderTags={(
-                          value,
-                          getTagProps
-                      ) =>
-                          value.map((option, index) => (
-                              <Chip
-                                  {...getTagProps({
-                                    index,
-                                  })}
-                                  key={option.id}
-                                  label={
-                                    option.skill_name
-                                  }
-                              />
-                          ))
-                      }
-                      renderInput={(params) => (
-                          <TextField
-                              {...params}
-                              label="المهارات"
-                          />
-                      )}
-                  />
-
-                  <Autocomplete
-                      multiple
-                      options={[
-                        'نابلس',
-                        'رام الله',
-                        'جنين',
-                        'الخليل',
-                        'طولكرم',
-                        'بيت لحم',
-                      ]}
-                      value={form.service_regions}
-                      onChange={(_, values) =>
-                          updateField(
-                              'service_regions',
-                              values
-                          )
-                      }
-                      renderTags={(
-                          value,
-                          getTagProps
-                      ) =>
-                          value.map((option, index) => (
-                              <Chip
-                                  {...getTagProps({
-                                    index,
-                                  })}
-                                  key={option}
-                                  label={option}
-                              />
-                          ))
-                      }
-                      renderInput={(params) => (
-                          <TextField
-                              {...params}
-                              label="مناطق الخدمة"
-                          />
-                      )}
-                  />
-
-                  <Box
-                      sx={{
-                        display: 'grid',
-                        gridTemplateColumns: {
-                          xs: '1fr',
-                          md: '1fr 1fr',
-                        },
-                        gap: 2,
-                      }}
-                  >
-                    <TextField
-                        label="أقل سعر"
-                        type="number"
-                        value={form.min_price}
-                        onChange={(e) =>
-                            updateField(
-                                'min_price',
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    />
-
-                    <TextField
-                        label="أعلى سعر"
-                        type="number"
-                        value={form.max_price}
-                        onChange={(e) =>
-                            updateField(
-                                'max_price',
-                                e.target.value
-                            )
-                        }
-                        fullWidth
-                    />
-                  </Box>
-                </Stack>
-              </Box>
-
-              <Divider />
-
-              <Stack spacing={2}>
-                <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 900,
-                      color: '#2d2a26',
-                    }}
-                >
-                  تغيير كلمة المرور
-                </Typography>
-
-                <Box
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: {
-                        xs: '1fr',
-                        md: '1fr 1fr 1fr',
-                      },
-                      gap: 2,
-                    }}
-                >
-                  <TextField
-                      label="كلمة المرور الحالية"
-                      type="password"
-                      value={form.current_password}
-                      onChange={(e) =>
-                          updateField(
-                              'current_password',
-                              e.target.value
-                          )
-                      }
-                      fullWidth
-                  />
-
-                  <TextField
-                      label="كلمة المرور الجديدة"
-                      type="password"
-                      value={form.new_password}
-                      onChange={(e) =>
-                          updateField(
-                              'new_password',
-                              e.target.value
-                          )
-                      }
-                      fullWidth
-                  />
-
-                  <TextField
-                      label="تأكيد كلمة المرور"
-                      type="password"
-                      value={
-                        form.confirm_password
-                      }
-                      onChange={(e) =>
-                          updateField(
-                              'confirm_password',
-                              e.target.value
-                          )
-                      }
-                      fullWidth
-                  />
-                </Box>
-              </Stack>
-
-              <Divider />
-
-              <Stack spacing={2}>
-                <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 900,
-                      color: '#2d2a26',
-                    }}
-                >
-                  جدول التوفر
-                </Typography>
-
-                {DAY_MAPPING.map((day, index) => {
-                  const av = form.availability[index] || {
-                    start_time: '08:00',
-                    end_time: '17:00',
-                    is_available: true
-                  };
-                  return (
+            <DialogContent dividers sx={{ px: { xs: 2, md: 3 }, py: 2.5 }}>
+                {loadingData ? (
                     <Box
-                        key={day.en}
                         sx={{
-                          border:
-                              '1px solid #e3ddd4',
-                          borderRadius: '16px',
-                          p: 2,
-                          bgcolor: av.is_available ? '#fbfaf8' : '#fff0f0',
-                          display: 'grid',
-                          gridTemplateColumns: {
-                            xs: '1fr',
-                            md: '150px 1fr 1fr 100px',
-                          },
-                          gap: 2,
-                          alignItems: 'center',
-                          opacity: av.is_available ? 1 : 0.7
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            minHeight: 200,
                         }}
                     >
-                      <Typography
-                          sx={{
-                            fontWeight: 800,
-                            color: '#2d2a26',
-                          }}
-                      >
-                        {day.ar}
-                      </Typography>
-
-                      <TextField
-                          type="time"
-                          label="من"
-                          value={av.start_time}
-                          onChange={(e) => updateAvailability(index, 'start_time', e.target.value)}
-                          disabled={!av.is_available}
-                          InputLabelProps={{
-                            shrink: true,
-                          }}
-                          fullWidth
-                      />
-
-                      <TextField
-                          type="time"
-                          label="إلى"
-                          value={av.end_time}
-                          onChange={(e) => updateAvailability(index, 'end_time', e.target.value)}
-                          disabled={!av.is_available}
-                          InputLabelProps={{
-                            shrink: true,
-                          }}
-                          fullWidth
-                      />
-
-                      <Button
-                        size="small"
-                        variant={av.is_available ? "outlined" : "contained"}
-                        color={av.is_available ? "error" : "success"}
-                        onClick={() => updateAvailability(index, 'is_available', !av.is_available)}
-                      >
-                        {av.is_available ? "تعطيل" : "تفعيل"}
-                      </Button>
+                        <CircularProgress sx={{ color: '#556b2f' }} />
                     </Box>
-                  );
-                })}
-              </Stack>
+                ) : (
+                    <Box component="form" onSubmit={handleSubmit}>
+                        <Stack spacing={3}>
+                            {submitError && <Alert severity="error">{submitError}</Alert>}
 
-              <Divider />
+                            <PersonalInfoSection
+                                availableSkills={availableSkills}
+                                form={form}
+                                selectedSkills={selectedSkills}
+                                updateField={updateField}
+                            />
 
-              <Stack spacing={2}>
-                <Box
+                            <Divider />
+
+                            <PasswordSection form={form} updateField={updateField} />
+
+                            <Divider />
+
+                            <AvailabilitySection
+                                availability={form.availability}
+                                removeAvailabilityDay={removeAvailabilityDay}
+                                updateAvailabilityField={updateAvailabilityField}
+                            />
+
+                            <Divider />
+
+                            <PortfolioSection
+                                items={form.portfolio_items}
+                                addPortfolioItem={addPortfolioItem}
+                                removePortfolioItem={removePortfolioItem}
+                                updatePortfolioItem={updatePortfolioItem}
+                            />
+                        </Stack>
+                    </Box>
+                )}
+            </DialogContent>
+
+            <DialogActions sx={{ px: 3, py: 2 }}>
+                <Button
+                    onClick={onClose}
+                    disabled={isLoading}
+                    sx={{ textTransform: 'none', fontWeight: 700 }}
+                >
+                    إلغاء
+                </Button>
+
+                <Button
+                    onClick={handleSubmit}
+                    disabled={isLoading || loadingData}
+                    variant="contained"
+                    startIcon={
+                        isLoading
+                            ? <CircularProgress size={18} color="inherit" />
+                            : <SaveRoundedIcon />
+                    }
                     sx={{
-                      display: 'flex',
-                      justifyContent:
-                          'space-between',
-                      alignItems: 'center',
+                        bgcolor: '#556b2f',
+                        '&:hover': { bgcolor: '#405123' },
+                        textTransform: 'none',
+                        fontWeight: 800,
+                        borderRadius: '14px',
+                        px: 3,
                     }}
                 >
-                  <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 900,
-                        color: '#2d2a26',
-                      }}
-                  >
-                    معرض الأعمال
-                  </Typography>
-
-                  <Button
-                      onClick={
-                        handleAddPortfolioItem
-                      }
-                      startIcon={
-                        <AddRoundedIcon />
-                      }
-                      variant="outlined"
-                      sx={{
-                        borderRadius: '14px',
-                        textTransform: 'none',
-                        fontWeight: 700,
-                      }}
-                  >
-                    إضافة عمل
-                  </Button>
-                </Box>
-
-                <Stack spacing={2}>
-                  {form.portfolio_items.map(
-                      (item, index) => (
-                          <Box
-                              key={index}
-                              sx={{
-                                border:
-                                    '1px solid rgba(85, 107, 47, 0.12)',
-                                borderRadius:
-                                    '22px',
-                                p: 2.25,
-                                background: '#fff',
-                              }}
-                          >
-                            <Box
-                                sx={{
-                                  display: 'grid',
-                                  gridTemplateColumns:
-                                      {
-                                        xs: '1fr',
-                                        md: '220px 1fr',
-                                      },
-                                  gap: 2,
-                                }}
-                            >
-                              <Box>
-                                <Box
-                                    sx={{
-                                      height: 180,
-                                      borderRadius:
-                                          '18px',
-                                      bgcolor:
-                                          '#f4f1ea',
-                                      border:
-                                          '1px dashed rgba(85, 107, 47, 0.2)',
-                                      display:
-                                          'flex',
-                                      alignItems:
-                                          'center',
-                                      justifyContent:
-                                          'center',
-                                    }}
-                                >
-                                  {item.image ? (
-                                      <img
-                                          src={
-                                            item.image
-                                          }
-                                          alt=""
-                                          style={{
-                                            width:
-                                                '100%',
-                                            height:
-                                                '100%',
-                                            objectFit:
-                                                'cover',
-                                            borderRadius:
-                                                '18px',
-                                          }}
-                                      />
-                                  ) : (
-                                      <Stack
-                                          spacing={1}
-                                          alignItems="center"
-                                      >
-                                        <EditRoundedIcon />
-
-                                        <Typography>
-                                          ارفع صورة
-                                        </Typography>
-                                      </Stack>
-                                  )}
-                                </Box>
-
-                                <Stack
-                                    spacing={1}
-                                    sx={{
-                                      mt: 1.5,
-                                    }}
-                                >
-                                  <Button
-                                      component="label"
-                                      variant="outlined"
-                                      startIcon={
-                                        <AddPhotoAlternateRoundedIcon />
-                                      }
-                                  >
-                                    رفع صورة
-
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(event) =>
-                                            handlePortfolioImageChange(
-                                                index,
-                                                event
-                                            )
-                                        }
-                                        hidden
-                                    />
-                                  </Button>
-
-                                  <Button
-                                      component="label"
-                                      variant="outlined"
-                                      sx={{
-                                        borderColor:
-                                            '#556b2f',
-                                        color:
-                                            '#556b2f',
-                                      }}
-                                  >
-                                    رفع فيديو
-
-                                    <input
-                                        type="file"
-                                        accept="video/*"
-                                        hidden
-                                    />
-                                  </Button>
-
-                                  <Button
-                                      color="inherit"
-                                      onClick={() =>
-                                          handleRemovePortfolioItem(
-                                              index
-                                          )
-                                      }
-                                      startIcon={
-                                        <DeleteOutlineRoundedIcon />
-                                      }
-                                  >
-                                    حذف العمل
-                                  </Button>
-                                </Stack>
-                              </Box>
-
-                              <Stack spacing={1.6}>
-                                <TextField
-                                    label="عنوان العمل"
-                                    value={
-                                      item.title
-                                    }
-                                    onChange={(e) =>
-                                        updatePortfolioItem(
-                                            index,
-                                            'title',
-                                            e.target
-                                                .value
-                                        )
-                                    }
-                                    fullWidth
-                                />
-
-                                <TextField
-                                    label="رابط الصورة"
-                                    value={
-                                      item.image
-                                    }
-                                    onChange={(e) =>
-                                        updatePortfolioItem(
-                                            index,
-                                            'image',
-                                            e.target
-                                                .value
-                                        )
-                                    }
-                                    fullWidth
-                                />
-
-                                <TextField
-                                    label="رابط الفيديو"
-                                    value={
-                                      item.video
-                                    }
-                                    onChange={(e) =>
-                                        updatePortfolioItem(
-                                            index,
-                                            'video',
-                                            e.target
-                                                .value
-                                        )
-                                    }
-                                    fullWidth
-                                />
-
-                                <TextField
-                                    label="نوع العمل"
-                                    value={
-                                      item.tag
-                                    }
-                                    onChange={(e) =>
-                                        updatePortfolioItem(
-                                            index,
-                                            'tag',
-                                            e.target
-                                                .value
-                                        )
-                                    }
-                                    fullWidth
-                                />
-
-                                <TextField
-                                    label="وصف العمل"
-                                    value={
-                                      item.description
-                                    }
-                                    onChange={(e) =>
-                                        updatePortfolioItem(
-                                            index,
-                                            'description',
-                                            e.target
-                                                .value
-                                        )
-                                    }
-                                    multiline
-                                    minRows={4}
-                                    fullWidth
-                                />
-                              </Stack>
-                            </Box>
-                          </Box>
-                      )
-                  )}
-                </Stack>
-              </Stack>
-            </Stack>
-          </Box>
-        </DialogContent>
-
-        <DialogActions
-            sx={{
-              px: 3,
-              py: 2,
-            }}
-        >
-          <Button
-              onClick={onClose}
-              disabled={saving}
-              sx={{
-                textTransform: 'none',
-                fontWeight: 700,
-              }}
-          >
-            إلغاء
-          </Button>
-
-          <Button
-              type="submit"
-              onClick={handleSubmit}
-              disabled={saving}
-              variant="contained"
-              startIcon={<SaveRoundedIcon />}
-              sx={{
-                bgcolor: '#556b2f',
-                '&:hover': {
-                  bgcolor: '#405123',
-                },
-                textTransform: 'none',
-                fontWeight: 800,
-                borderRadius: '14px',
-                px: 3,
-              }}
-          >
-            حفظ التعديلات
-          </Button>
-        </DialogActions>
-      </Dialog>
-  );
+                    {isLoading ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
 };
 
 export default ProfileEditDialog;
