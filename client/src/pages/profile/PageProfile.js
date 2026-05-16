@@ -25,6 +25,7 @@ import ProfilePortfolio from '../../components/profile/ProfilePortfolio';
 import ProfileRegions from '../../components/profile/ProfileRegions';
 import ProfileVideoStats from '../../components/profile/ProfileVideoStats';
 import ProfileReviews from '../../components/profile/ProfileReviews';
+import AddReviewForm from '../../components/profile/AddReviewForm';
 import ProfileEditDialog from '../../components/profile/ProfileEditDialog';
 import { ApiError, fetchJson, getApiErrorMessage } from '../../utils/api';
 import { getFirstPortfolioImage, normalizePortfolioItems } from '../../utils/workerProfile';
@@ -376,6 +377,17 @@ const PageProfile = () => {
               </section>
               <section className="profile-panel">
                 <ProfileReviews reviews={profile.reviews} />
+                <Box sx={{ mt: 4, pt: 4, borderTop: '1px solid #e3ddd4' }}>
+                   <AddReviewForm 
+                     workerProfileId={profile.id} 
+                     onReviewAdded={(newReview) => {
+                       setProfile(prev => ({
+                         ...prev,
+                         reviews: [newReview, ...prev.reviews]
+                       }));
+                     }} 
+                   />
+                </Box>
               </section>
             </Box>
           </Grid>
@@ -413,16 +425,6 @@ const PageProfile = () => {
                 <div className="profile-contact-card__row">
                   <span>الهاتف</span>
                   <strong>{profile.user.phone || 'غير مضاف'}</strong>
-                </div>
-                <div className="profile-contact-card__row">
-                  <span>الواتساب</span>
-                  <strong>
-                    {profile.user.phone ? (
-                      <a href={`https://wa.me/${profile.user.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ color: '#25d366', textDecoration: 'none' }}>
-                        مراسلة واتساب
-                      </a>
-                    ) : 'غير مضاف'}
-                  </strong>
                 </div>
                 <div className="profile-contact-card__row">
                   <span>المنطقة</span>

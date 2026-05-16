@@ -6,15 +6,6 @@ export const EMPTY_PORTFOLIO_ITEM = {
     video: '',
 };
 
-export const SERVICE_REGIONS = [
-    'نابلس',
-    'رام الله',
-    'جنين',
-    'الخليل',
-    'طولكرم',
-    'بيت لحم',
-];
-
 export const DAY_MAP = {
     الأحد: 'Sunday',
     الإثنين: 'Monday',
@@ -68,7 +59,6 @@ export const buildInitialForm = () => ({
     lastname: '',
     email: '',
     phone: '',
-    whatsapp: '',
     location: '',
     bio: '',
     major: '',
@@ -76,7 +66,6 @@ export const buildInitialForm = () => ({
     max_price: '',
     profile_image: '',
     skill_ids: [],
-    service_regions: [],
     current_password: '',
     new_password: '',
     confirm_password: '',
@@ -89,7 +78,6 @@ export const buildProfileFormPatch = (profile) => ({
     lastname: profile?.user?.lastname || '',
     email: profile?.user?.email || '',
     phone: profile?.user?.phone || '',
-    whatsapp: profile?.user?.whatsapp || '',
     location: profile?.user?.location || '',
     bio: profile?.bio || '',
     major: profile?.major || '',
@@ -99,5 +87,4 @@ export const buildProfileFormPatch = (profile) => ({
     skill_ids: Array.isArray(profile?.skill_ids)
         ? profile.skill_ids
         : profile?.skills?.map((skill) => skill.id) || [],
-    service_regions: profile?.service_regions || [],
 });

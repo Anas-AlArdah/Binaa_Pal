@@ -10,7 +10,6 @@ import {
     Typography,
 } from '@mui/material';
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
-import { SERVICE_REGIONS } from './profileEditDialogUtils';
 
 const twoColumnGrid = {
     display: 'grid',
@@ -23,7 +22,8 @@ const PersonalInfoSection = ({
     form,
     selectedSkills,
     updateField,
-}) => (
+}) => {
+    return (
     <Box
         sx={{
             display: 'grid',
@@ -85,20 +85,19 @@ const PersonalInfoSection = ({
                 />
                 <TextField
                     label="البريد الإلكتروني"
+                    type="email"
                     value={form.email}
                     onChange={(event) => updateField('email', event.target.value)}
                     fullWidth
                 />
                 <TextField
                     label="رقم الهاتف"
+                    type="tel"
+                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
                     value={form.phone}
-                    onChange={(event) => updateField('phone', event.target.value)}
-                    fullWidth
-                />
-                <TextField
-                    label="رقم الواتساب"
-                    value={form.whatsapp}
-                    onChange={(event) => updateField('whatsapp', event.target.value)}
+                    onChange={(event) =>
+                        updateField('phone', event.target.value.replace(/\D/g, ''))
+                    }
                     fullWidth
                 />
                 <TextField
@@ -142,23 +141,6 @@ const PersonalInfoSection = ({
                 renderInput={(params) => <TextField {...params} label="المهارات" />}
             />
 
-            <Autocomplete
-                multiple
-                options={SERVICE_REGIONS}
-                value={form.service_regions}
-                onChange={(_, values) => updateField('service_regions', values)}
-                renderTags={(value, getTagProps) =>
-                    value.map((option, index) => (
-                        <Chip
-                            {...getTagProps({ index })}
-                            key={option}
-                            label={option}
-                        />
-                    ))
-                }
-                renderInput={(params) => <TextField {...params} label="مناطق الخدمة" />}
-            />
-
             <Box sx={twoColumnGrid}>
                 <TextField
                     label="أقل سعر"
@@ -177,6 +159,7 @@ const PersonalInfoSection = ({
             </Box>
         </Stack>
     </Box>
-);
+    );
+};
 
 export default PersonalInfoSection;

@@ -9,17 +9,17 @@ module.exports = {
                 type: Sequelize.INTEGER,
                 primaryKey: true,
                 autoIncrement: true,
-               allowNull: true,
+                allowNull: false,
             },
 
             user_id: {
                 type: Sequelize.INTEGER,
-                allowNull: true,
+                allowNull: false,
             },
 
             title_p: {
                 type: Sequelize.STRING,
-                allowNull: true,
+                allowNull: false,
             },
 
             description_p: {

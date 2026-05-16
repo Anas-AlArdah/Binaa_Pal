@@ -21,6 +21,7 @@ const assistantRoutes = require('./routes/Assistantrouter');
 const searchRoutes = require('./routes/aiSearchRouter');
 const skillRoutes = require('./routes/skillRouter');
 const workerSkillRoutes = require('./routes/workerskillRouter');
+const reviewRoutes = require('./routes/reviewRouter');
 const adminRoutes = require('./routes/adminRouter');
 
 const app = express();
@@ -51,6 +52,7 @@ app.use('/api/assistant', assistantRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/skills', skillRoutes);
 app.use('/api/workerskills', workerSkillRoutes);
+app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin', adminRoutes);
 
 // ================= Test Route =================
