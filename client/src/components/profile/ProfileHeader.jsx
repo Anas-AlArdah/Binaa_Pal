@@ -23,7 +23,7 @@ function formatPriceRange(profile) {
   return 'حسب الاتفاق';
 }
 
-const ProfileHeader = ({ profile }) => {
+const ProfileHeader = ({ profile, onRequestService }) => {
   if (!profile) return null;
 
   const { user } = profile;
@@ -155,6 +155,7 @@ const ProfileHeader = ({ profile }) => {
           <Button
             variant="contained"
             fullWidth
+            onClick={onRequestService}
             sx={{
               bgcolor: '#5c7c43',
               '&:hover': { bgcolor: '#4d6a37' },

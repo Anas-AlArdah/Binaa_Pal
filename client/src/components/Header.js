@@ -7,9 +7,8 @@ function Header() {
 
     // 👇 جلب المستخدم من localStorage
     const user = JSON.parse(localStorage.getItem("binaa_auth_user"));
-console.log("data from local",user);
     const isLoggedIn = !!user;
-    const isWorker = user?.role?.type === "worker";
+    const isWorker = String(user?.role?.type || "").toLowerCase() === "worker";
 
     const closeMenu = () => setIsOpen(false);
 

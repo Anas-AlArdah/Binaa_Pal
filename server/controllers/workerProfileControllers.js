@@ -1,4 +1,4 @@
-const { WorkerProfile, User, Review, Worker_Skill, Skill, sequelize } = require('../models');
+const { WorkerProfile, User, Review, Worker_Skill, Skill, Availability, sequelize } = require('../models');
 const {
   getProfileImage,
   normalizePortfolioItems,
@@ -79,6 +79,7 @@ function formatWorkerProfile(profileModel) {
     portfolio_items,
     skill_ids: [...new Set(skill_ids)],
     skill_names: [...new Set(skill_names)],
+    availability: Array.isArray(profile.user?.availability) ? profile.user.availability : [],
   };
 }
 
@@ -88,6 +89,13 @@ function buildProfileInclude() {
       model: User,
       as: 'user',
       attributes: USER_ATTRIBUTES,
+      include: [
+        {
+          model: Availability,
+          as: 'availability',
+          required: false,
+        },
+      ],
     },
     {
       model: Review,
@@ -170,6 +178,34 @@ async function syncWorkerSkills(userId, skillIds, transaction) {
       })),
       { transaction }
     );
+  }
+}
+
+async function syncAvailability(userId, availability, transaction) {
+  if (availability === undefined) {
+    return;
+  }
+
+  // Always clear existing and recreate to keep it simple, or update if matches day
+  await Availability.destroy({
+    where: { user_id: userId },
+    transaction,
+  });
+
+  if (Array.isArray(availability) && availability.length > 0) {
+    const records = availability
+      .filter((item) => item.day_of_week && item.start_time && item.end_time)
+      .map((item) => ({
+        user_id: userId,
+        day_of_week: item.day_of_week,
+        start_time: item.start_time,
+        end_time: item.end_time,
+        is_available: item.is_available !== false,
+      }));
+
+    if (records.length > 0) {
+      await Availability.bulkCreate(records, { transaction });
+    }
   }
 }
 
@@ -285,6 +321,10 @@ async function persistWorkerProfile(req, res, { create = false } = {}) {
 
     if (req.body.skill_ids !== undefined) {
       await syncWorkerSkills(nextUserId, req.body.skill_ids, transaction);
+    }
+
+    if (req.body.availability !== undefined) {
+      await syncAvailability(nextUserId, req.body.availability, transaction);
     }
 
     await transaction.commit();

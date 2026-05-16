@@ -19,7 +19,7 @@ async function saveRequestIfPossible(body, payload) {
 
   try {
     return await Request.create({
-      description: `Worker request for ${payload.data.workerName || 'worker'}`,
+      description: payload.data.serviceDescription.slice(0, 255),
       city: payload.data.city || null,
       date: new Date(),
       status: 'pending',
@@ -33,10 +33,24 @@ async function saveRequestIfPossible(body, payload) {
 
 async function requestWorker(req, res) {
   const clientEmail = cleanString(req.body.clientEmail).toLowerCase();
+  const workerEmail = cleanString(req.body.workerEmail).toLowerCase();
+  const serviceDescription = cleanString(req.body.serviceDescription || req.body.description);
 
   if (!clientEmail) {
     return res.status(400).json({
       message: 'clientEmail is required.',
+    });
+  }
+
+  if (!workerEmail) {
+    return res.status(400).json({
+      message: 'workerEmail is required.',
+    });
+  }
+
+  if (!serviceDescription) {
+    return res.status(400).json({
+      message: 'serviceDescription is required.',
     });
   }
 
@@ -45,13 +59,17 @@ async function requestWorker(req, res) {
   const payload = {
     event: 'worker.requested',
     data: {
+      requestType: 'service',
       clientName,
       clientEmail,
+      clientPhone: cleanString(req.body.clientPhone),
       workerId: optionalNumber(req.body.workerId),
       workerName,
+      workerEmail,
       profileId: optionalNumber(req.body.profileId),
       craftName: cleanString(req.body.craftName),
       city: cleanString(req.body.city),
+      serviceDescription,
       requestedFrom: 'Worker Profile Page',
     },
     sentAt: new Date().toISOString(),
@@ -61,8 +79,12 @@ async function requestWorker(req, res) {
   const n8nResult = await notifyN8n(payload);
 
   if (!n8nResult.ok) {
+    const isMissingWebhook = n8nResult.error === 'N8N_WORKER_REQUEST_WEBHOOK_URL is not configured.';
+
     return res.status(502).json({
-      message: 'Failed to send the worker request notification.',
+      message: isMissingWebhook
+        ? 'N8N webhook is not configured on the server.'
+        : 'Failed to send the service request notification.',
       requestId: savedRequest?.id || null,
       n8n: {
         status: n8nResult.status,
@@ -73,7 +95,7 @@ async function requestWorker(req, res) {
   }
 
   return res.status(200).json({
-    message: 'Worker request sent successfully.',
+    message: 'Service request sent successfully.',
     requestId: savedRequest?.id || null,
     n8n: n8nResult.data || null,
   });

@@ -1,6 +1,7 @@
 const { User, Skill, Worker_Skill, WorkerProfile } = require('../models');
 const { Op } = require('sequelize');
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
+
 async function extractFiltersWithAI(userText) {
 
     const response = await fetch(

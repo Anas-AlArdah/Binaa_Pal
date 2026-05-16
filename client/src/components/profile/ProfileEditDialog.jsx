@@ -33,6 +33,24 @@ const EMPTY_PORTFOLIO_ITEM = {
   video: '',
 };
 
+const DAY_MAPPING = [
+  { ar: 'الأحد', en: 'Sunday' },
+  { ar: 'الإثنين', en: 'Monday' },
+  { ar: 'الثلاثاء', en: 'Tuesday' },
+  { ar: 'الأربعاء', en: 'Wednesday' },
+  { ar: 'الخميس', en: 'Thursday' },
+  { ar: 'الجمعة', en: 'Friday' },
+  { ar: 'السبت', en: 'Saturday' },
+];
+
+const createEmptyAvailability = () => 
+  DAY_MAPPING.map(day => ({
+    day_of_week: day.en,
+    start_time: '08:00',
+    end_time: '17:00',
+    is_available: true
+  }));
+
 const createEmptyPortfolioFormItem = () => ({ ...EMPTY_PORTFOLIO_ITEM });
 
 const ProfileEditDialog = ({
@@ -62,7 +80,7 @@ const ProfileEditDialog = ({
     current_password: '',
     new_password: '',
     confirm_password: '',
-    availability: {},
+    availability: createEmptyAvailability(),
     portfolio_items: [createEmptyPortfolioFormItem()],
   });
 
@@ -94,6 +112,9 @@ const ProfileEditDialog = ({
             portfolioItems.length > 0
                 ? portfolioItems
                 : [createEmptyPortfolioFormItem()],
+        availability: Array.isArray(profile?.availability) && profile.availability.length > 0
+            ? profile.availability
+            : createEmptyAvailability(),
       }));
       setSubmitError('');
     }
@@ -118,6 +139,17 @@ const ProfileEditDialog = ({
     setForm((current) => ({
       ...current,
       portfolio_items: current.portfolio_items.map((item, itemIndex) =>
+          itemIndex === index
+              ? { ...item, [field]: value }
+              : item
+      ),
+    }));
+  };
+
+  const updateAvailability = (index, field, value) => {
+    setForm((current) => ({
+      ...current,
+      availability: current.availability.map((item, itemIndex) =>
           itemIndex === index
               ? { ...item, [field]: value }
               : item
@@ -639,30 +671,29 @@ const ProfileEditDialog = ({
                   جدول التوفر
                 </Typography>
 
-                {[
-                  'الأحد',
-                  'الإثنين',
-                  'الثلاثاء',
-                  'الأربعاء',
-                  'الخميس',
-                  'الجمعة',
-                  'السبت',
-                ].map((day) => (
+                {DAY_MAPPING.map((day, index) => {
+                  const av = form.availability[index] || {
+                    start_time: '08:00',
+                    end_time: '17:00',
+                    is_available: true
+                  };
+                  return (
                     <Box
-                        key={day}
+                        key={day.en}
                         sx={{
                           border:
                               '1px solid #e3ddd4',
                           borderRadius: '16px',
                           p: 2,
-                          bgcolor: '#fbfaf8',
+                          bgcolor: av.is_available ? '#fbfaf8' : '#fff0f0',
                           display: 'grid',
                           gridTemplateColumns: {
                             xs: '1fr',
-                            md: '180px 1fr 1fr',
+                            md: '150px 1fr 1fr 100px',
                           },
                           gap: 2,
                           alignItems: 'center',
+                          opacity: av.is_available ? 1 : 0.7
                         }}
                     >
                       <Typography
@@ -671,12 +702,15 @@ const ProfileEditDialog = ({
                             color: '#2d2a26',
                           }}
                       >
-                        {day}
+                        {day.ar}
                       </Typography>
 
                       <TextField
                           type="time"
                           label="من"
+                          value={av.start_time}
+                          onChange={(e) => updateAvailability(index, 'start_time', e.target.value)}
+                          disabled={!av.is_available}
                           InputLabelProps={{
                             shrink: true,
                           }}
@@ -686,13 +720,26 @@ const ProfileEditDialog = ({
                       <TextField
                           type="time"
                           label="إلى"
+                          value={av.end_time}
+                          onChange={(e) => updateAvailability(index, 'end_time', e.target.value)}
+                          disabled={!av.is_available}
                           InputLabelProps={{
                             shrink: true,
                           }}
                           fullWidth
                       />
+
+                      <Button
+                        size="small"
+                        variant={av.is_available ? "outlined" : "contained"}
+                        color={av.is_available ? "error" : "success"}
+                        onClick={() => updateAvailability(index, 'is_available', !av.is_available)}
+                      >
+                        {av.is_available ? "تعطيل" : "تفعيل"}
+                      </Button>
                     </Box>
-                ))}
+                  );
+                })}
               </Stack>
 
               <Divider />

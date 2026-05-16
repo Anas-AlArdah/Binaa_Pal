@@ -6,8 +6,13 @@ import {
   Button,
   CircularProgress,
   Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
   Snackbar,
+  TextField,
   Typography,
 } from '@mui/material';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
@@ -36,6 +41,7 @@ const normalizeProfile = (profile) => ({
   reviews: Array.isArray(profile?.reviews) ? profile.reviews : [],
   skill_ids: Array.isArray(profile?.skill_ids) ? profile.skill_ids : [],
   skill_names: Array.isArray(profile?.skill_names) ? profile.skill_names : [],
+  availability: Array.isArray(profile?.availability) ? profile.availability : [],
   portfolio_items: normalizePortfolioItems(profile?.portfolio_items || profile?.p_images),
   p_images: profile?.p_images ?? '',
   profile_image:
@@ -70,12 +76,11 @@ function formatPriceRange(profile) {
 }
 
 const WORKER_REQUEST_TEXT = {
-  button: '\u0637\u0644\u0628 \u0627\u0644\u0639\u0627\u0645\u0644',
-  sending: '\u062c\u0627\u0631\u064a \u0625\u0631\u0633\u0627\u0644 \u0627\u0644\u0637\u0644\u0628...',
+  sending: 'جاري إرسال الطلب...',
   success:
-    '\u062a\u0645 \u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0627\u0644\u0639\u0627\u0645\u0644 \u0628\u0646\u062c\u0627\u062d\u060c \u062a\u062d\u0642\u0642 \u0645\u0646 \u0628\u0631\u064a\u062f\u0643 \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a.',
+    'تم إرسال طلب الخدمة للعامل بنجاح.',
   error:
-    '\u062a\u0639\u0630\u0631 \u0625\u0631\u0633\u0627\u0644 \u0637\u0644\u0628 \u0627\u0644\u0639\u0627\u0645\u0644. \u062d\u0627\u0648\u0644 \u0645\u0631\u0629 \u0623\u062e\u0631\u0649.',
+    'تعذر إرسال طلب الخدمة. حاول مرة أخرى.',
   fallbackName: 'Binaa Test Client',
   fallbackEmail: 'client@example.com',
 };
@@ -111,6 +116,8 @@ const PageProfile = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [requestSending, setRequestSending] = useState(false);
   const [requestError, setRequestError] = useState('');
+  const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
+  const [serviceDescription, setServiceDescription] = useState('');
 
 
 
@@ -207,6 +214,13 @@ const PageProfile = () => {
   const fullName = `${profile.user.firstname} ${profile.user.lastname}`.trim();
   const portfolioItems = profile.portfolio_items || [];
   const priceRange = formatPriceRange(profile);
+  const authUser = getStoredAuthUser();
+  const authUserId = Number(authUser?.id);
+  const profileUserId = Number(profile.user_id || profile.user?.id);
+  const authWorkerProfileId = Number(authUser?.worker_profile?.id);
+  const canEditProfile =
+    (Number.isInteger(authUserId) && authUserId === profileUserId) ||
+    (Number.isInteger(authWorkerProfileId) && authWorkerProfileId === Number(profile.id));
 
   const handleSaveProfile = async (payload) => {
     setSaving(true);
@@ -229,19 +243,36 @@ const PageProfile = () => {
     }
   };
 
-  const handleRequestWorker = async () => {
-    const authUser = getStoredAuthUser();
+  const openServiceDialog = () => {
+    setServiceDescription('');
+    setRequestError('');
+    setServiceDialogOpen(true);
+  };
+
+  const handleServiceRequestSubmit = async (event) => {
+    event.preventDefault();
+
+    const cleanedDescription = serviceDescription.trim();
+
+    if (!cleanedDescription) {
+      setRequestError('اكتب وصفًا قصيرًا للخدمة المطلوبة.');
+      return;
+    }
+
     const clientName = `${authUser?.firstname || ''} ${authUser?.lastname || ''}`.trim() ||
       WORKER_REQUEST_TEXT.fallbackName;
     const payload = {
       clientName,
       clientEmail: String(authUser?.email || WORKER_REQUEST_TEXT.fallbackEmail).trim(),
+      clientPhone: authUser?.phone || '',
       clientUserId: authUser?.id,
       workerId: profile.user_id || profile.user?.id,
       workerName: fullName,
+      workerEmail: profile.user?.email || '',
       profileId: profile.id || Number(id),
       craftName: profile.major || profile.skill_names?.[0] || '',
       city: profile.user?.location || '',
+      serviceDescription: cleanedDescription,
     };
 
     setRequestSending(true);
@@ -256,6 +287,8 @@ const PageProfile = () => {
         body: JSON.stringify(payload),
       });
 
+      setServiceDialogOpen(false);
+      setServiceDescription('');
       setSuccessMessage(WORKER_REQUEST_TEXT.success);
     } catch (err) {
       setRequestError(getApiErrorMessage(err, WORKER_REQUEST_TEXT.error));
@@ -278,15 +311,17 @@ const PageProfile = () => {
                 </Typography>
               </div>
 
-              <Button
-                type="button"
-                variant="contained"
-                startIcon={<EditRoundedIcon />}
-                className="profile-banner__edit"
-                onClick={() => setEditOpen(true)}
-              >
-                تعديل البروفايل
-              </Button>
+              {canEditProfile && (
+                <Button
+                  type="button"
+                  variant="contained"
+                  startIcon={<EditRoundedIcon />}
+                  className="profile-banner__edit"
+                  onClick={() => setEditOpen(true)}
+                >
+                  تعديل البروفايل
+                </Button>
+              )}
             </div>
 
             <Typography className="profile-banner__text">
@@ -314,7 +349,7 @@ const PageProfile = () => {
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <section className="profile-panel">
-              <ProfileHeader profile={profile} />
+              <ProfileHeader profile={profile} onRequestService={openServiceDialog} />
             </section>
           </Grid>
 
@@ -350,7 +385,7 @@ const PageProfile = () => {
               </div>
 
               <div className="profile-panel">
-                <ProfileAvailability />
+                <ProfileAvailability availability={profile.availability} />
               </div>
 
               <div className="profile-panel">
@@ -381,26 +416,6 @@ const PageProfile = () => {
                   <span>نطاق السعر</span>
                   <strong>{priceRange}</strong>
                 </div>
-                <button
-                  type="button"
-                  className="profile-contact-card__action"
-                  onClick={handleRequestWorker}
-                  disabled={requestSending}
-                >
-                  {requestSending ? (
-                    <>
-                      <CircularProgress size={18} sx={{ color: '#fff' }} />
-                      <span>{WORKER_REQUEST_TEXT.sending}</span>
-                    </>
-                  ) : (
-                    WORKER_REQUEST_TEXT.button
-                  )}
-                </button>
-                {requestError && (
-                  <div className="profile-contact-card__error" role="alert">
-                    {requestError}
-                  </div>
-                )}
               </div>
             </Box>
           </Grid>
@@ -415,6 +430,66 @@ const PageProfile = () => {
         onClose={() => setEditOpen(false)}
         onSave={handleSaveProfile}
       />
+
+      <Dialog
+        open={serviceDialogOpen}
+        onClose={requestSending ? undefined : () => setServiceDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <Box component="form" onSubmit={handleServiceRequestSubmit}>
+          <DialogTitle sx={{ fontWeight: 900, color: '#1f1f1f' }}>
+            طلب خدمة من {fullName}
+          </DialogTitle>
+          <DialogContent sx={{ pt: 1 }}>
+            <Typography sx={{ color: '#736d65', mb: 2, lineHeight: 1.8 }}>
+              اكتب وصفًا مختصرًا للخدمة المطلوبة، وسيصل الطلب للعامل عبر الأوتوميشن.
+            </Typography>
+
+            {requestError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {requestError}
+              </Alert>
+            )}
+
+            <TextField
+              autoFocus
+              label="وصف الخدمة"
+              value={serviceDescription}
+              onChange={(event) => setServiceDescription(event.target.value)}
+              multiline
+              minRows={4}
+              fullWidth
+              required
+            />
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2 }}>
+            <Button
+              type="button"
+              onClick={() => setServiceDialogOpen(false)}
+              disabled={requestSending}
+              sx={{ textTransform: 'none', fontWeight: 700 }}
+            >
+              إلغاء
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={requestSending}
+              sx={{
+                bgcolor: '#5c7c43',
+                '&:hover': { bgcolor: '#4d6a37' },
+                borderRadius: '12px',
+                boxShadow: 'none',
+                textTransform: 'none',
+                fontWeight: 800,
+              }}
+            >
+              {requestSending ? 'جاري إرسال الطلب...' : 'إرسال الطلب'}
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
 
       <Snackbar
         open={Boolean(successMessage)}
