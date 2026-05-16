@@ -1,22 +1,31 @@
 const { User, Skill, Worker_Skill, WorkerProfile } = require('../models');
 const { Op } = require('sequelize');
-const axios = require('axios');
-
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
-
 async function extractFiltersWithAI(userText) {
-    const response = await axios.post(
+
+    const response = await fetch(
         'https://api.groq.com/openai/v1/chat/completions',
         {
-            model: 'llama-3.3-70b-versatile',
-            temperature: 0,
-            messages: [
-                {
-                    role: 'system',
-                    content: `
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${GROQ_API_KEY}`
+            },
+
+            body: JSON.stringify({
+                model: 'llama-3.3-70b-versatile',
+                temperature: 0,
+
+                messages: [
+                    {
+                        role: 'system',
+                        content: `
 أنت مساعد ذكي لمنصة "بناء بال".
 
-استخرج المعلومات بصيغة JSON فقط:
+استخرج المعلومات بصيغة JSON فقط.
+
+لا تضف markdown.
+لا تكتب أي شيء خارج JSON.
 
 {
   "skill":"اسم المهارة أو null",
@@ -24,31 +33,38 @@ async function extractFiltersWithAI(userText) {
   "name":"اسم الشخص أو null"
 }
 `
-                },
-                {
-                    role: 'user',
-                    content: userText
-                }
-            ]
-        },
-        {
-            headers: {
-                Authorization: `Bearer ${GROQ_API_KEY}`
-            }
+                    },
+                    {
+                        role: 'user',
+                        content: userText
+                    }
+                ]
+            })
         }
     );
 
-    const raw = response.data.choices[0].message.content;
+    const data = await response.json();
 
-    const clean = raw
-        .replace(/```json/g, '')
-        .replace(/```/g, '')
-        .trim();
+    const raw =
+        data?.choices?.[0]?.message?.content || '{}';
 
-    return JSON.parse(clean);
+    const clean = raw.replace(/```json/g, '').replace(/```/g, '').trim();
+
+    try {
+        return JSON.parse(clean);//to convert the json to object
+
+    } catch (e) {
+
+        return {
+            skill: null,
+            location: null,
+            name: null
+        };
+    }
 }
 
 async function aiSearch(req, res) {
+
     try {
 
         const { q } = req.query;
@@ -69,6 +85,7 @@ async function aiSearch(req, res) {
         };
 
         if (filters.name) {
+
             userWhere[Op.or] = [
                 {
                     firstname: {
@@ -84,6 +101,7 @@ async function aiSearch(req, res) {
         }
 
         if (filters.location) {
+
             userWhere.location = {
                 [Op.like]: `%${filters.location}%`
             };
@@ -91,7 +109,9 @@ async function aiSearch(req, res) {
 
         const workers = await User.findAll({
 
-            where: userWhere,
+            distinct: true,//not allowed duplication
+
+            where: userWhere,//the same condition same name and location and role
 
             attributes: [
                 'id',
@@ -138,9 +158,11 @@ async function aiSearch(req, res) {
         const result = workers.map(user => ({
             id: user.id,
 
-            workerProfileId: user.worker_profile?.id || null,
+            workerProfileId:
+                user.worker_profile?.id || null,
 
-            name: `${user.firstname} ${user.lastname}`,
+            name:
+                `${user.firstname} ${user.lastname}`,
 
             location: user.location,
 
@@ -148,7 +170,7 @@ async function aiSearch(req, res) {
 
             skills: user.worker_skills
                 .map(ws => ws.skill?.skill_name)
-                .filter(Boolean)
+                .filter(Boolean)//delete undefined or null values
         }));
 
         res.json({
@@ -160,7 +182,7 @@ async function aiSearch(req, res) {
 
     } catch (err) {
 
-        console.error(err.response?.data || err.message);
+        console.error(err);
 
         res.status(500).json({
             success: false,
