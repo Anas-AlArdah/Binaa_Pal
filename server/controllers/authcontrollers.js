@@ -4,6 +4,8 @@ const { User, Role, WorkerProfile, Skill, Worker_Skill, sequelize } = require('.
 
 const JWT_SECRET = process.env.JWT_SECRET || 'binaa_pal_dev_secret';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+// try {
+    //req.user = jwt.verify(token, JWT_SECRET)
 const SALT_ROUNDS = 10;
 const ADMIN_EMAIL = normalizeEmail(process.env.ADMIN_EMAIL || 'admin@binaapal.com');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin12345';

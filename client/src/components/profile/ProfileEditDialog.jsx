@@ -23,6 +23,17 @@ import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
+import { normalizePortfolioItems, prepareImageFile } from '../../utils/workerProfile';
+
+const EMPTY_PORTFOLIO_ITEM = {
+  title: '',
+  image: '',
+  tag: '',
+  description: '',
+  video: '',
+};
+
+const createEmptyPortfolioFormItem = () => ({ ...EMPTY_PORTFOLIO_ITEM });
 
 const ProfileEditDialog = ({
                              open,
@@ -52,19 +63,18 @@ const ProfileEditDialog = ({
     new_password: '',
     confirm_password: '',
     availability: {},
-    portfolio_items: [
-      {
-        title: '',
-        image: '',
-        tag: '',
-        description: '',
-        video: '',
-      },
-    ],
+    portfolio_items: [createEmptyPortfolioFormItem()],
   });
 
   useEffect(() => {
     if (profile) {
+      const portfolioItems = normalizePortfolioItems(
+          profile?.portfolio_items || profile?.p_images
+      ).map((item) => ({
+        ...EMPTY_PORTFOLIO_ITEM,
+        ...item,
+      }));
+
       setForm((prev) => ({
         ...prev,
         firstname: profile?.user?.firstname || '',
@@ -77,7 +87,15 @@ const ProfileEditDialog = ({
         min_price: profile?.min_price || '',
         max_price: profile?.max_price || '',
         profile_image: profile?.profile_image || '',
+        skill_ids: Array.isArray(profile?.skill_ids)
+            ? profile.skill_ids
+            : [],
+        portfolio_items:
+            portfolioItems.length > 0
+                ? portfolioItems
+                : [createEmptyPortfolioFormItem()],
       }));
+      setSubmitError('');
     }
   }, [profile]);
 
@@ -112,13 +130,7 @@ const ProfileEditDialog = ({
       ...current,
       portfolio_items: [
         ...current.portfolio_items,
-        {
-          title: '',
-          image: '',
-          tag: '',
-          description: '',
-          video: '',
-        },
+        createEmptyPortfolioFormItem(),
       ],
     }));
   };
@@ -132,6 +144,42 @@ const ProfileEditDialog = ({
     }));
   };
 
+  const handleImageFileChange = async (event, onReady) => {
+    const input = event.target;
+    const file = input.files?.[0];
+    input.value = '';
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const imageDataUrl = await prepareImageFile(file, {
+        maxWidth: 1200,
+        maxHeight: 1200,
+        quality: 0.78,
+      });
+      onReady(imageDataUrl);
+      setSubmitError('');
+    } catch (error) {
+      setSubmitError(
+          error instanceof Error
+              ? error.message
+              : 'Failed to prepare the selected image.'
+      );
+    }
+  };
+
+  const handleProfileImageChange = (event) =>
+      handleImageFileChange(event, (imageDataUrl) => {
+        updateField('profile_image', imageDataUrl);
+      });
+
+  const handlePortfolioImageChange = (index, event) =>
+      handleImageFileChange(event, (imageDataUrl) => {
+        updatePortfolioItem(index, 'image', imageDataUrl);
+      });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -143,7 +191,16 @@ const ProfileEditDialog = ({
       return;
     }
 
-    await onSave(form);
+    try {
+      setSubmitError('');
+      await onSave(form);
+    } catch (error) {
+      setSubmitError(
+          error instanceof Error
+              ? error.message
+              : 'Failed to save the worker profile.'
+      );
+    }
   };
 
   return (
@@ -270,6 +327,8 @@ const ProfileEditDialog = ({
 
                       <input
                           type="file"
+                          accept="image/*"
+                          onChange={handleProfileImageChange}
                           hidden
                       />
                     </Button>
@@ -766,6 +825,13 @@ const ProfileEditDialog = ({
 
                                     <input
                                         type="file"
+                                        accept="image/*"
+                                        onChange={(event) =>
+                                            handlePortfolioImageChange(
+                                                index,
+                                                event
+                                            )
+                                        }
                                         hidden
                                     />
                                   </Button>
