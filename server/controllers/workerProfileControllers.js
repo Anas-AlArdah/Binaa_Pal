@@ -186,13 +186,17 @@ async function syncAvailability(userId, availability, transaction) {
     return;
   }
 
+  if (!Array.isArray(availability)) {
+    return;
+  }
+
   // Always clear existing and recreate to keep it simple, or update if matches day
   await Availability.destroy({
     where: { user_id: userId },
     transaction,
   });
 
-  if (Array.isArray(availability) && availability.length > 0) {
+  if (availability.length > 0) {
     const records = availability
       .filter((item) => item.day_of_week && item.start_time && item.end_time)
       .map((item) => ({

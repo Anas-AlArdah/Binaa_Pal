@@ -58,8 +58,7 @@
   flex-wrap: wrap;
 }
 
-.sort-btn,
-.availability-btn {
+.sort-btn {
   border: 1px solid #ddd6cd;
   background: #fff;
   color: #222;
@@ -71,8 +70,7 @@
   transition: 0.25s ease;
 }
 
-.sort-btn.active,
-.availability-btn.active {
+.sort-btn.active {
   background: #5c7c43;
   color: #fff;
   border-color: #5c7c43;
@@ -266,23 +264,6 @@
   border-radius: 999px;
   font-size: 13px;
   font-weight: 600;
-}
-
-.status-badge {
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.status-badge.available {
-  background: #edf5ee;
-  color: #2f7a36;
-}
-
-.status-badge.unavailable {
-  background: #fff0f0;
-  color: #b23b3b;
 }
 
 .worker-details-list {

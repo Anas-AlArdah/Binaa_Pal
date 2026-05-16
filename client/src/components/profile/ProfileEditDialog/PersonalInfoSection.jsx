@@ -10,7 +10,6 @@ import {
     Typography,
 } from '@mui/material';
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
-import { SERVICE_REGIONS } from './profileEditDialogUtils';
 
 const twoColumnGrid = {
     display: 'grid',
@@ -140,23 +139,6 @@ const PersonalInfoSection = ({
                     ))
                 }
                 renderInput={(params) => <TextField {...params} label="المهارات" />}
-            />
-
-            <Autocomplete
-                multiple
-                options={SERVICE_REGIONS}
-                value={form.service_regions}
-                onChange={(_, values) => updateField('service_regions', values)}
-                renderTags={(value, getTagProps) =>
-                    value.map((option, index) => (
-                        <Chip
-                            {...getTagProps({ index })}
-                            key={option}
-                            label={option}
-                        />
-                    ))
-                }
-                renderInput={(params) => <TextField {...params} label="مناطق الخدمة" />}
             />
 
             <Box sx={twoColumnGrid}>

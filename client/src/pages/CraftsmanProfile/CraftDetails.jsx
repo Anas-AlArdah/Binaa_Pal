@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./CraftDetails.css";
@@ -49,7 +48,6 @@ function normalizeWorker(worker, craft) {
     experience: worker.experience || "N/A",
     price: worker.price || "N/A",
     priceSort: normalizeNumber(worker.priceSort, Number.MAX_SAFE_INTEGER),
-    availableNow: Boolean(worker.availableNow),
     imageUrl: worker.imageUrl || null,
   };
 }
@@ -64,12 +62,10 @@ function CraftDetails() {
   const [error, setError] = useState(null);
   const [selectedCity, setSelectedCity] = useState(ALL_CITIES);
   const [selectedSort, setSelectedSort] = useState(SORT_OPTIONS[0]);
-  const [availableOnly, setAvailableOnly] = useState(false);
 
   useEffect(() => {
     setCraft(fallbackCraft);
     setSelectedCity(ALL_CITIES);
-    setAvailableOnly(false);
     setSelectedSort(SORT_OPTIONS[0]);
   }, [fallbackCraft]);
 
@@ -124,10 +120,6 @@ function CraftDetails() {
       result = result.filter((worker) => worker.city === selectedCity);
     }
 
-    if (availableOnly) {
-      result = result.filter((worker) => worker.availableNow);
-    }
-
     if (selectedSort === SORT_OPTIONS[0]) {
       result.sort((a, b) => b.rating - a.rating || b.reviewsCount - a.reviewsCount);
     } else if (selectedSort === SORT_OPTIONS[1]) {
@@ -137,7 +129,7 @@ function CraftDetails() {
     }
 
     return result;
-  }, [workers, selectedCity, selectedSort, availableOnly]);
+  }, [workers, selectedCity, selectedSort]);
 
   const openProfile = (worker) => {
     if (worker.profileId) {
@@ -172,17 +164,6 @@ function CraftDetails() {
                 </button>
               ))}
             </div>
-
-            <div className="availability-filter">
-              <button
-                className={availableOnly ? "availability-btn active" : "availability-btn"}
-                onClick={() => setAvailableOnly(!availableOnly)}
-              >
-                {availableOnly
-                  ? "إظهار الكل"
-                  : "المتاح الآن فقط"}
-              </button>
-            </div>
           </div>
 
           <div className="cities-filter">
@@ -199,9 +180,7 @@ function CraftDetails() {
 
           <div className="workers-section">
             {loading ? (
-              <div className="craft-details-status">
-                {"جاري تحميل الصنايعية..."}
-              </div>
+              <div className="craft-details-status">جاري تحميل الصنايعية...</div>
             ) : error ? (
               <div className="craft-details-status error">{error}</div>
             ) : filteredWorkers.length > 0 ? (
@@ -223,11 +202,6 @@ function CraftDetails() {
                       <h3>{worker.name}</h3>
                       <div className="badge-row">
                         <span className="craft-badge">{worker.craftName}</span>
-                        <span className={`status-badge ${worker.availableNow ? "available" : "unavailable"}`}>
-                          {worker.availableNow
-                            ? "متاح الآن"
-                            : "غير متاح"}
-                        </span>
                       </div>
                     </div>
 
@@ -244,9 +218,7 @@ function CraftDetails() {
                             <FaRegClock className="icon-green" />
                             <span>
                               {worker.punctualityCount > 0 ? `${worker.punctualityRating}/5` : "N/A"}{" "}
-                              <small className="text-gray">
-                                الالتزام
-                              </small>
+                              <small className="text-gray">الالتزام</small>
                             </span>
                           </div>
                         </li>
@@ -278,7 +250,7 @@ function CraftDetails() {
 
                     <div className="action-button-container">
                       <button className="view-profile-btn" onClick={() => openProfile(worker)}>
-                        {"عرض البروفايل"}
+                        عرض البروفايل
                       </button>
                     </div>
                     <hr className="bottom-animated-bar" />
@@ -287,16 +259,8 @@ function CraftDetails() {
               </div>
             ) : (
               <div className="no-results">
-                <h3>
-                  {
-                    "لا يوجد نتائج مطابقة"
-                  }
-                </h3>
-                <p>
-                  {
-                    "جرّب تغيير الفلاتر أو اختيار مدينة أخرى."
-                  }
-                </p>
+                <h3>لا يوجد نتائج مطابقة</h3>
+                <p>جرّب تغيير الفلاتر أو اختيار مدينة أخرى.</p>
               </div>
             )}
           </div>

@@ -41,10 +41,18 @@ const mapProjectsToPortfolioItems = (projects) =>
     Array.isArray(projects) && projects.length > 0
         ? projects.map((project) => {
             const meta = parseProjectMeta(project.description_p);
-            const firstPhoto = project.photos?.[0];
+            const sortedPhotos = Array.isArray(project.photos)
+                ? [...project.photos].sort((a, b) => {
+                    const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime();
+                    const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime();
+                    return dateB - dateA || (b.id || 0) - (a.id || 0);
+                })
+                : [];
+            const firstPhoto = sortedPhotos[0];
 
             return {
                 pro_id: project.pro_id,
+                photo_id: firstPhoto?.id,
                 title: project.title_p || '',
                 description: meta.description || '',
                 tag: meta.tag || '',
@@ -53,6 +61,11 @@ const mapProjectsToPortfolioItems = (projects) =>
             };
         })
         : [createEmptyPortfolioItem()];
+
+const buildProfileSavePayload = (form) => {
+    const { availability, current_password, new_password, confirm_password, ...payload } = form;
+    return payload;
+};
 
 const ProfileEditDialog = ({
     open,
@@ -221,11 +234,18 @@ const ProfileEditDialog = ({
             }
 
             if (item.image && proId) {
-                await fetch(getApiUrl('/api/photos'), {
-                    method: 'POST',
+                const photoPath = item.photo_id
+                    ? `/api/photos/${item.photo_id}`
+                    : '/api/photos';
+                const savedPhoto = await fetch(getApiUrl(photoPath), {
+                    method: item.photo_id ? 'PUT' : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ image_url: item.image, pro_id: proId }),
                 }).then(readJson);
+
+                if (!item.photo_id && savedPhoto?.photo?.id) {
+                    item.photo_id = savedPhoto.photo.id;
+                }
             }
         }
     };
@@ -289,7 +309,7 @@ const ProfileEditDialog = ({
         try {
             await savePortfolio(userId);
             await saveAvailability(userId);
-            if (onSave) await onSave(form);
+            if (onSave) await onSave(buildProfileSavePayload(form));
             onClose();
         } catch (error) {
             console.error('خطأ أثناء الحفظ:', error);
@@ -353,6 +373,7 @@ const ProfileEditDialog = ({
                                 addPortfolioItem={addPortfolioItem}
                                 removePortfolioItem={removePortfolioItem}
                                 updatePortfolioItem={updatePortfolioItem}
+                                onError={setSubmitError}
                             />
                         </Stack>
                     </Box>

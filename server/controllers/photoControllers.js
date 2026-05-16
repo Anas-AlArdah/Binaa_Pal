@@ -101,6 +101,23 @@ const createPhoto = async (req, res) => {
             });
         }
 
+        const existingPhoto = await Photo.findOne({
+            where: { pro_id },
+            order: [
+                ['updatedAt', 'DESC'],
+                ['id', 'DESC'],
+            ],
+        });
+
+        if (existingPhoto) {
+            await existingPhoto.update({ image_url, pro_id });
+
+            return res.status(200).json({
+                message: 'Photo updated successfully',
+                photo: existingPhoto
+            });
+        }
+
         const photo = await Photo.create({
             image_url,
             pro_id
@@ -126,6 +143,20 @@ const updatePhoto = async (req, res) => {
     try {
         const { id } = req.params;
         const { image_url, pro_id } = req.body;
+
+        if (!image_url || !pro_id) {
+            return res.status(400).json({
+                message: 'image_url and pro_id are required'
+            });
+        }
+
+        const project = await Project.findByPk(pro_id);
+
+        if (!project) {
+            return res.status(404).json({
+                message: 'Project not found'
+            });
+        }
 
         const photo = await Photo.findByPk(id);
 
