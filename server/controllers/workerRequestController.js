@@ -1,5 +1,6 @@
 const { Request } = require('../models');
 const { notifyN8n } = require('../utils/notifyN8n');
+const { sendEmail } = require('../utils/emailService');
 
 function cleanString(value) {
   return String(value || '').trim();
@@ -76,23 +77,33 @@ async function requestWorker(req, res) {
   };
 
   const savedRequest = await saveRequestIfPossible(req.body, payload);
+  
+  // Try sending direct email to worker
+  const emailHtml = `
+    <div style="direction: rtl; font-family: sans-serif;">
+      <h2>طلب خدمة جديد - بناء بال</h2>
+      <p>مرحباً <strong>${workerName}</strong>،</p>
+      <p>لقد تلقيت طلب خدمة جديد من <strong>${clientName}</strong>.</p>
+      <hr />
+      <p><strong>تفاصيل الخدمة:</strong></p>
+      <p>${serviceDescription}</p>
+      <p><strong>المدينة:</strong> ${cleanString(req.body.city) || 'غير محدد'}</p>
+      <hr />
+      <p><strong>معلومات التواصل مع العميل:</strong></p>
+      <p>الهاتف: ${cleanString(req.body.clientPhone) || 'غير متوفر'}</p>
+      <p>البريد الإلكتروني: ${clientEmail}</p>
+      <br />
+      <p>بالتوفيق،<br />فريق منصة بناء بال</p>
+    </div>
+  `;
+
+  await sendEmail({
+    to: workerEmail,
+    subject: `طلب خدمة جديد: ${cleanString(req.body.craftName) || 'صيانة'}`,
+    html: emailHtml,
+  });
+
   const n8nResult = await notifyN8n(payload);
-
-  if (!n8nResult.ok) {
-    const isMissingWebhook = n8nResult.error === 'N8N_WORKER_REQUEST_WEBHOOK_URL is not configured.';
-
-    return res.status(502).json({
-      message: isMissingWebhook
-        ? 'N8N webhook is not configured on the server.'
-        : 'Failed to send the service request notification.',
-      requestId: savedRequest?.id || null,
-      n8n: {
-        status: n8nResult.status,
-        data: n8nResult.data,
-        error: n8nResult.error,
-      },
-    });
-  }
 
   return res.status(200).json({
     message: 'Service request sent successfully.',
