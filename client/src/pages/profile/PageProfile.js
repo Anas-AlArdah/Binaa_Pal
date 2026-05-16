@@ -427,16 +427,6 @@ const PageProfile = () => {
                   <strong>{profile.user.phone || 'غير مضاف'}</strong>
                 </div>
                 <div className="profile-contact-card__row">
-                  <span>الواتساب</span>
-                  <strong>
-                    {profile.user.phone ? (
-                      <a href={`https://wa.me/${profile.user.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ color: '#25d366', textDecoration: 'none' }}>
-                        مراسلة واتساب
-                      </a>
-                    ) : 'غير مضاف'}
-                  </strong>
-                </div>
-                <div className="profile-contact-card__row">
                   <span>المنطقة</span>
                   <strong>{profile.user.location || 'غير محددة'}</strong>
                 </div>

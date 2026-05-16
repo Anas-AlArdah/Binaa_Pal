@@ -22,7 +22,8 @@ const PersonalInfoSection = ({
     form,
     selectedSkills,
     updateField,
-}) => (
+}) => {
+    return (
     <Box
         sx={{
             display: 'grid',
@@ -84,20 +85,19 @@ const PersonalInfoSection = ({
                 />
                 <TextField
                     label="البريد الإلكتروني"
+                    type="email"
                     value={form.email}
                     onChange={(event) => updateField('email', event.target.value)}
                     fullWidth
                 />
                 <TextField
                     label="رقم الهاتف"
+                    type="tel"
+                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
                     value={form.phone}
-                    onChange={(event) => updateField('phone', event.target.value)}
-                    fullWidth
-                />
-                <TextField
-                    label="رقم الواتساب"
-                    value={form.whatsapp}
-                    onChange={(event) => updateField('whatsapp', event.target.value)}
+                    onChange={(event) =>
+                        updateField('phone', event.target.value.replace(/\D/g, ''))
+                    }
                     fullWidth
                 />
                 <TextField
@@ -159,6 +159,7 @@ const PersonalInfoSection = ({
             </Box>
         </Stack>
     </Box>
-);
+    );
+};
 
 export default PersonalInfoSection;
