@@ -6,14 +6,14 @@ module.exports = {
     await queryInterface.createTable('Photos', {
 
       id: {
-        type: Sequelize.integer,
+        type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
       },
 
       pro_id: {
-        type: Sequelize.integer,
+        type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: 'project',

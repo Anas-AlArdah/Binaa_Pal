@@ -6,14 +6,14 @@ module.exports = {
     await queryInterface.createTable('project', {
 
       pro_id: {
-        type: Sequelize.integer,
+        type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
       },
 
       user_id: {
-        type: Sequelize.integer,
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
 
@@ -23,7 +23,7 @@ module.exports = {
       },
 
       description_p: {
-        type: Sequelize.text,
+        type: Sequelize.TEXT,
         allowNull: true,
       },
 

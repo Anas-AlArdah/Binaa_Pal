@@ -14,7 +14,7 @@ const[skills, setSkills] = useState([]);
 
    const getskills = async () => {
       try {
-        const res=await  fetch('http://localhost:3001/api/skills')
+        const res=await  fetch('/api/skills')
           const json=await res.json()
           setSkills(json)
 
@@ -31,8 +31,7 @@ const[skills, setSkills] = useState([]);
         setLoading(true);
         setSearched(true);
         try {
-
-            const res = await fetch(`http://localhost:3001/api/search?q=${encodeURIComponent(q)}`);
+            const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
             const data = await res.json();
             setResults(data.workers || []);
             setFilters(data.filters || null);

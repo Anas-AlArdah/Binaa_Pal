@@ -25,6 +25,7 @@ import ProfilePortfolio from '../../components/profile/ProfilePortfolio';
 import ProfileRegions from '../../components/profile/ProfileRegions';
 import ProfileVideoStats from '../../components/profile/ProfileVideoStats';
 import ProfileReviews from '../../components/profile/ProfileReviews';
+import AddReviewForm from '../../components/profile/AddReviewForm';
 import ProfileEditDialog from '../../components/profile/ProfileEditDialog';
 import { ApiError, fetchJson, getApiErrorMessage } from '../../utils/api';
 import { getFirstPortfolioImage, normalizePortfolioItems } from '../../utils/workerProfile';
@@ -376,6 +377,17 @@ const PageProfile = () => {
               </section>
               <section className="profile-panel">
                 <ProfileReviews reviews={profile.reviews} />
+                <Box sx={{ mt: 4, pt: 4, borderTop: '1px solid #e3ddd4' }}>
+                   <AddReviewForm 
+                     workerProfileId={profile.id} 
+                     onReviewAdded={(newReview) => {
+                       setProfile(prev => ({
+                         ...prev,
+                         reviews: [newReview, ...prev.reviews]
+                       }));
+                     }} 
+                   />
+                </Box>
               </section>
             </Box>
           </Grid>
