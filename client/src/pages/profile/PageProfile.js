@@ -314,6 +314,13 @@ const PageProfile = () => {
     }
   };
 
+  const handleScrollToPortfolio = () => {
+    const element = document.getElementById('portfolio-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="profile-page">
       <Container maxWidth="lg" className="profile-shell">
@@ -366,13 +373,17 @@ const PageProfile = () => {
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <section className="profile-panel">
-              <ProfileHeader profile={profile} onRequestService={openServiceDialog} />
+              <ProfileHeader 
+                profile={profile} 
+                onRequestService={openServiceDialog} 
+                onShowPortfolio={handleScrollToPortfolio} 
+              />
             </section>
           </Grid>
 
           <Grid item xs={12} md={8}>
             <Box className="profile-stack">
-              <section className="profile-panel">
+              <section className="profile-panel" id="portfolio-section">
                 <ProfilePortfolio portfolio={profile.portfolio_items} />
               </section>
               <section className="profile-panel">
