@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Stack } from '@mui/material';
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 
 const ProfileStats = ({ profile }) => {
   if (!profile) return null;
@@ -34,25 +35,34 @@ const ProfileStats = ({ profile }) => {
 
   return (
     <Box>
-      <Typography sx={{ fontSize: '18px', fontWeight: 900, color: '#1f1f1f', mb: 2 }}>
-        معلومات عامة
-      </Typography>
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2.5 }}>
+        <AssessmentOutlinedIcon sx={{ color: '#F59E0B', fontSize: 24 }} />
+        <Typography sx={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', fontFamily: 'Cairo, sans-serif' }}>
+          إحصائيات ومعلومات
+        </Typography>
+      </Stack>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.4 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
         {statsData.map((stat) => (
           <Box
             key={stat.label}
             sx={{
-              border: '1px solid #e3ddd4',
-              borderRadius: '14px',
-              p: 1.7,
-              bgcolor: '#fbfaf8',
+              border: '1px solid #e2e8f0',
+              borderRadius: '16px',
+              p: 2,
+              bgcolor: '#f8fafc',
+              transition: 'all 0.2s',
+              '&:hover': {
+                bgcolor: '#f1f5f9',
+                borderColor: '#cbd5e1',
+                transform: 'translateY(-2px)'
+              }
             }}
           >
-            <Typography sx={{ color: '#736d65', fontSize: '12px', fontWeight: 700, mb: 0.7 }}>
+            <Typography sx={{ color: '#64748b', fontSize: '12px', fontWeight: 700, mb: 0.7, fontFamily: 'Cairo, sans-serif' }}>
               {stat.label}
             </Typography>
-            <Typography sx={{ color: '#1f1f1f', fontSize: '15px', fontWeight: 800, lineHeight: 1.5 }}>
+            <Typography sx={{ color: '#0f172a', fontSize: '15px', fontWeight: 800, lineHeight: 1.5, fontFamily: 'Cairo, sans-serif' }}>
               {stat.value}
             </Typography>
           </Box>

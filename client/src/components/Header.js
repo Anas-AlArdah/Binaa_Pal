@@ -1,10 +1,27 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { FiSun, FiMoon } from "react-icons/fi";
 import "./Header.css";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
+
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem("theme");
+    if (saved) return saved;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "light" ? "dark" : "light";
+    setTheme(nextTheme);
+    localStorage.setItem("theme", nextTheme);
+  };
 
   const user     = JSON.parse(localStorage.getItem("binaa_auth_user") || "null");
   const isLoggedIn = !!user;
@@ -63,6 +80,14 @@ export default function Header() {
 
         {/* Actions */}
         <div className="nh-actions">
+          <button 
+            className="nh-theme-toggle" 
+            onClick={toggleTheme} 
+            aria-label="تغيير المظهر"
+            title={theme === "light" ? "المظهر الداكن" : "المظهر الفاتح"}
+          >
+            {theme === "light" ? <FiMoon /> : <FiSun />}
+          </button>
           {!isLoggedIn ? (
             <Link to="/login" className="nh-btn-login">
               تسجيل الدخول
@@ -106,6 +131,9 @@ export default function Header() {
         <div className="nh-mobile-menu" dir="rtl">
           <Link to="/home"      className="nh-mobile-link" onClick={closeMenu}>الرئيسية</Link>
           <Link to="/craftsman" className="nh-mobile-link" onClick={closeMenu}>الصنعات</Link>
+          <button className="nh-mobile-link nh-mobile-theme-btn" onClick={() => { toggleTheme(); closeMenu(); }}>
+            {theme === "light" ? "المظهر الداكن 🌙" : "المظهر الفاتح ☀️"}
+          </button>
           {isLoggedIn && isWorker && (
             <>
               <Link to="/"       className="nh-mobile-link" onClick={closeMenu}>خدماتي</Link>

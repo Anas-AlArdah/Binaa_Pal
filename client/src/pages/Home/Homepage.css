@@ -17,6 +17,17 @@
   --hp-shadow-floating: 0 20px 60px -15px rgba(26, 39, 68, 0.3);
 }
 
+[data-theme="dark"] {
+  --hp-bg: #0b0f19;
+  --hp-surface: #141e30;
+  --hp-text-main: #f8fafc;
+  --hp-text-muted: #94a3b8;
+  --hp-border: #1e293b;
+  --hp-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  --hp-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  --hp-shadow-floating: 0 20px 60px -15px rgba(0, 0, 0, 0.6);
+}
+
 .hp-root {
   font-family: 'Cairo', sans-serif;
   direction: rtl;

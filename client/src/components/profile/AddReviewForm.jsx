@@ -14,9 +14,9 @@ const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
 
   if (!user) {
     return (
-      <Box sx={{ p: 2, bgcolor: '#fff8eb', borderRadius: '12px', border: '1px solid #ead8b3' }}>
-        <Typography sx={{ color: '#7b5d2f', fontSize: '14px', fontWeight: 600 }}>
-          يجب عليك تسجيل الدخول لتتمكن من إضافة تقييم.
+      <Box sx={{ p: 3, bgcolor: '#f1f5f9', borderRadius: '16px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+        <Typography sx={{ color: '#475569', fontSize: '15px', fontWeight: 700, fontFamily: 'Cairo, sans-serif' }}>
+          يرجى تسجيل الدخول لتتمكن من إضافة تقييم ومشاركة تجربتك.
         </Typography>
       </Box>
     );
@@ -25,7 +25,7 @@ const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!comment.trim()) {
-      setError('يرجى كتابة تعليق.');
+      setError('يرجى كتابة تعليق يوضح تجربتك.');
       return;
     }
 
@@ -57,45 +57,54 @@ const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
 
   if (success) {
     return (
-      <Alert severity="success" sx={{ borderRadius: '12px' }}>
-        تم إضافة تقييمك بنجاح! شكراً لك.
+      <Alert severity="success" sx={{ borderRadius: '16px', fontFamily: 'Cairo, sans-serif', fontWeight: 700 }}>
+        تم إضافة تقييمك بنجاح! شكراً لمساهمتك في مساعدة الآخرين.
       </Alert>
     );
   }
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-      <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.5, color: '#1f1f1f' }}>
+    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2, bgcolor: '#f8fafc', p: 4, borderRadius: '24px', border: '1px solid #e2e8f0' }}>
+      <Typography variant="h6" sx={{ fontWeight: 900, mb: 1, color: '#0f172a', fontFamily: 'Cairo, sans-serif' }}>
         أضف تقييمك
       </Typography>
+      <Typography sx={{ mb: 3, color: '#64748b', fontSize: '14px', fontFamily: 'Cairo, sans-serif' }}>
+        شاركنا رأيك وتجربتك مع هذا الحرفي لمساعدة العملاء الآخرين في اختيار الأفضل.
+      </Typography>
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 3, borderRadius: '12px', fontFamily: 'Cairo, sans-serif' }}>{error}</Alert>}
 
-      <Box sx={{ mb: 2 }}>
-        <Typography sx={{ fontSize: '14px', fontWeight: 700, mb: 0.5, color: '#4c4a43' }}>
-          التقييم العام
+      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Typography sx={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', fontFamily: 'Cairo, sans-serif' }}>
+          تقييمك العام:
         </Typography>
         <Rating
           value={rating}
           onChange={(event, newValue) => setRating(newValue)}
           size="large"
-          sx={{ color: '#c48b2d' }}
+          sx={{ color: '#F59E0B' }}
         />
       </Box>
 
       <TextField
         fullWidth
         multiline
-        rows={3}
-        placeholder="اكتب تجربتك مع هذا العامل هنا..."
+        rows={4}
+        placeholder="اكتب تفاصيل تجربتك وجودة العمل والالتزام بالوقت..."
         value={comment}
         onChange={(e) => setComment(e.target.value)}
         variant="outlined"
         sx={{
-          mb: 2,
+          mb: 3,
           '& .MuiOutlinedInput-root': {
-            borderRadius: '12px',
+            borderRadius: '16px',
             bgcolor: '#fff',
+            fontFamily: 'Cairo, sans-serif',
+            transition: 'all 0.3s',
+            '&.Mui-focused': {
+              boxShadow: '0 0 0 4px rgba(245, 158, 11, 0.1)',
+              borderColor: '#F59E0B'
+            }
           }
         }}
       />
@@ -105,13 +114,17 @@ const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
         variant="contained"
         disabled={isSubmitting}
         sx={{
-          bgcolor: '#5c7c43',
-          '&:hover': { bgcolor: '#4d6a37' },
-          borderRadius: '12px',
-          px: 4,
-          py: 1,
+          bgcolor: '#1a2744',
+          '&:hover': { bgcolor: '#0f172a', transform: 'translateY(-2px)' },
+          borderRadius: '16px',
+          px: 6,
+          py: 1.5,
           fontWeight: 800,
-          textTransform: 'none'
+          fontFamily: 'Cairo, sans-serif',
+          textTransform: 'none',
+          fontSize: '16px',
+          boxShadow: '0 4px 12px rgba(26, 39, 68, 0.15)',
+          transition: 'all 0.2s'
         }}
       >
         {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'نشر التقييم'}

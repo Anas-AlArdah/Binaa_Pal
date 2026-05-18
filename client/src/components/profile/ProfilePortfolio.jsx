@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Grid, Typography } from '@mui/material';
+import { Box, Grid, Typography, Card, CardMedia, CardContent, Chip } from '@mui/material';
 import { normalizePortfolioItems } from '../../utils/workerProfile';
 
 const ProfilePortfolio = ({ portfolio }) => {
@@ -13,10 +13,10 @@ const ProfilePortfolio = ({ portfolio }) => {
   if (items.length === 0) {
     return (
       <Box>
-        <Typography variant="h5" sx={{ color: '#1f2933', fontWeight: 900, fontSize: '24px', mb: 1 }}>
+        <Typography variant="h5" sx={{ color: '#0f172a', fontWeight: 900, fontSize: '24px', mb: 1, fontFamily: 'Cairo, sans-serif' }}>
           معرض الأعمال
         </Typography>
-        <Typography sx={{ color: '#52606d', fontSize: '15px', lineHeight: 1.9 }}>
+        <Typography sx={{ color: '#64748b', fontSize: '15px', lineHeight: 1.9, fontFamily: 'Cairo, sans-serif' }}>
           لا توجد أعمال مضافة بعد. يمكن للعامل تعديل الصفحة وإضافة صور مع وصف بسيط لكل مشروع.
         </Typography>
       </Box>
@@ -27,70 +27,72 @@ const ProfilePortfolio = ({ portfolio }) => {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 3, gap: 2 }}>
         <Box>
-          <Typography variant="h5" sx={{ color: '#1f1f1f', fontWeight: 900, fontSize: '24px', mb: 0.6 }}>
+          <Typography variant="h5" sx={{ color: '#0f172a', fontWeight: 900, fontSize: '24px', mb: 0.6, fontFamily: 'Cairo, sans-serif' }}>
             معرض الأعمال
           </Typography>
-          <Typography sx={{ color: '#736d65', fontSize: '14px', lineHeight: 1.8 }}>
+          <Typography sx={{ color: '#64748b', fontSize: '14px', lineHeight: 1.8, fontFamily: 'Cairo, sans-serif' }}>
             مجموعة من الصور والتفاصيل المختصرة للأعمال التي أضافها العامل إلى ملفه المهني.
           </Typography>
         </Box>
-        <Typography sx={{ color: '#5c7c43', fontWeight: 800, fontSize: '14px', whiteSpace: 'nowrap' }}>
+        <Typography sx={{ color: '#F59E0B', fontWeight: 800, fontSize: '14px', whiteSpace: 'nowrap', fontFamily: 'Cairo, sans-serif' }}>
           {items.length} عناصر
         </Typography>
       </Box>
 
-      <Grid container spacing={2.2}>
+      <Grid container spacing={3}>
         {items.map((item, index) => (
           <Grid item xs={12} sm={6} key={index}>
-            <Box
+            <Card
+              elevation={0}
               sx={{
-                overflow: 'hidden',
-                borderRadius: '18px',
-                border: '1px solid #e3ddd4',
+                borderRadius: '20px',
+                border: '1px solid #e2e8f0',
                 bgcolor: '#fff',
-                transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%',
                 '&:hover': {
-                  borderColor: '#d3c7b8',
-                  boxShadow: '0 8px 20px rgba(66, 52, 32, 0.08)',
+                  borderColor: '#cbd5e1',
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 12px 25px -5px rgba(26, 39, 68, 0.1)',
                 },
               }}
             >
-              <Box
+              <CardMedia
+                component="div"
                 sx={{
                   height: 220,
                   backgroundImage: `url('${item.image}')`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
-                  borderBottom: '1px solid #e3ddd4',
+                  borderBottom: '1px solid #e2e8f0',
                 }}
               />
 
-              <Box sx={{ p: 2.2 }}>
-                <Typography
-                  sx={{
-                    display: 'inline-flex',
-                    bgcolor: '#f4efe8',
-                    color: '#8f6b3f',
-                    border: '1px solid #e3ddd4',
-                    borderRadius: '999px',
-                    px: 1.2,
-                    py: 0.4,
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    mb: 1.2,
-                  }}
-                >
-                  {item.tag}
-                </Typography>
+              <CardContent sx={{ p: 3, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ mb: 1.5 }}>
+                  <Chip 
+                    label={item.tag} 
+                    size="small" 
+                    sx={{ 
+                      bgcolor: '#f1f5f9', 
+                      color: '#475569', 
+                      fontWeight: 700, 
+                      fontSize: '12px',
+                      fontFamily: 'Cairo, sans-serif'
+                    }} 
+                  />
+                </Box>
 
-                <Typography sx={{ color: '#1f1f1f', fontWeight: 800, mb: 1, fontSize: '17px' }}>
+                <Typography sx={{ color: '#0f172a', fontWeight: 800, mb: 1.5, fontSize: '18px', fontFamily: 'Cairo, sans-serif' }}>
                   {item.title}
                 </Typography>
-                <Typography sx={{ color: '#736d65', lineHeight: 1.8, fontSize: '14px' }}>
+                <Typography sx={{ color: '#64748b', lineHeight: 1.8, fontSize: '14px', fontFamily: 'Cairo, sans-serif' }}>
                   {item.caption}
                 </Typography>
-              </Box>
-            </Box>
+              </CardContent>
+            </Card>
           </Grid>
         ))}
       </Grid>

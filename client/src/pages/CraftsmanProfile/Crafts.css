@@ -1,10 +1,11 @@
 /* ========== CRAFTS PAGE STYLES ========== */
 
 .cr-page-wrapper {
-  background-color: #f8fafc;
+  background-color: var(--bg-primary);
   min-height: 100vh;
   font-family: 'Cairo', sans-serif;
-  color: #0f172a;
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .cr-container {
@@ -65,21 +66,23 @@
 .cr-search-box {
   display: flex;
   align-items: center;
-  background: #ffffff;
+  background: var(--bg-card);
   border-radius: 999px;
   padding: 8px 24px;
   width: 100%;
   max-width: 500px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  transition: box-shadow 0.3s;
+  border: 1.5px solid var(--border-color);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
 .cr-search-box:focus-within {
-  box-shadow: 0 20px 50px rgba(245, 158, 11, 0.2);
+  box-shadow: 0 15px 40px rgba(37, 99, 235, 0.15);
+  border-color: #2563eb;
 }
 
 .cr-search-icon {
-  color: #94a3b8;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   margin-left: 12px;
@@ -97,12 +100,12 @@
   width: 100%;
   font-family: inherit;
   font-size: 1rem;
-  color: #0f172a;
+  color: var(--text-main);
   padding: 10px 0;
 }
 
 .cr-search-box input::placeholder {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 /* ===== MAIN CONTENT ===== */
@@ -121,21 +124,21 @@
 }
 
 .cr-card {
-  background: #ffffff;
+  background: var(--bg-card);
   border-radius: 20px;
   padding: 24px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease, border-color 0.3s ease;
   display: flex;
   flex-direction: column;
 }
 
 .cr-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 20px 35px -5px rgba(26, 39, 68, 0.08);
-  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow: var(--card-hover-shadow);
+  border-color: rgba(37, 99, 235, 0.3);
 }
 
 .cr-card-top {
@@ -197,27 +200,34 @@
 .cr-card-title {
   font-size: 1.25rem;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-main);
   margin: 0 0 8px;
+  transition: color 0.3s ease;
 }
 
 .cr-card-desc {
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin: 0;
   line-height: 1.6;
+  transition: color 0.3s ease;
 }
 
 .cr-card-footer {
   margin-top: 24px;
   padding-top: 16px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #F59E0B;
+  color: var(--text-main);
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.cr-card:hover .cr-card-footer {
+  color: #2563eb; /* Turns to premium interactive Blue on card hover! */
 }
 
 .cr-action-icon {
@@ -307,4 +317,19 @@
   .cr-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ===== SCROLL REVEAL ANIMATION ===== */
+.cr-reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s ease,
+              box-shadow 0.3s ease !important; /* Preserve hover transition styles */
+}
+
+.cr-reveal--visible {
+  opacity: 1;
+  transform: translateY(0);
 }

@@ -1,84 +1,67 @@
+import React from 'react';
+import { FaTwitter, FaInstagram, FaYoutube, FaFacebook } from 'react-icons/fa';
+
 function Footer() {
     return (
-        <div className="container-fluid ">
-        <div className="row   " dir="rtl" style={{
-            background: 'linear-gradient(to right, #005c97, #363795)'
-        }}>
-
-            {/* الأعمدة */}
-            <div className="col-12 col-md-8 d-md-flex d-block mb-sm-0" style={{ fontSize: "16px" }}>
-
-                <div className="mt-5 me-5">
-                    <b style={{ color: "white" }}>المنصة</b>
-                    <h6 className="mt-3 text-white">عن أُستاذ</h6>
-                    <h6 className=" text-white">كيف تعمل المنصة</h6>
-                    <h6 className=" text-white">تواصل معنا</h6>
-                    <h6 className=" text-white">الأسئلة الشائعة</h6>
-                </div>
-
-                <div className="mt-5 me-5">
-                    <b style={{ color: "white" }}>للعملاء</b>
-                    <h6 className="mt-3 text-white">ابحث عن حرفي</h6>
-                    <h6 className=" text-white">كيف تطلب خدمة</h6>
-                    <h6 className=" text-white">تقييم الحرفيين</h6>
-                </div>
-
-                <div className="mt-5 me-5">
-                    <b style={{ color: "white" }}>للحرفيين</b>
-                    <h6 className="mt-3 text-white">سجّل كحرفي</h6>
-                    <h6 className=" text-white">كيف تعرض خدماتك</h6>
-                    <h6 className=" text-white">مميزات الانضمام</h6>
-                </div>
-
-            </div>
-
-            {/* السوشيال ميديا */}
-            <div className="col-12 col-md-4 d-flex" style={{ color: "white" }}>
-                <div className="mt-5 me-4">
-
-                    <b style={{ color: "white" }}>تابعنا</b>
-                    <div className="mt-3 d-flex gap-3 mb-4">
-                        {/* تويتر */}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
-                             style={{ cursor: "pointer" }} className="bi bi-twitter ms-3" viewBox="0 0 16 16">
-                            <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334q.002-.211-.006-.422A6.7 6.7 0 0 0 16 3.542a6.7 6.7 0 0 1-1.889.518 3.3 3.3 0 0 0 1.447-1.817 6.5 6.5 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.32 9.32 0 0 1-6.767-3.429 3.29 3.29 0 0 0 1.018 4.382A3.3 3.3 0 0 1 .64 6.575v.045a3.29 3.29 0 0 0 2.632 3.218 3.2 3.2 0 0 1-.865.115 3 3 0 0 1-.614-.057 3.28 3.28 0 0 0 3.067 2.277A6.6 6.6 0 0 1 .78 13.58a6 6 0 0 1-.78-.045A9.34 9.34 0 0 0 5.026 15"/>
-                        </svg>
-                        {/* انستغرام */}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
-                             style={{ cursor: "pointer" }} className="bi bi-instagram ms-3" viewBox="0 0 16 16">
-                            <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.9 3.9 0 0 0-1.417.923A3.9 3.9 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.9 3.9 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.9 3.9 0 0 0-.923-1.417A3.9 3.9 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599s.453.546.598.92c.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.5 2.5 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.5 2.5 0 0 1-.92-.598 2.5 2.5 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233s.008-2.388.046-3.231c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92s.546-.453.92-.598c.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92m-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217m0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334"/>
-                        </svg>
-                        {/* يوتيوب */}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
-                             style={{ cursor: "pointer" }} className="bi bi-youtube ms-3" viewBox="0 0 16 16">
-                            <path d="M8.051 1.999h.089c.822.003 4.987.033 6.11.335a2.01 2.01 0 0 1 1.415 1.42c.101.38.172.883.22 1.402l.01.104.022.26.008.104c.065.914.073 1.77.074 1.957v.075c-.001.194-.01 1.108-.082 2.06l-.008.105-.009.104c-.05.572-.124 1.14-.235 1.558a2.01 2.01 0 0 1-1.415 1.42c-1.16.312-5.569.334-6.18.335h-.142c-.309 0-1.587-.006-2.927-.052l-.17-.006-.087-.004-.171-.007-.171-.007c-1.11-.049-2.167-.128-2.654-.26a2.01 2.01 0 0 1-1.415-1.419c-.111-.417-.185-.986-.235-1.558L.09 9.82l-.008-.104A31 31 0 0 1 0 7.68v-.123c.002-.215.01-.958.064-1.778l.007-.103.003-.052.008-.104.022-.26.01-.104c.048-.519.119-1.023.22-1.402a2.01 2.01 0 0 1 1.415-1.42c.487-.13 1.544-.21 2.654-.26l.17-.007.172-.006.086-.003.171-.007A100 100 0 0 1 7.858 2zM6.4 5.209v4.818l4.157-2.408z"/>
-                        </svg>
-                        {/* فيسبوك */}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor"
-                             style={{ cursor: "pointer" }} className="bi bi-facebook ms-3" viewBox="0 0 16 16">
-                            <path d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951"/>
-                        </svg>
+        <div style={{ backgroundColor: '#0f172a', color: '#fff', padding: '60px 0 20px', fontFamily: 'Cairo, sans-serif' }}>
+            <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '40px', direction: 'rtl' }}>
+                    
+                    {/* الأعمدة */}
+                    <div>
+                        <h4 style={{ color: '#F59E0B', fontWeight: 900, marginBottom: '20px', fontSize: '18px' }}>المنصة</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <li><a href="#" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>عن منصة بناء</a></li>
+                            <li><a href="#" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>كيف تعمل المنصة</a></li>
+                            <li><a href="#" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>تواصل معنا</a></li>
+                            <li><a href="#" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>الأسئلة الشائعة</a></li>
+                        </ul>
                     </div>
 
-                    {/* حقوق النشر */}
-                    <div className="d-flex gap-3 mt-4" style={{ fontSize: "14px" }}>
-                        <p style={{ cursor: "pointer" }}>تواصل معنا</p>
-                        <div style={{ width: "1px", height: "20px", backgroundColor: "#ccc", marginTop: "4px" }}></div>
-                        <p style={{ cursor: "pointer" }}>سياسة الخصوصية</p>
-                        <div style={{ width: "1px", height: "20px", backgroundColor: "#ccc", marginTop: "4px" }}></div>
-                        <p style={{ cursor: "pointer" }}>الشروط والأحكام</p>
+                    <div>
+                        <h4 style={{ color: '#F59E0B', fontWeight: 900, marginBottom: '20px', fontSize: '18px' }}>للعملاء</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <li><a href="#" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>ابحث عن حرفي</a></li>
+                            <li><a href="#" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>كيف تطلب خدمة</a></li>
+                            <li><a href="#" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>تقييم الحرفيين</a></li>
+                        </ul>
                     </div>
 
-                    <p style={{ fontSize: "13px", color: "#aaa" }}>
-                        © 2026 أُستاذ - جميع الحقوق محفوظة
-                    </p>
+                    <div>
+                        <h4 style={{ color: '#F59E0B', fontWeight: 900, marginBottom: '20px', fontSize: '18px' }}>للحرفيين</h4>
+                        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <li><a href="#" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>سجّل كحرفي</a></li>
+                            <li><a href="#" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>كيف تعرض خدماتك</a></li>
+                            <li><a href="#" style={{ color: '#cbd5e1', textDecoration: 'none', transition: 'color 0.2s' }}>مميزات الانضمام</a></li>
+                        </ul>
+                    </div>
 
+                    {/* السوشيال ميديا */}
+                    <div>
+                        <h4 style={{ color: '#F59E0B', fontWeight: 900, marginBottom: '20px', fontSize: '18px' }}>تابعنا</h4>
+                        <div style={{ display: 'flex', gap: '16px', marginBottom: '30px' }}>
+                            <a href="#" style={{ color: '#fff', fontSize: '24px', transition: 'color 0.2s' }}><FaTwitter /></a>
+                            <a href="#" style={{ color: '#fff', fontSize: '24px', transition: 'color 0.2s' }}><FaInstagram /></a>
+                            <a href="#" style={{ color: '#fff', fontSize: '24px', transition: 'color 0.2s' }}><FaYoutube /></a>
+                            <a href="#" style={{ color: '#fff', fontSize: '24px', transition: 'color 0.2s' }}><FaFacebook /></a>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '12px', fontSize: '13px', color: '#94a3b8', flexWrap: 'wrap' }}>
+                            <a href="#" style={{ color: '#94a3b8', textDecoration: 'none' }}>تواصل معنا</a>
+                            <span>|</span>
+                            <a href="#" style={{ color: '#94a3b8', textDecoration: 'none' }}>سياسة الخصوصية</a>
+                            <span>|</span>
+                            <a href="#" style={{ color: '#94a3b8', textDecoration: 'none' }}>الشروط والأحكام</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div style={{ marginTop: '50px', paddingTop: '20px', borderTop: '1px solid #1e293b', textAlign: 'center', color: '#64748b', fontSize: '14px' }}>
+                    © {new Date().getFullYear()} بناء بال (Binaa Pal) - جميع الحقوق محفوظة
                 </div>
             </div>
-
         </div>
-        </div>
-    )
+    );
 }
 
 export default Footer;

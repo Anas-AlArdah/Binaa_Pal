@@ -24,6 +24,37 @@ const getIconForCraft = (slug) => {
   }
 };
 
+function ScrollRevealCard({ children, onClick, index }) {
+  const [ref, setRef] = React.useState(null);
+  const [isVisible, setIsVisible] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!ref) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(ref); // Only animate once
+        }
+      },
+      { threshold: 0.05, rootMargin: "0px 0px -40px 0px" }
+    );
+    observer.observe(ref);
+    return () => observer.disconnect();
+  }, [ref]);
+
+  return (
+    <div
+      ref={setRef}
+      className={`cr-card cr-reveal ${isVisible ? "cr-reveal--visible" : ""}`}
+      style={{ transitionDelay: `${(index % 3) * 0.08}s` }}
+      onClick={onClick}
+    >
+      {children}
+    </div>
+  );
+}
+
 function Crafts() {
   const navigate = useNavigate();
   const [crafts, setCrafts] = useState([]);
@@ -122,12 +153,9 @@ function Crafts() {
             </div>
           ) : filteredCrafts.length > 0 ? (
             <div className="cr-grid">
-              {filteredCrafts.map((craft) => (
-                <div className="cr-card" key={craft.id} onClick={() => handleCraftClick(craft)}>
+              {filteredCrafts.map((craft, index) => (
+                <ScrollRevealCard key={craft.id} index={index} onClick={() => handleCraftClick(craft)}>
                   <div className="cr-card-top">
-                    <div className="cr-icon-container">
-                      {craft.reactIcon}
-                    </div>
                     <div className="cr-workers-badge">
                       <span className="cr-badge-dot"></span>
                       {craft.workersCount || 12} حرفي متاح
@@ -143,7 +171,7 @@ function Crafts() {
                     <span className="cr-action-text">عرض الحرفيين</span>
                     <span className="cr-action-icon"><FiArrowLeft /></span>
                   </div>
-                </div>
+                </ScrollRevealCard>
               ))}
             </div>
           ) : (

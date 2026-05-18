@@ -8,6 +8,7 @@ import CraftDetails from './pages/CraftsmanProfile/CraftDetails';
 import Homepage from './pages/Home/Homepage';
 import LoginPage from './pages/Login/LoginPage';
 import AdminPage from './pages/Admin/AdminPage';
+import ScrollToTop from './components/ScrollToTop';
 
 function AppLayout() {
   return (
@@ -23,6 +24,7 @@ function AppLayout() {
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Navigate to="/home" replace />} />
 

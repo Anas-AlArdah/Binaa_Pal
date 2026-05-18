@@ -46,21 +46,31 @@ const ProfileHeader = ({ profile, onRequestService, onShowPortfolio }) => {
       sx={{
         display: 'grid',
         gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1.4fr) minmax(280px, 360px)' },
-        gap: 3,
+        gap: 4,
       }}
     >
       <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start', flexDirection: { xs: 'column', sm: 'row' } }}>
-        <Avatar
-          src={heroImage || '/images/pf1.jpg'}
-          alt={`${user.firstname} ${user.lastname}`}
-          sx={{
-            width: { xs: 104, sm: 132 },
-            height: { xs: 104, sm: 132 },
-            borderRadius: '22px',
-            border: '1px solid #d9d2c7',
-            boxShadow: '0 8px 20px rgba(15, 23, 42, 0.08)',
-          }}
-        />
+        <Box sx={{ position: 'relative' }}>
+          <Avatar
+            src={heroImage || '/images/pf1.jpg'}
+            alt={`${user.firstname} ${user.lastname}`}
+            sx={{
+              width: { xs: 110, sm: 140 },
+              height: { xs: 110, sm: 140 },
+              borderRadius: '24px',
+              border: '2px solid #fff',
+              boxShadow: '0 10px 25px rgba(26, 39, 68, 0.12)',
+            }}
+          />
+          <Box 
+            sx={{ 
+              position: 'absolute', bottom: -6, right: -6, 
+              bgcolor: '#10b981', width: 24, height: 24, 
+              borderRadius: '50%', border: '4px solid #fff' 
+            }} 
+            title="متواجد حالياً"
+          />
+        </Box>
 
         <Box sx={{ flex: 1 }}>
           <Stack direction="row" spacing={1.2} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
@@ -68,48 +78,50 @@ const ProfileHeader = ({ profile, onRequestService, onShowPortfolio }) => {
               label="متاح للعمل"
               size="small"
               sx={{
-                bgcolor: '#edf5ee',
-                color: '#256d3f',
-                border: '1px solid #c8e3d0',
+                bgcolor: '#f0fdf4',
+                color: '#16a34a',
+                border: '1px solid #bbf7d0',
                 fontWeight: 800,
+                fontFamily: 'Cairo, sans-serif'
               }}
             />
             <Chip
               label={profile.major || 'عامل مهني'}
               size="small"
               sx={{
-                bgcolor: '#f4efe8',
-                color: '#8f6b3f',
-                border: '1px solid #e3ddd4',
+                bgcolor: '#fef3c7',
+                color: '#d97706',
+                border: '1px solid #fde68a',
                 fontWeight: 800,
+                fontFamily: 'Cairo, sans-serif'
               }}
             />
           </Stack>
 
-          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '28px', sm: '34px' }, fontWeight: 900, color: '#1f1f1f', mb: 1 }}>
+          <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '28px', sm: '34px' }, fontWeight: 900, color: '#0f172a', mb: 1, fontFamily: 'Cairo, sans-serif' }}>
             {user.firstname} {user.lastname}
-            <VerifiedRoundedIcon sx={{ color: '#5c7c43', fontSize: { xs: '24px', sm: '28px' } }} titleAccess="صنايعي موثق" />
+            <VerifiedRoundedIcon sx={{ color: '#F59E0B', fontSize: { xs: '24px', sm: '28px' } }} titleAccess="صنايعي موثق" />
           </Typography>
 
           <Stack direction="row" spacing={1.2} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
             <Chip
-              icon={<LocationOnOutlinedIcon sx={{ fontSize: '18px !important' }} />}
+              icon={<LocationOnOutlinedIcon sx={{ fontSize: '18px !important', color: '#64748b' }} />}
               label={user.location || 'فلسطين'}
-              sx={{ bgcolor: '#f8f6f2', border: '1px solid #e3ddd4', fontWeight: 700, borderRadius: '12px' }}
+              sx={{ bgcolor: '#f1f5f9', border: '1px solid #e2e8f0', fontWeight: 700, borderRadius: '12px', color: '#475569', fontFamily: 'Cairo, sans-serif' }}
             />
             <Chip
-              icon={<PhoneOutlinedIcon sx={{ fontSize: '18px !important' }} />}
+              icon={<PhoneOutlinedIcon sx={{ fontSize: '18px !important', color: '#64748b' }} />}
               label={user.phone || 'غير مضاف'}
-              sx={{ bgcolor: '#f8f6f2', border: '1px solid #e3ddd4', fontWeight: 700, borderRadius: '12px' }}
+              sx={{ bgcolor: '#f1f5f9', border: '1px solid #e2e8f0', fontWeight: 700, borderRadius: '12px', color: '#475569', fontFamily: 'Cairo, sans-serif' }}
             />
             <Chip
-              icon={<StarBorderRoundedIcon sx={{ fontSize: '18px !important' }} />}
+              icon={<StarBorderRoundedIcon sx={{ fontSize: '18px !important', color: '#F59E0B' }} />}
               label={`${averageRating} (${reviewCount})`}
-              sx={{ bgcolor: '#fff8eb', border: '1px solid #ead8b3', fontWeight: 700, borderRadius: '12px' }}
+              sx={{ bgcolor: '#fffbeb', border: '1px solid #fef08a', fontWeight: 700, borderRadius: '12px', color: '#b45309', fontFamily: 'Cairo, sans-serif' }}
             />
           </Stack>
 
-          <Typography sx={{ color: '#736d65', lineHeight: 1.95, fontSize: '15.5px', maxWidth: 680 }}>
+          <Typography sx={{ color: '#64748b', lineHeight: 1.8, fontSize: '16px', maxWidth: 680, fontFamily: 'Cairo, sans-serif' }}>
             {profile.bio || 'لم يتم إضافة وصف مختصر لهذا العامل بعد.'}
           </Typography>
         </Box>
@@ -117,71 +129,89 @@ const ProfileHeader = ({ profile, onRequestService, onShowPortfolio }) => {
 
       <Box
         sx={{
-          background: '#fbfaf8',
-          border: '1px solid #d9d2c7',
-          borderRadius: '18px',
-          p: 2.25,
+          background: '#fff',
+          border: '1px solid #e2e8f0',
+          borderRadius: '24px',
+          p: 3,
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+          display: 'flex',
+          flexDirection: 'column'
         }}
       >
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-          <WorkOutlineRoundedIcon sx={{ color: '#5c7c43', fontSize: 22 }} />
-          <Typography sx={{ color: '#1f1f1f', fontWeight: 900, fontSize: '18px' }}>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2.5 }}>
+          <WorkOutlineRoundedIcon sx={{ color: '#F59E0B', fontSize: 24 }} />
+          <Typography sx={{ color: '#0f172a', fontWeight: 900, fontSize: '18px', fontFamily: 'Cairo, sans-serif' }}>
             ملخص سريع
           </Typography>
         </Stack>
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2.5 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 3 }}>
           {quickStats.map((item) => (
             <Box
               key={item.label}
             sx={{
-                border: '1px solid #e3ddd4',
-                borderRadius: '14px',
-                p: 1.5,
-                bgcolor: '#fff',
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                p: 2,
+                transition: 'all 0.2s',
+                '&:hover': {
+                  borderColor: '#cbd5e1',
+                  background: '#f1f5f9'
+                }
               }}
             >
-              <Typography sx={{ fontSize: '12px', color: '#736d65', fontWeight: 700, mb: 0.6 }}>
+              <Typography sx={{ fontSize: '12px', color: '#64748b', fontWeight: 700, mb: 0.6, fontFamily: 'Cairo, sans-serif' }}>
                 {item.label}
               </Typography>
-              <Typography sx={{ fontSize: '15px', color: '#1f1f1f', fontWeight: 800, lineHeight: 1.5 }}>
+              <Typography sx={{ fontSize: '15px', color: '#0f172a', fontWeight: 800, lineHeight: 1.5, fontFamily: 'Cairo, sans-serif' }}>
                 {item.value}
               </Typography>
             </Box>
           ))}
         </Box>
 
-        <Stack spacing={1.2}>
+        <Stack spacing={1.5} sx={{ mt: 'auto' }}>
           <Button
             variant="contained"
             fullWidth
             onClick={onRequestService}
             sx={{
-              bgcolor: '#5c7c43',
-              '&:hover': { bgcolor: '#4d6a37' },
-              borderRadius: '12px',
-              py: 1.4,
-              boxShadow: 'none',
+              bgcolor: '#1a2744',
+              '&:hover': { bgcolor: '#0f172a', transform: 'translateY(-2px)' },
+              borderRadius: '16px',
+              py: 1.5,
+              boxShadow: '0 10px 15px -3px rgba(26, 39, 68, 0.2)',
               fontWeight: 800,
+              fontSize: '16px',
+              fontFamily: 'Cairo, sans-serif',
               textTransform: 'none',
+              transition: 'all 0.2s'
             }}
           >
-            طلب خدمة
+            طلب خدمة مباشرة
           </Button>
           <Button
             variant="outlined"
             fullWidth
             onClick={onShowPortfolio}
             sx={{
-              borderColor: '#e3ddd4',
-              color: '#1f1f1f',
-              borderRadius: '12px',
-              py: 1.3,
+              borderColor: '#e2e8f0',
+              color: '#475569',
+              borderRadius: '16px',
+              py: 1.4,
               fontWeight: 700,
+              fontSize: '15px',
+              fontFamily: 'Cairo, sans-serif',
               textTransform: 'none',
+              '&:hover': {
+                borderColor: '#cbd5e1',
+                bgcolor: '#f8fafc',
+                color: '#0f172a'
+              }
             }}
           >
-            عرض الأعمال
+            عرض معرض الأعمال
           </Button>
         </Stack>
       </Box>
