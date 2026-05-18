@@ -58,7 +58,38 @@ app.use('/api/admin', adminRoutes);
 // ================= Test Route =================
 
 app.get('/', (req, res) => {
-  res.send('API is working 🚀');
+  res.json({
+    message: 'API is working',
+  });
+});
+
+// ================= Error Responses =================
+
+app.use('/api', (req, res) => {
+  res.status(404).json({
+    message: `API route not found: ${req.method} ${req.originalUrl}`,
+  });
+});
+
+app.use((req, res) => {
+  res.status(404).json({
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
+  });
+});
+
+app.use((err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  const status = err.status || err.statusCode || 500;
+
+  console.error('Unhandled server error:', err);
+
+  return res.status(status).json({
+    message: status === 500 ? 'Server error' : err.message,
+    ...(process.env.NODE_ENV === 'development' && err.message ? { error: err.message } : {}),
+  });
 });
 
 // ================= Start Server =================
