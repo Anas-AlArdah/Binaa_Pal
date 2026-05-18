@@ -8,7 +8,7 @@ import {
   FaRegClock,
   FaStar,
 } from "react-icons/fa";
-import Header from "../../components/Header";
+import { FiChevronLeft, FiFilter, FiMapPin } from "react-icons/fi";
 import Footer from "../../components/Footer";
 import { fetchJson, getApiErrorMessage } from "../../utils/api";
 import { decorateCraft } from "./craftPresentation";
@@ -36,8 +36,8 @@ function normalizeWorker(worker, craft) {
     ...worker,
     id: worker.id,
     profileId: worker.profileId,
-    name: worker.name || "Worker",
-    city: worker.city || worker.location || "N/A",
+    name: worker.name || "عامل مجهول",
+    city: worker.city || worker.location || "غير محدد",
     craftSlug: worker.craftSlug || craft.slug,
     craftName: worker.craftName || craft.name,
     secondarySkill,
@@ -45,8 +45,8 @@ function normalizeWorker(worker, craft) {
     reviewsCount: normalizeNumber(worker.reviewsCount),
     punctualityRating: normalizeNumber(worker.punctualityRating),
     punctualityCount: normalizeNumber(worker.punctualityCount),
-    experience: worker.experience || "N/A",
-    price: worker.price || "N/A",
+    experience: worker.experience || "غير محدد",
+    price: worker.price || "غير محدد",
     priceSort: normalizeNumber(worker.priceSort, Number.MAX_SAFE_INTEGER),
     imageUrl: worker.imageUrl || null,
   };
@@ -138,129 +138,163 @@ function CraftDetails() {
   };
 
   return (
-    <>
-      <Header />
+    <div className="cd-page-wrapper" dir="rtl">
+      {/* 
+        NOTE: Header is removed here because AppLayout (in App.js) 
+        already renders it. This fixes the double header issue! 
+      */}
 
-      <div className="craft-details-page">
-        <div className="craft-details-container">
-          <div className="craft-hero">
-            <div className="craft-main-icon">{craft.icon}</div>
-
-            <div className="craft-main-text">
-              <h1>{craft.name}</h1>
-              <p>{craft.description}</p>
+      {/* HERO SECTION */}
+      <div className="cd-hero">
+        <div className="cd-hero-overlay"></div>
+        <div className="cd-container cd-hero-content">
+          <button className="cd-back-btn" onClick={() => navigate('/craftsman')}>
+            <FiChevronLeft /> <span>العودة للصنعات</span>
+          </button>
+          
+          <div className="cd-hero-main">
+            <div className="cd-hero-icon-wrap">
+              {craft.icon}
+            </div>
+            <div className="cd-hero-text">
+              <h1>أفضل حرفيي <span>{craft.name}</span></h1>
+              <p>{craft.description || "نوصلك بأمهر الصنايعية الموثوقين وأصحاب الخبرة الطويلة في هذا المجال."}</p>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="top-filters">
-            <div className="sort-buttons">
-              {SORT_OPTIONS.map((option) => (
-                <button
-                  key={option}
-                  className={selectedSort === option ? "sort-btn active" : "sort-btn"}
-                  onClick={() => setSelectedSort(option)}
-                >
-                  {option}
-                </button>
-              ))}
+      <div className="cd-main-section">
+        <div className="cd-container">
+          
+          {/* FILTERS AREA */}
+          <div className="cd-filters-card">
+            
+            <div className="cd-filter-group">
+              <div className="cd-filter-label">
+                <FiFilter className="cd-icon" /> ترتيب حسب:
+              </div>
+              <div className="cd-filter-options">
+                {SORT_OPTIONS.map((option) => (
+                  <button
+                    key={option}
+                    className={`cd-pill-btn ${selectedSort === option ? "active" : ""}`}
+                    onClick={() => setSelectedSort(option)}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            <div className="cd-filter-group">
+              <div className="cd-filter-label">
+                <FiMapPin className="cd-icon" /> تصفية بالمدينة:
+              </div>
+              <div className="cd-filter-options">
+                {cities.map((city) => (
+                  <button
+                    key={city}
+                    className={`cd-pill-btn cd-pill-btn--outline ${selectedCity === city ? "active" : ""}`}
+                    onClick={() => setSelectedCity(city)}
+                  >
+                    {city}
+                  </button>
+                ))}
+              </div>
+            </div>
+
           </div>
 
-          <div className="cities-filter">
-            {cities.map((city) => (
-              <button
-                key={city}
-                className={selectedCity === city ? "city-btn active" : "city-btn"}
-                onClick={() => setSelectedCity(city)}
-              >
-                {city}
-              </button>
-            ))}
-          </div>
+          {/* WORKERS RESULTS */}
+          <div className="cd-results-section">
+            <div className="cd-results-header">
+              <h2>الصنايعية المتاحين ({filteredWorkers.length})</h2>
+            </div>
 
-          <div className="workers-section">
             {loading ? (
-              <div className="craft-details-status">جاري تحميل الصنايعية...</div>
+              <div className="cd-state-box">
+                <div className="cd-spinner"></div>
+                <p>جاري البحث عن الحرفيين المناسبين...</p>
+              </div>
             ) : error ? (
-              <div className="craft-details-status error">{error}</div>
+              <div className="cd-state-box cd-state-error">
+                <span className="cd-state-icon">⚠️</span>
+                <p>{error}</p>
+                <button onClick={() => window.location.reload()} className="cd-retry-btn">إعادة المحاولة</button>
+              </div>
             ) : filteredWorkers.length > 0 ? (
-              <div className="workers-grid">
+              <div className="cd-workers-grid">
                 {filteredWorkers.map((worker) => (
-                  <div className="profile-card group" key={worker.id}>
-                    <div className="avatar-section">
-                      <div className="img-container">
+                  <div className="cd-worker-card" key={worker.id}>
+                    
+                    <div className="cd-worker-header">
+                      <div className="cd-worker-avatar">
                         {worker.imageUrl ? (
-                          <img src={worker.imageUrl} alt={worker.name} className="worker-img" />
+                          <img src={worker.imageUrl} alt={worker.name} />
                         ) : (
-                          <div className="worker-img placeholder-img">{worker.name.charAt(0)}</div>
+                          <span className="cd-avatar-placeholder">{worker.name.charAt(0)}</span>
                         )}
-                        <div className="bg-shape"></div>
+                        <span className="cd-status-dot"></span>
+                      </div>
+                      
+                      <div className="cd-worker-title">
+                        <h3>{worker.name}</h3>
+                        <span className="cd-badge-primary">{worker.craftName}</span>
+                      </div>
+                      
+                      <div className="cd-worker-rating">
+                        <span className="cd-rating-val">{worker.rating}</span>
+                        <FaStar className="cd-star-icon" />
+                        <span className="cd-reviews-cnt">({worker.reviewsCount})</span>
                       </div>
                     </div>
 
-                    <div className="worker-headings">
-                      <h3>{worker.name}</h3>
-                      <div className="badge-row">
-                        <span className="craft-badge">{worker.craftName}</span>
+                    <div className="cd-worker-body">
+                      <div className="cd-info-row">
+                        <div className="cd-info-item">
+                          <FaMapMarkerAlt className="cd-info-icon text-gray" />
+                          <span>{worker.city}</span>
+                        </div>
+                        <div className="cd-info-item">
+                          <FaBriefcase className="cd-info-icon text-gray" />
+                          <span>خبرة {worker.experience}</span>
+                        </div>
                       </div>
+
+                      <div className="cd-info-row">
+                        <div className="cd-info-item">
+                          <FaMoneyBillWave className="cd-info-icon text-green" />
+                          <span className="font-bold">{worker.price}</span>
+                        </div>
+                        <div className="cd-info-item">
+                          <FaRegClock className="cd-info-icon text-green" />
+                          <span>الالتزام: {worker.punctualityCount > 0 ? `${worker.punctualityRating}/5` : "جديد"}</span>
+                        </div>
+                      </div>
+
+                      {worker.secondarySkill && (
+                        <div className="cd-skills-tags">
+                          <span className="cd-tag">{worker.secondarySkill}</span>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="worker-details-list">
-                      <ul>
-                        <li>
-                          <div className="detail-item">
-                            <FaStar className="icon-gold" />
-                            <span>
-                              {worker.rating} <small className="text-gray">({worker.reviewsCount})</small>
-                            </span>
-                          </div>
-                          <div className="detail-item" style={{ marginRight: "auto" }}>
-                            <FaRegClock className="icon-green" />
-                            <span>
-                              {worker.punctualityCount > 0 ? `${worker.punctualityRating}/5` : "N/A"}{" "}
-                              <small className="text-gray">الالتزام</small>
-                            </span>
-                          </div>
-                        </li>
-
-                        <li>
-                          <div className="detail-item">
-                            <FaMoneyBillWave className="icon-green" />
-                            <span>{worker.price}</span>
-                          </div>
-                          <div className="detail-item" style={{ marginRight: "auto" }}>
-                            <FaBriefcase className="icon-gray" />
-                            <span>{worker.experience}</span>
-                          </div>
-                        </li>
-
-                        <li>
-                          <div className="detail-item">
-                            <FaMapMarkerAlt className="icon-gray" />
-                            <span>{worker.city}</span>
-                          </div>
-                          {worker.secondarySkill && (
-                            <div className="detail-item" style={{ marginRight: "auto" }}>
-                              <span className="skill-pill secondary">{worker.secondarySkill}</span>
-                            </div>
-                          )}
-                        </li>
-                      </ul>
-                    </div>
-
-                    <div className="action-button-container">
-                      <button className="view-profile-btn" onClick={() => openProfile(worker)}>
-                        عرض البروفايل
+                    <div className="cd-worker-footer">
+                      <button className="cd-btn-profile" onClick={() => openProfile(worker)}>
+                        عرض البروفايل الكامل
                       </button>
                     </div>
-                    <hr className="bottom-animated-bar" />
+
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="no-results">
-                <h3>لا يوجد نتائج مطابقة</h3>
-                <p>جرّب تغيير الفلاتر أو اختيار مدينة أخرى.</p>
+              <div className="cd-state-box">
+                <span className="cd-state-icon">😕</span>
+                <h3>لا توجد نتائج!</h3>
+                <p>لم نتمكن من العثور على صنايعية يطابقون خياراتك الحالية.</p>
+                <button onClick={() => { setSelectedCity(ALL_CITIES); setSelectedSort(SORT_OPTIONS[0]); }} className="cd-retry-btn">إعادة تعيين الفلاتر</button>
               </div>
             )}
           </div>
@@ -268,7 +302,7 @@ function CraftDetails() {
       </div>
 
       <Footer />
-    </>
+    </div>
   );
 }
 

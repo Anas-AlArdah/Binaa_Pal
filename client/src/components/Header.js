@@ -1,141 +1,128 @@
-import "../header.css";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
+import "./Header.css";
 
-function Header() {
-    const [isOpen, setIsOpen] = useState(false);
+export default function Header() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const location = useLocation();
 
-    // 👇 جلب المستخدم من localStorage
-    const user = JSON.parse(localStorage.getItem("binaa_auth_user"));
-    const isLoggedIn = !!user;
-    const isWorker = String(user?.role?.type || "").toLowerCase() === "worker";
+  const user     = JSON.parse(localStorage.getItem("binaa_auth_user") || "null");
+  const isLoggedIn = !!user;
+  const isWorker   = String(user?.role?.type || "").toLowerCase() === "worker";
 
-    const closeMenu = () => setIsOpen(false);
+  const closeMenu = () => setMenuOpen(false);
 
-    const handleLogout = () => {
-        localStorage.removeItem("binaa_auth_user");
-        localStorage.removeItem("binaa_auth_token");
-        window.location.href = "/login";
-    };
+  const handleLogout = () => {
+    localStorage.removeItem("binaa_auth_user");
+    localStorage.removeItem("binaa_auth_token");
+    window.location.href = "/login";
+  };
 
-    return (
-        <header className="header fixed-top">
-            <nav
-                className="navbar navbar-expand-lg"
-                style={{
-                    background: "linear-gradient(to right, #005c97, #363795)"
-                }}
-            >
-                <div className="container-fluid">
+  const isActive = (path) => location.pathname === path;
 
-                    {/* Logo */}
-                    <Link className="navbar-brand fw-bold fs-3 text-white" to="/home">
-                        Binaa Pal
-                    </Link>
+  return (
+    <header className="nh-header" dir="rtl">
+      <div className="nh-inner">
 
-                    {/* Toggle */}
-                    <button
-                        className="navbar-toggler"
-                        type="button"
-                        onClick={() => setIsOpen(!isOpen)}
-                    >
-                        <span className="navbar-toggler-icon"></span>
-                    </button>
+        {/* Logo */}
+        <Link className="nh-logo" to="/home" onClick={closeMenu}>
+          Binaa Pal
+        </Link>
 
-                    {/* Menu */}
-                    <div className={`collapse navbar-collapse   ${isOpen ? "show" : ""} ms-md-5`}>
+        {/* Desktop Nav */}
+        <nav className="nh-nav">
+          <Link
+            to="/home"
+            className={`nh-link ${isActive("/home") ? "nh-link--active" : ""}`}
+          >
+            الرئيسية
+          </Link>
+          <Link
+            to="/craftsman"
+            className={`nh-link ${isActive("/craftsman") ? "nh-link--active" : ""}`}
+          >
+            الصنعات
+          </Link>
+          {isLoggedIn && isWorker && (
+            <>
+              <Link
+                to="/"
+                className={`nh-link ${isActive("/") ? "nh-link--active" : ""}`}
+              >
+                خدماتي
+              </Link>
+              <Link
+                to="/orders"
+                className={`nh-link ${isActive("/orders") ? "nh-link--active" : ""}`}
+              >
+                الطلبات
+              </Link>
+            </>
+          )}
+        </nav>
 
-                        <ul className="navbar-nav mx-auto gap-3 gap-md-5  ">
+        {/* Actions */}
+        <div className="nh-actions">
+          {!isLoggedIn ? (
+            <Link to="/login" className="nh-btn-login">
+              تسجيل الدخول
+            </Link>
+          ) : (
+            <>
+              {isWorker && (
+                <Link
+                  to={`/profile/${user?.worker_profile?.id}`}
+                  className="nh-avatar"
+                  onClick={closeMenu}
+                  title="الملف الشخصي"
+                >
+                  {(user?.firstname || "م").charAt(0)}
+                </Link>
+              )}
+              <span className="nh-username">
+                {user?.firstname} {user?.lastname}
+              </span>
+              <button className="nh-btn-logout" onClick={handleLogout}>
+                Logout
+              </button>
+            </>
+          )}
+        </div>
 
-                            <li className="nav-item ms-md-5">
-                                <Link to="/craftsman" className="nav-link text-white fw-bold fs-4" onClick={closeMenu}>
-                                    الصنعات
-                                </Link>
-                            </li>
+        {/* Mobile Toggle */}
+        <button
+          className="nh-toggle"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="القائمة"
+        >
+          <span className={`nh-toggle__bar ${menuOpen ? "nh-toggle__bar--open" : ""}`} />
+          <span className={`nh-toggle__bar ${menuOpen ? "nh-toggle__bar--open" : ""}`} />
+          <span className={`nh-toggle__bar ${menuOpen ? "nh-toggle__bar--open" : ""}`} />
+        </button>
+      </div>
 
-                            {isLoggedIn && isWorker && (
-                                <>
-                                    <li className="nav-item ms-md-5">
-                                        <Link to="/" className="nav-link text-white fw-bold fs-4" onClick={closeMenu}>
-                                            خدماتي
-                                        </Link>
-                                    </li>
-
-                                    <li className="nav-item ms-md-5">
-                                        <Link to="/orders" className="nav-link text-white fw-bold fs-4" onClick={closeMenu}>
-                                            الطلبات
-                                        </Link>
-                                    </li>
-                                </>
-                            )}
-                        </ul>
-
-                        {/* Right side */}
-                        <div className="d-flex align-items-center gap-4">
-
-                            {!isLoggedIn ? (
-                                <Link to="/login" className="btn btn-outline-danger fs-5">
-                                    تسجيل الدخول
-                                </Link>
-                            ) : (
-                                <>
-                                     <span className="text-white fw-bold fs-4">
-                    {user?.firstname} {user?.lastname}
-                </span>
-                                    {isWorker && (
-                                        <>
-
-
-                                            <Link
-                                                to={`/profile/${user.worker_profile?.id}`}
-                                                onClick={closeMenu}
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none">
-                                                    <defs>
-                                                        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                            <stop offset="0%" stopColor="#ffffff" stopOpacity="1"/>
-                                                            <stop offset="100%" stopColor="#a8d8ea" stopOpacity="1"/>
-                                                        </linearGradient>
-                                                    </defs>
-
-                                                    <circle
-                                                        cx="12"
-                                                        cy="12"
-                                                        r="11"
-                                                        fill="rgba(255,255,255,0.15)"
-                                                        stroke="rgba(255,255,255,0.4)"
-                                                        strokeWidth="1"
-                                                    />
-
-                                                    <circle cx="12" cy="9" r="3.5" fill="url(#grad)"/>
-
-                                                    <path
-                                                        d="M5.5 19.5c0-3.5 3-6 6.5-6s6.5 2.5 6.5 6"
-                                                        stroke="url(#grad)"
-                                                        strokeWidth="1.5"
-                                                        strokeLinecap="round"
-                                                        fill="none"
-                                                    />
-                                                </svg>
-                                            </Link>
-                                        </>
-                                    )}
-
-                                    <button
-                                        className="btn btn-outline-danger fs-5"
-                                        onClick={handleLogout}
-                                    >
-                                        تسجيل الخروج
-                                    </button>
-                                </>
-                            )}
-                        </div>
-
-                    </div>
-                </div>
-            </nav>
-        </header>
-    );
+      {/* Mobile Menu */}
+      {menuOpen && (
+        <div className="nh-mobile-menu" dir="rtl">
+          <Link to="/home"      className="nh-mobile-link" onClick={closeMenu}>الرئيسية</Link>
+          <Link to="/craftsman" className="nh-mobile-link" onClick={closeMenu}>الصنعات</Link>
+          {isLoggedIn && isWorker && (
+            <>
+              <Link to="/"       className="nh-mobile-link" onClick={closeMenu}>خدماتي</Link>
+              <Link to="/orders" className="nh-mobile-link" onClick={closeMenu}>الطلبات</Link>
+            </>
+          )}
+          {!isLoggedIn ? (
+            <Link to="/login" className="nh-mobile-link nh-mobile-link--cta" onClick={closeMenu}>
+              تسجيل الدخول
+            </Link>
+          ) : (
+            <button className="nh-mobile-link nh-mobile-link--logout" onClick={handleLogout}>
+              تسجيل الخروج
+            </button>
+          )}
+        </div>
+      )}
+    </header>
+  );
 }
-
-export default Header;
