@@ -27,6 +27,8 @@ import ProfileVideoStats from '../../components/profile/ProfileVideoStats';
 import ProfileReviews from '../../components/profile/ProfileReviews';
 import AddReviewForm from '../../components/profile/AddReviewForm';
 import ProfileEditDialog from '../../components/profile/ProfileEditDialog';
+import ProfileCompletionCard from '../../components/profile/ProfileCompletionCard';
+import ProfileTrustBadges from '../../components/profile/ProfileTrustBadges';
 import { ApiError, fetchJson, getApiErrorMessage } from '../../utils/api';
 import { getFirstPortfolioImage, normalizePortfolioItems } from '../../utils/workerProfile';
 import './PageProfile.css';
@@ -405,6 +407,16 @@ const PageProfile = () => {
 
           <Grid item xs={12} md={4}>
             <Box className="profile-stack">
+              {canEditProfile && (
+                <div className="profile-panel">
+                  <ProfileCompletionCard profile={profile} onEdit={() => setEditOpen(true)} />
+                </div>
+              )}
+
+              <div className="profile-panel">
+                <ProfileTrustBadges profile={profile} />
+              </div>
+
               {profile.reviews && profile.reviews.length > 0 && (
                 <div className="profile-panel">
                   <ProfileAiReview reviews={profile.reviews} />
