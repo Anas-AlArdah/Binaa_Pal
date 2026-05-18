@@ -6,7 +6,6 @@ import { getApiUrl } from '../utils/api';
 export default function SearchBox() {
     const [query, setQuery]     = useState('');
     const [results, setResults] = useState([]);
-    const [filters, setFilters] = useState(null);
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
 const[skills, setSkills] = useState([]);
@@ -35,7 +34,6 @@ const[skills, setSkills] = useState([]);
             const res = await fetch(getApiUrl(`/api/search?q=${encodeURIComponent(q)}`));
             const data = await res.json();
             setResults(data.workers || []);
-            setFilters(data.filters || null);
         } catch (err) {
             console.error(err);
             setResults([]);

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchJson, getApiErrorMessage } from "../../utils/api";
 
 // استيراد أيقونات احترافية من مكتبة react-icons
-import { FiZap, FiTool, FiDroplet, FiFeather, FiLayers, FiCpu, FiHome, FiScissors, FiGrid, FiArrowLeft } from "react-icons/fi";
+import { FiZap, FiTool, FiFeather, FiLayers, FiCpu, FiScissors, FiGrid, FiArrowLeft } from "react-icons/fi";
 import { MdOutlinePlumbing, MdConstruction } from "react-icons/md";
 
 // دالة لربط كل صنعة بالأيقونة المناسبة بناءً على slug

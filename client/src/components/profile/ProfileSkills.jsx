@@ -19,7 +19,7 @@ const ProfileSkills = ({ major, skills = [] }) => {
     const minRating = 4.0;
     const maxRating = 5.0;
     const hash = skillName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const rating = minRating + (hash % 11) / 10; 
+    const rating = minRating + ((hash % 11) / 10) * (maxRating - minRating);
     return rating.toFixed(1);
   };
 

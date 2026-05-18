@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import React from 'react';
 import { FaTwitter, FaInstagram, FaYoutube, FaFacebook } from 'react-icons/fa';
 
