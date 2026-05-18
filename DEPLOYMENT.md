@@ -9,7 +9,6 @@ Netlify settings:
 - Build command: `npm --prefix client ci && npm --prefix client run build`
 - Publish directory: `client/build`
 - Environment variable: `REACT_APP_API_URL=https://your-backend-url.example.com`
-- Optional Netlify proxy variable: `BACKEND_URL=https://your-backend-url.example.com`
 
 The `netlify.toml` file already contains the build settings and the fallback redirect needed by React Router.
 
@@ -26,6 +25,6 @@ Backend settings:
 
 Use a hosted MySQL database for production. `DB_HOST` cannot be `localhost` after deployment.
 
-After the backend is deployed, copy its public URL into Netlify as `REACT_APP_API_URL` or `BACKEND_URL`, then redeploy the frontend.
+After the backend is deployed, copy its public URL into Netlify as `REACT_APP_API_URL`, then redeploy the frontend.
 
 Do not commit real API keys, database passwords, or production secrets to Git.

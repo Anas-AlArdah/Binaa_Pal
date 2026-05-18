@@ -97,6 +97,10 @@ export async function fetchJson(path, options = {}) {
     }
   }
 
+  if (data?.apiFallback) {
+    throw new ApiError(data.message || 'الخادم الخلفي غير مربوط بعد.', 503, data);
+  }
+
   if (!response.ok) {
     throw new ApiError(
       data?.message || `Request failed with status ${response.status}`,

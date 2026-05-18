@@ -1,0 +1,8 @@
+{
+  "apiFallback": true,
+  "message": "الخادم الخلفي غير مربوط بعد. انشر السيرفر وأضف REACT_APP_API_URL في Netlify.",
+  "workers": [],
+  "crafts": [],
+  "skills": [],
+  "filters": null
+}

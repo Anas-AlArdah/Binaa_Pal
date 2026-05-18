@@ -16,7 +16,7 @@ const[skills, setSkills] = useState([]);
       try {
         const res=await  fetch(getApiUrl('/api/skills'))
           const json=await res.json()
-          setSkills(json)
+          setSkills(Array.isArray(json) ? json : [])
 
       }catch(err){
           console.log(err)

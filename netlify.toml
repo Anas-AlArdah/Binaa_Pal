@@ -2,12 +2,9 @@
   command = "npm --prefix client ci && npm --prefix client run build"
   publish = "client/build"
 
-[functions]
-  directory = "netlify/functions"
-
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
+  to = "/api-fallback.json"
   status = 200
   force = true
 
