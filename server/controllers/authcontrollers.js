@@ -38,6 +38,32 @@ function normalizeSkillIds(values) {
   ];
 }
 
+function createRequestError(message) {
+  const error = new Error(message);
+  error.statusCode = 400;
+  return error;
+}
+
+function normalizeExperienceYears(value, fieldName, { required = false } = {}) {
+  const normalizedValue = typeof value === 'string' ? value.trim() : value;
+
+  if (normalizedValue === undefined || normalizedValue === null || normalizedValue === '') {
+    if (required) {
+      throw createRequestError(`${fieldName} is required.`);
+    }
+
+    return null;
+  }
+
+  const numericValue = Number(normalizedValue);
+
+  if (!Number.isInteger(numericValue) || numericValue < 0 || numericValue > 60) {
+    throw createRequestError(`${fieldName} must be a whole number between 0 and 60.`);
+  }
+
+  return numericValue;
+}
+
 function isBcryptHash(password) {
   return /^\$2[aby]\$\d{2}\$/.test(String(password || ''));
 }
@@ -140,11 +166,14 @@ async function register(req, res) {
     const location = cleanString(req.body.location);
     const roleType = normalizeUserType(req.body.userType);
     const primarySkillId = Number(req.body.primarySkillId);
+    const secondarySkillId = Number(req.body.secondarySkillId);
+    const hasSecondarySkill = Number.isInteger(secondarySkillId) && secondarySkillId > 0;
     const requestedSkillIds = normalizeSkillIds([
       primarySkillId,
-      req.body.secondarySkillId,
+      secondarySkillId,
       ...(Array.isArray(req.body.skillIds) ? req.body.skillIds : []),
     ]);
+    const skillExperienceById = new Map();
 
     if (!firstname || !lastname || !email || !password || !phone || !location) {
       return res.status(400).json({
@@ -158,6 +187,30 @@ async function register(req, res) {
 
     if (roleType === 'Worker' && (!Number.isInteger(primarySkillId) || primarySkillId <= 0)) {
       return res.status(400).json({ message: 'Primary craft is required for worker accounts.' });
+    }
+
+    if (roleType === 'Worker') {
+      const primaryExperienceYears = normalizeExperienceYears(
+        req.body.primaryExperienceYears,
+        'Primary craft experience',
+        { required: true }
+      );
+
+      skillExperienceById.set(primarySkillId, primaryExperienceYears);
+
+      if (hasSecondarySkill) {
+        if (secondarySkillId === primarySkillId) {
+          return res.status(400).json({ message: 'Secondary craft must be different from primary craft.' });
+        }
+
+        const secondaryExperienceYears = normalizeExperienceYears(
+          req.body.secondaryExperienceYears,
+          'Secondary craft experience',
+          { required: true }
+        );
+
+        skillExperienceById.set(secondarySkillId, secondaryExperienceYears);
+      }
     }
 
     const existingUser = await findUserByEmail(email);
@@ -207,6 +260,7 @@ async function register(req, res) {
         selectedSkills.map((skill) => ({
           worker_id: user.id,
           skill_id: skill.id,
+          experience_years: skillExperienceById.get(Number(skill.id)) ?? null,
         })),
         { transaction }
       );
@@ -242,9 +296,11 @@ async function register(req, res) {
       await transaction.rollback();
     }
 
-    res.status(500).json({
-      message: 'Failed to create account.',
-      error: error.message,
+    const status = error.statusCode || 500;
+
+    res.status(status).json({
+      message: status === 500 ? 'Failed to create account.' : error.message,
+      ...(status === 500 ? { error: error.message } : {}),
     });
   }
 }

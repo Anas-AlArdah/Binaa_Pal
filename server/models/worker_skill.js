@@ -32,6 +32,14 @@ module.exports = (sequelize, DataTypes) => {
           allowNull: false,
           primaryKey: true,
           references: { model: 'Skills', key: 'id' }
+      },
+      experience_years: {
+          type: DataTypes.INTEGER,
+          allowNull: true,
+          validate: {
+            min: 0,
+            max: 60,
+          },
       }
   }, {
     sequelize,

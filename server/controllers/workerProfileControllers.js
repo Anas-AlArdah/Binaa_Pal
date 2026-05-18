@@ -71,6 +71,13 @@ function formatWorkerProfile(profileModel) {
   const skill_names = workerSkills
     .map((link) => link.skill?.skill_name)
     .filter(Boolean);
+  const skill_experiences = workerSkills
+    .map((link) => ({
+      skill_id: Number(link.skill?.id || link.skill_id),
+      skill_name: link.skill?.skill_name || '',
+      experience_years: link.experience_years ?? null,
+    }))
+    .filter((link) => Number.isInteger(link.skill_id));
   const portfolio_items = normalizePortfolioItems(profile.p_images);
 
   return {
@@ -79,6 +86,7 @@ function formatWorkerProfile(profileModel) {
     portfolio_items,
     skill_ids: [...new Set(skill_ids)],
     skill_names: [...new Set(skill_names)],
+    skill_experiences,
     availability: Array.isArray(profile.user?.availability) ? profile.user.availability : [],
   };
 }

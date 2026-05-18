@@ -1,5 +1,23 @@
 const { Worker_Skill,Skill } = require('../models');
 
+function normalizeExperienceYears(value) {
+    const normalizedValue = typeof value === 'string' ? value.trim() : value;
+
+    if (normalizedValue === undefined || normalizedValue === null || normalizedValue === '') {
+        return null;
+    }
+
+    const numericValue = Number(normalizedValue);
+
+    if (!Number.isInteger(numericValue) || numericValue < 0 || numericValue > 60) {
+        const error = new Error('experience_years must be a whole number between 0 and 60.');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    return numericValue;
+}
+
 async function addWorkerSkill(req, res) {
     const { worker_id, skill_id } = req.body;
 
@@ -8,14 +26,16 @@ async function addWorkerSkill(req, res) {
         return res.status(400).json({ message: "worker_id and skill_id are required." });
     }
     try {
+        const experienceYears = normalizeExperienceYears(req.body.experience_years);
         const workerSkill = await Worker_Skill.create({
             worker_id: req.body.worker_id,
-            skill_id: req.body.skill_id
+            skill_id: req.body.skill_id,
+            experience_years: experienceYears
         });
         res.status(201).json(workerSkill);
     } catch (err) {
         console.log(err);
-        res.status(500).json({
+        res.status(err.statusCode || 500).json({
             message: "Failed to add worker skill.",
             error: err.message
         });

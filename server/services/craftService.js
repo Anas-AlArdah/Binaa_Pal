@@ -127,12 +127,34 @@ function getPriceSort(profile) {
   return prices.find(Number.isFinite) ?? Number.MAX_SAFE_INTEGER;
 }
 
+function formatExperienceYears(value) {
+  const years = Number(value);
+
+  if (!Number.isInteger(years) || years < 0) {
+    return '';
+  }
+
+  if (years === 0) {
+    return 'أقل من سنة';
+  }
+
+  if (years === 1) {
+    return 'سنة واحدة';
+  }
+
+  if (years === 2) {
+    return 'سنتان';
+  }
+
+  return years <= 10 ? `${years} سنوات` : `${years} سنة`;
+}
+
 function getExperience(profile) {
   if (!profile?.createdAt) {
     return 'N/A';
   }
 
-  return `${Math.max(1, new Date().getFullYear() - new Date(profile.createdAt).getFullYear())} years`;
+  return formatExperienceYears(Math.max(1, new Date().getFullYear() - new Date(profile.createdAt).getFullYear()));
 }
 
 function getReviewStats(profile) {
@@ -161,11 +183,16 @@ function getWorkerName(user) {
 
 function buildWorker(user, craft) {
   const profile = user.worker_profile || null;
+  const workerSkills = Array.isArray(user.worker_skills) ? user.worker_skills : [];
+  const craftSkillLink = workerSkills.find((link) =>
+    Number(link.skill_id || link.skill?.id) === Number(craft.id)
+  );
   const skillNames = [
-    ...new Set((user.worker_skills || []).map((link) => link.skill?.skill_name).filter(Boolean)),
+    ...new Set(workerSkills.map((link) => link.skill?.skill_name).filter(Boolean)),
   ];
   const stats = getReviewStats(profile);
   const location = user.location || '';
+  const craftExperience = formatExperienceYears(craftSkillLink?.experience_years);
 
   return {
     id: profile?.id || user.id,
@@ -183,7 +210,7 @@ function buildWorker(user, craft) {
     reviewsCount: stats.reviewsCount,
     punctualityRating: stats.punctualityRating,
     punctualityCount: stats.punctualityCount,
-    experience: getExperience(profile),
+    experience: craftExperience || getExperience(profile),
     price: formatPrice(profile),
     priceSort: getPriceSort(profile),
     imageUrl: getProfileImage(profile),
@@ -222,7 +249,7 @@ async function getCraftWorkers(slugOrId) {
       {
         model: Worker_Skill,
         as: 'worker_skills',
-        attributes: ['skill_id'],
+        attributes: ['skill_id', 'experience_years'],
         required: false,
         include: [{ model: Skill, as: 'skill', attributes: ['id', 'skill_name'] }],
       },
