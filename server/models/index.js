@@ -8,7 +8,7 @@ require('dotenv').config({ quiet: true });
 
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const baseConfig = require(__dirname + '/../config/config.json')[env];
+const baseConfig = require(__dirname + '/../config/database')[env];
 const envOrDefault = (key, fallback) =>
   Object.prototype.hasOwnProperty.call(process.env, key) ? process.env[key] : fallback;
 const config = {

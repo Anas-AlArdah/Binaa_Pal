@@ -29,9 +29,30 @@ const PORT = process.env.PORT || 3001;
 
 // ================= Middlewares =================
 
-app.use(cors());
+const allowedOrigins = (process.env.CLIENT_ORIGIN || process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(null, false);
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'binaa-pal-api',
+  });
+});
 
 // ================= API Routes =================
 
@@ -95,22 +116,19 @@ app.use((err, req, res, next) => {
 // ================= Start Server =================
 
 async function startServer() {
-  try {
-    await db.sequelize.authenticate();
+  await db.sequelize.authenticate();
+  console.log('Connected to MySQL via Sequelize');
 
-    console.log('Connected to MySQL via Sequelize');
-
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
-
-  } catch (error) {
-    console.error('Database connection error:', error);
-  }
+  return app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
 }
 
 if (require.main === module) {
-  startServer();
+  startServer().catch((error) => {
+    console.error('Database connection error:', error);
+    process.exit(1);
+  });
 }
 
 module.exports = { app, startServer };

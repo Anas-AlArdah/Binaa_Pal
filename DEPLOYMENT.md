@@ -14,14 +14,15 @@ The `netlify.toml` file already contains the build settings and the fallback red
 
 ## Backend
 
-This project uses an Express/MySQL backend in `server/`. Netlify static hosting does not run this server as-is, so deploy it separately on a Node hosting service such as Render, Railway, Fly.io, or another VPS.
+This project uses an Express/MySQL backend in `server/`. Netlify static hosting does not run this server as-is, so deploy it separately on a Node hosting service such as Railway, Render, Fly.io, or another VPS. Railway is the easiest option here because it can provision MySQL.
 
 Backend settings:
 
 - Root directory: `server`
 - Install command: `npm ci`
-- Start command: `npm start`
+- Start command: `npm run db:migrate && npm start`
 - Environment variables: copy the names from `server/.env.example` and fill in real production values in the hosting dashboard.
+- Health check path: `/health`
 
 Use a hosted MySQL database for production. `DB_HOST` cannot be `localhost` after deployment.
 
