@@ -1,4 +1,4 @@
-const { Request } = require('../models');
+const { Request, User } = require('../models');
 const { notifyN8n } = require('../utils/notifyN8n');
 const { sendEmail } = require('../utils/emailService');
 
@@ -11,25 +11,31 @@ function optionalNumber(value) {
   return Number.isInteger(number) && number > 0 ? number : null;
 }
 
-async function saveRequestIfPossible(body, payload) {
+async function resolveClientUserId(body, clientEmail) {
   const userId = optionalNumber(body.clientUserId || body.userId || body.user_id);
 
   if (!userId) {
-    return null;
+    const user = await User.findOne({
+      where: { email: clientEmail },
+      attributes: ['id'],
+    });
+
+    return user?.id || null;
   }
 
-  try {
-    return await Request.create({
-      description: payload.data.serviceDescription.slice(0, 255),
-      city: payload.data.city || null,
-      date: new Date(),
-      status: 'pending',
-      user_id: userId,
-    });
-  } catch (error) {
-    console.error('Failed to save worker request locally:', error.message);
-    return null;
-  }
+  return userId;
+}
+
+async function saveRequest(body, payload) {
+  const userId = await resolveClientUserId(body, payload.data.clientEmail);
+
+  return Request.create({
+    description: payload.data.serviceDescription.slice(0, 255),
+    city: payload.data.city || null,
+    date: new Date(),
+    status: 'pending',
+    user_id: userId,
+  });
 }
 
 async function requestWorker(req, res) {
@@ -76,8 +82,17 @@ async function requestWorker(req, res) {
     sentAt: new Date().toISOString(),
   };
 
-  const savedRequest = await saveRequestIfPossible(req.body, payload);
-  
+  const n8nResult = await notifyN8n(payload);
+
+  if (!n8nResult.ok) {
+    return res.status(502).json({
+      message: 'n8n did not confirm the worker request.',
+      n8n: n8nResult.data || n8nResult.error || null,
+    });
+  }
+
+  const savedRequest = await saveRequest(req.body, payload);
+
   // Try sending direct email to worker
   const emailHtml = `
     <div style="direction: rtl; font-family: sans-serif;">
@@ -102,8 +117,6 @@ async function requestWorker(req, res) {
     subject: `طلب خدمة جديد: ${cleanString(req.body.craftName) || 'صيانة'}`,
     html: emailHtml,
   });
-
-  const n8nResult = await notifyN8n(payload);
 
   return res.status(200).json({
     message: 'Service request sent successfully.',
