@@ -91,8 +91,14 @@ function CraftDetails() {
         }
       } catch (err) {
         if (isMounted) {
-          setError(getApiErrorMessage(err));
-          setWorkers([]);
+          if (err?.payload?.apiFallback) {
+            setCraft(fallbackCraft);
+            setWorkers([]);
+            setError(null);
+          } else {
+            setError(getApiErrorMessage(err));
+            setWorkers([]);
+          }
         }
       } finally {
         if (isMounted) {
@@ -106,7 +112,7 @@ function CraftDetails() {
     return () => {
       isMounted = false;
     };
-  }, [slug]);
+  }, [slug, fallbackCraft]);
 
   const cities = useMemo(() => {
     const cityNames = [...new Set(workers.map((worker) => worker.city).filter(Boolean))];

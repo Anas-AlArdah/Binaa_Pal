@@ -3,6 +3,7 @@ import "./Crafts.css";
 import Footer from "../../components/Footer";
 import { useNavigate } from "react-router-dom";
 import { fetchJson, getApiErrorMessage } from "../../utils/api";
+import { defaultCrafts } from "./craftPresentation";
 
 // استيراد أيقونات احترافية من مكتبة react-icons
 import { FiZap, FiTool, FiFeather, FiLayers, FiCpu, FiScissors, FiGrid, FiArrowLeft } from "react-icons/fi";
@@ -23,6 +24,13 @@ const getIconForCraft = (slug) => {
     default: return <FiGrid />;
   }
 };
+
+const buildCraftRows = (rows) =>
+  rows.map((craft, index) => ({
+    ...craft,
+    reactIcon: getIconForCraft(craft.slug),
+    workersCount: craft.workersCount || craft.workers || 10 + index * 4,
+  }));
 
 function ScrollRevealCard({ children, onClick, index }) {
   const [ref, setRef] = React.useState(null);
@@ -77,12 +85,17 @@ function Crafts() {
             reactIcon: getIconForCraft(c.slug),
             workersCount: Math.floor(Math.random() * 50) + 10 // مؤقتاً لعرض أرقام واقعية إذا لم تأت من الـ API
           }));
-          setCrafts(enhancedCrafts);
+          setCrafts(enhancedCrafts.length > 0 ? enhancedCrafts : buildCraftRows(defaultCrafts));
           setError(null);
         }
       } catch (err) {
         if (isMounted) {
-          setError(getApiErrorMessage(err));
+          if (err?.payload?.apiFallback) {
+            setCrafts(buildCraftRows(defaultCrafts));
+            setError(null);
+          } else {
+            setError(getApiErrorMessage(err));
+          }
         }
       } finally {
         if (isMounted) {
