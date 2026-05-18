@@ -13,11 +13,14 @@ const rejectUnauthorized = String(process.env.DB_SSL_REJECT_UNAUTHORIZED || 'tru
 
 const baseConfig = {
   dialect: envOrDefault('DB_DIALECT', fallback.dialect || 'mysql'),
-  username: envOrDefault('DB_USERNAME', fallback.username),
-  password: envOrDefault('DB_PASSWORD', fallback.password),
-  database: envOrDefault('DB_NAME', envOrDefault('DB_DATABASE', fallback.database)),
-  host: envOrDefault('DB_HOST', fallback.host),
-  port: Number(envOrDefault('DB_PORT', fallback.port || 3306)),
+  username: envOrDefault('DB_USERNAME', process.env.MYSQLUSER || fallback.username),
+  password: envOrDefault('DB_PASSWORD', process.env.MYSQLPASSWORD || fallback.password),
+  database: envOrDefault(
+    'DB_NAME',
+    envOrDefault('DB_DATABASE', process.env.MYSQLDATABASE || fallback.database)
+  ),
+  host: envOrDefault('DB_HOST', process.env.MYSQLHOST || fallback.host),
+  port: Number(envOrDefault('DB_PORT', process.env.MYSQLPORT || fallback.port || 3306)),
   logging: String(process.env.SEQUELIZE_LOGGING || '').toLowerCase() === 'true' ? console.log : false,
   dialectOptions: sslEnabled
     ? {
@@ -29,7 +32,8 @@ const baseConfig = {
     : {},
 };
 
-if (process.env.DATABASE_URL) {
+if (process.env.DATABASE_URL || process.env.MYSQL_URL) {
+  process.env.DATABASE_URL = process.env.DATABASE_URL || process.env.MYSQL_URL;
   baseConfig.use_env_variable = 'DATABASE_URL';
 }
 
