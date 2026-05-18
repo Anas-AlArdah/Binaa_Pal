@@ -29,6 +29,13 @@ export default function Header() {
 
   const closeMenu = () => setMenuOpen(false);
 
+  const goHomeTop = () => {
+    closeMenu();
+    window.setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    }, 0);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("binaa_auth_user");
     localStorage.removeItem("binaa_auth_token");
@@ -42,7 +49,7 @@ export default function Header() {
       <div className="nh-inner">
 
         {/* Logo */}
-        <Link className="nh-logo" to="/home" onClick={closeMenu}>
+        <Link className="nh-logo" to="/home" onClick={goHomeTop}>
           Binaa Pal
         </Link>
 
@@ -51,6 +58,7 @@ export default function Header() {
           <Link
             to="/home"
             className={`nh-link ${isActive("/home") ? "nh-link--active" : ""}`}
+            onClick={goHomeTop}
           >
             الرئيسية
           </Link>
