@@ -27,5 +27,6 @@ Backend settings:
 Use a hosted MySQL database for production. `DB_HOST` cannot be `localhost` after deployment.
 
 After the backend is deployed, copy its public URL into Netlify as `REACT_APP_API_URL`, then redeploy the frontend.
+If `REACT_APP_API_URL` is not set, the client currently defaults to the deployed Railway API URL.
 
 Do not commit real API keys, database passwords, or production secrets to Git.

@@ -1,4 +1,5 @@
 const normalizeBaseUrl = (baseUrl) => (baseUrl ? baseUrl.replace(/\/+$/, '') : '');
+const DEFAULT_PRODUCTION_API_URL = 'https://api-production-56d7.up.railway.app';
 
 const buildApiBaseUrl = () => {
   const envBaseUrl = normalizeBaseUrl(process.env.REACT_APP_API_URL);
@@ -21,7 +22,7 @@ const buildApiBaseUrl = () => {
     return '';
   }
 
-  return '';
+  return DEFAULT_PRODUCTION_API_URL;
 };
 
 const apiBaseUrl = buildApiBaseUrl();
