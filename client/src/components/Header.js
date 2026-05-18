@@ -23,13 +23,17 @@ export default function Header() {
     localStorage.setItem("theme", nextTheme);
   };
 
-  const user     = JSON.parse(localStorage.getItem("binaa_auth_user") || "null");
-  const isLoggedIn = !!user;
-  const isWorker   = String(user?.role?.type || "").toLowerCase() === "worker";
+  const adminUser = JSON.parse(localStorage.getItem("binaa_admin_user") || "null");
+  const user = JSON.parse(localStorage.getItem("binaa_auth_user") || "null");
+  const isAdminLoggedIn = !!adminUser;
+  const isLoggedIn = !!user || isAdminLoggedIn;
+  const isWorker = String(user?.role?.type || "").toLowerCase() === "worker";
 
   const closeMenu = () => setMenuOpen(false);
 
-  const goHomeTop = () => {
+  // Reusable function to handle navigation clicks
+  // Closes the mobile menu and scrolls to the top of the page smoothly
+  const handleNavClick = () => {
     closeMenu();
     window.setTimeout(() => {
       window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
@@ -39,6 +43,8 @@ export default function Header() {
   const handleLogout = () => {
     localStorage.removeItem("binaa_auth_user");
     localStorage.removeItem("binaa_auth_token");
+    localStorage.removeItem("binaa_admin_user");
+    localStorage.removeItem("binaa_admin_token");
     window.location.href = "/login";
   };
 
@@ -49,7 +55,7 @@ export default function Header() {
       <div className="nh-inner">
 
         {/* Logo */}
-        <Link className="nh-logo" to="/home" onClick={goHomeTop}>
+        <Link className="nh-logo" to="/home" onClick={handleNavClick}>
           Binaa Pal
         </Link>
 
@@ -58,27 +64,39 @@ export default function Header() {
           <Link
             to="/home"
             className={`nh-link ${isActive("/home") ? "nh-link--active" : ""}`}
-            onClick={goHomeTop}
+            onClick={handleNavClick}
           >
             الرئيسية
           </Link>
           <Link
             to="/craftsman"
             className={`nh-link ${isActive("/craftsman") ? "nh-link--active" : ""}`}
+            onClick={handleNavClick}
           >
             الصنعات
           </Link>
-          {isLoggedIn && isWorker && (
+          {isAdminLoggedIn && (
+            <Link
+              to="/admin"
+              className={`nh-link ${isActive("/admin") ? "nh-link--active" : ""}`}
+              onClick={handleNavClick}
+            >
+              لوحة الآدمن
+            </Link>
+          )}
+          {isLoggedIn && isWorker && !isAdminLoggedIn && (
             <>
               <Link
                 to="/"
                 className={`nh-link ${isActive("/") ? "nh-link--active" : ""}`}
+                onClick={handleNavClick}
               >
                 خدماتي
               </Link>
               <Link
                 to="/orders"
                 className={`nh-link ${isActive("/orders") ? "nh-link--active" : ""}`}
+                onClick={handleNavClick}
               >
                 الطلبات
               </Link>
@@ -97,26 +115,34 @@ export default function Header() {
             {theme === "light" ? <FiMoon /> : <FiSun />}
           </button>
           {!isLoggedIn ? (
-            <Link to="/login" className="nh-btn-login">
+            <Link to="/login" className="nh-btn-login" onClick={handleNavClick}>
               تسجيل الدخول
             </Link>
           ) : (
             <>
-              {isWorker && (
-                <Link
-                  to={`/profile/${user?.worker_profile?.id}`}
-                  className="nh-avatar"
-                  onClick={closeMenu}
-                  title="الملف الشخصي"
-                >
-                  {(user?.firstname || "م").charAt(0)}
-                </Link>
+              {isAdminLoggedIn ? (
+                <span className="nh-username" style={{ fontWeight: 'bold', color: 'var(--hp-accent, #F59E0B)' }}>
+                  الآدمن
+                </span>
+              ) : (
+                <>
+                  {isWorker && (
+                    <Link
+                      to={`/profile/${user?.worker_profile?.id}`}
+                      className="nh-avatar"
+                      onClick={handleNavClick}
+                      title="الملف الشخصي"
+                    >
+                      {(user?.firstname || "م").charAt(0)}
+                    </Link>
+                  )}
+                  <span className="nh-username">
+                    {user?.firstname} {user?.lastname}
+                  </span>
+                </>
               )}
-              <span className="nh-username">
-                {user?.firstname} {user?.lastname}
-              </span>
               <button className="nh-btn-logout" onClick={handleLogout}>
-                Logout
+                تسجيل الخروج
               </button>
             </>
           )}
@@ -137,19 +163,22 @@ export default function Header() {
       {/* Mobile Menu */}
       {menuOpen && (
         <div className="nh-mobile-menu" dir="rtl">
-          <Link to="/home"      className="nh-mobile-link" onClick={closeMenu}>الرئيسية</Link>
-          <Link to="/craftsman" className="nh-mobile-link" onClick={closeMenu}>الصنعات</Link>
+          <Link to="/home"      className="nh-mobile-link" onClick={handleNavClick}>الرئيسية</Link>
+          <Link to="/craftsman" className="nh-mobile-link" onClick={handleNavClick}>الصنعات</Link>
+          {isAdminLoggedIn && (
+            <Link to="/admin" className="nh-mobile-link" onClick={handleNavClick}>لوحة الآدمن</Link>
+          )}
           <button className="nh-mobile-link nh-mobile-theme-btn" onClick={() => { toggleTheme(); closeMenu(); }}>
             {theme === "light" ? "المظهر الداكن 🌙" : "المظهر الفاتح ☀️"}
           </button>
-          {isLoggedIn && isWorker && (
+          {isLoggedIn && isWorker && !isAdminLoggedIn && (
             <>
-              <Link to="/"       className="nh-mobile-link" onClick={closeMenu}>خدماتي</Link>
-              <Link to="/orders" className="nh-mobile-link" onClick={closeMenu}>الطلبات</Link>
+              <Link to="/"       className="nh-mobile-link" onClick={handleNavClick}>خدماتي</Link>
+              <Link to="/orders" className="nh-mobile-link" onClick={handleNavClick}>الطلبات</Link>
             </>
           )}
           {!isLoggedIn ? (
-            <Link to="/login" className="nh-mobile-link nh-mobile-link--cta" onClick={closeMenu}>
+            <Link to="/login" className="nh-mobile-link nh-mobile-link--cta" onClick={handleNavClick}>
               تسجيل الدخول
             </Link>
           ) : (

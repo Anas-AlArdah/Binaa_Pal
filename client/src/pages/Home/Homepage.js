@@ -35,6 +35,9 @@ export default function Homepage() {
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const dropRef = useRef(null);
+  const user = JSON.parse(localStorage.getItem("binaa_auth_user") || "null");
+  const adminUser = JSON.parse(localStorage.getItem("binaa_admin_user") || "null");
+  const isLoggedIn = !!user || !!adminUser;
   const navigate = useNavigate();
 
   // Load crafts
@@ -286,7 +289,8 @@ export default function Homepage() {
       </section>
 
       {/* ========== CTA SECTION ========== */}
-      <section className="hp-cta-section">
+      {!isLoggedIn && (
+        <section className="hp-cta-section">
         <div className="hp-container">
           <div className="hp-cta-wrapper">
             <div className="hp-cta-content">
@@ -306,7 +310,8 @@ export default function Homepage() {
             </div>
           </div>
         </div>
-      </section>
+        </section>
+      )}
 
       {/* ========== FOOTER ========== */}
       <Footer />

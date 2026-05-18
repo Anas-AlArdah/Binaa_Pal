@@ -418,12 +418,6 @@ function AdminPage() {
               <h1>{text.title}</h1>
               <p>{text.subtitle}</p>
             </div>
-            <div className="admin-owner-actions">
-              <span className="admin-owner-email">{dashboard.platform.adminEmail}</span>
-              <button type="button" className="admin-logout-action" onClick={handleLogout}>
-                تسجيل الخروج
-              </button>
-            </div>
           </header>
 
           {error && <div className="admin-error">{error}</div>}
