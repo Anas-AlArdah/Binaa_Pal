@@ -1,0 +1,8 @@
+[build]
+  command = "npm --prefix client ci && npm --prefix client run build"
+  publish = "client/build"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

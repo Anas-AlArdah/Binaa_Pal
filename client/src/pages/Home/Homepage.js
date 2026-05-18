@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Footer from "../../components/Footer";
-import { fetchJson } from "../../utils/api";
+import { fetchJson, getApiUrl } from "../../utils/api";
 import AIAssistant from "../../components/AIAssistant";
 import "./Homepage.css";
 
@@ -57,7 +57,7 @@ export default function Homepage() {
 
   // Load skills
   useEffect(() => {
-    fetch("/api/skills")
+    fetch(getApiUrl("/api/skills"))
       .then((r) => r.json())
       .then((data) => { if (Array.isArray(data)) setSkills(data); })
       .catch(() => {});
@@ -85,7 +85,7 @@ export default function Homepage() {
     try {
       let url = `/api/search?q=${encodeURIComponent(q)}`;
       if (nameQ.trim()) url += `&name=${encodeURIComponent(nameQ.trim())}`;
-      const res = await fetch(url);
+      const res = await fetch(getApiUrl(url));
       const data = await res.json();
       setResults(data.workers || []);
     } catch {
