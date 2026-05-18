@@ -26,10 +26,10 @@ const getIconForCraft = (slug) => {
 };
 
 const buildCraftRows = (rows) =>
-  rows.map((craft, index) => ({
+  rows.map((craft) => ({
     ...craft,
     reactIcon: getIconForCraft(craft.slug),
-    workersCount: craft.workersCount || craft.workers || 10 + index * 4,
+    workersCount: craft.workersCount ?? craft.workers ?? craft.workerCount ?? 0,
   }));
 
 function ScrollRevealCard({ children, onClick, index }) {
@@ -83,7 +83,7 @@ function Crafts() {
           const enhancedCrafts = rows.map(c => ({
             ...c,
             reactIcon: getIconForCraft(c.slug),
-            workersCount: Math.floor(Math.random() * 50) + 10 // مؤقتاً لعرض أرقام واقعية إذا لم تأت من الـ API
+            workersCount: c.workersCount ?? c.workers ?? c.workerCount ?? 0
           }));
           setCrafts(enhancedCrafts.length > 0 ? enhancedCrafts : buildCraftRows(defaultCrafts));
           setError(null);
@@ -171,7 +171,7 @@ function Crafts() {
                   <div className="cr-card-top">
                     <div className="cr-workers-badge">
                       <span className="cr-badge-dot"></span>
-                      {craft.workersCount || 12} حرفي متاح
+                      {craft.workersCount ?? 0} حرفي متاح
                     </div>
                   </div>
                   
