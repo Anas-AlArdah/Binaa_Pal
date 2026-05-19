@@ -30,8 +30,8 @@ async function getIndexNames(queryInterface) {
 async function hasDuplicateValues(queryInterface, Sequelize, expression, columnName) {
   const rows = await queryInterface.sequelize.query(
     `SELECT ${expression} AS value, COUNT(*) AS total
-     FROM ${TABLE_NAME}
-     WHERE ${columnName} IS NOT NULL AND TRIM(${columnName}) <> ''
+     FROM "${TABLE_NAME}"
+     WHERE "${columnName}" IS NOT NULL AND TRIM("${columnName}") <> ''
      GROUP BY ${expression}
      HAVING COUNT(*) > 1
      LIMIT 1`,

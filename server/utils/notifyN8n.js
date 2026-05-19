@@ -1,6 +1,7 @@
 const axios = require('axios');
-
-const DEFAULT_TIMEOUT_MS = 10000;
+// importants if user have big requests like adding photos maybe it will not recive n8n req 
+// and user should recive the response in real time not after all the request :))))
+const DEFAULT_TIMEOUT_MS = 15000;//15 seconds 
 
 async function notifyN8n(payload) {
   const webhookUrl = process.env.N8N_WORKER_REQUEST_WEBHOOK_URL;

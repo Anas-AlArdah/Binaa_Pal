@@ -117,7 +117,7 @@ app.use((err, req, res, next) => {
 
 async function startServer() {
   await db.sequelize.authenticate();
-  console.log('Connected to MySQL via Sequelize');
+  console.log('Connected to Database via Sequelize');
 
   return app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
