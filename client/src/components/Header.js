@@ -56,8 +56,7 @@ export default function Header() {
 
         {/* Logo */}
         <Link className="nh-logo" to="/home" onClick={handleNavClick}>
-          <span className="nh-logo__mark" aria-hidden="true">BP</span>
-          <span>Binaa Pal</span>
+          Binaa Pal
         </Link>
 
         {/* Desktop Nav */}
@@ -109,7 +108,6 @@ export default function Header() {
         <div className="nh-actions">
           <button 
             className="nh-theme-toggle" 
-            type="button"
             onClick={toggleTheme} 
             aria-label="تغيير المظهر"
             title={theme === "light" ? "المظهر الداكن" : "المظهر الفاتح"}
@@ -153,10 +151,8 @@ export default function Header() {
         {/* Mobile Toggle */}
         <button
           className="nh-toggle"
-          type="button"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="القائمة"
-          aria-expanded={menuOpen}
         >
           <span className={`nh-toggle__bar ${menuOpen ? "nh-toggle__bar--open" : ""}`} />
           <span className={`nh-toggle__bar ${menuOpen ? "nh-toggle__bar--open" : ""}`} />

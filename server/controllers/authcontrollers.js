@@ -345,6 +345,16 @@ async function createWorkerAccountDetails(user, selectedSkills, primarySkill, sk
   );
 }
 
+async function userHasWorkerProfile(userId, transaction) {
+  const workerProfile = await WorkerProfile.findOne({
+    where: { user_id: userId },
+    attributes: ['id'],
+    transaction,
+  });
+
+  return Boolean(workerProfile);
+}
+
 function getUniqueConstraintMessage(error) {
   if (error.name !== 'SequelizeUniqueConstraintError') {
     return '';
@@ -524,6 +534,9 @@ async function googleAuth(req, res) {
     }
 
     if (user) {
+      const requestedRoleType = registerIntent ? normalizeUserType(req.body.userType) : null;
+      const currentRoleType = user.role?.type || null;
+
       if (user.google_sub && user.google_sub !== googleProfile.googleSub) {
         return res.status(409).json({ message: 'هذا البريد مربوط بحساب Google آخر.' });
       }
@@ -540,8 +553,9 @@ async function googleAuth(req, res) {
       }
 
       const requestedPhone = normalizePhone(req.body.phone);
+      const requestedLocation = cleanString(req.body.location);
 
-      if (!user.phone && requestedPhone) {
+      if (requestedPhone && requestedPhone !== user.phone) {
         validateLocalPhone(requestedPhone);
         const existingPhone = await findUserByPhone(requestedPhone);
 
@@ -550,6 +564,52 @@ async function googleAuth(req, res) {
         }
 
         user.phone = requestedPhone;
+      }
+
+      if (requestedLocation) {
+        user.location = requestedLocation;
+      }
+
+      const needsWorkerSetup = registerIntent
+        && requestedRoleType === 'Worker'
+        && (currentRoleType !== 'Worker' || !user.worker_profile);
+
+      if (needsWorkerSetup) {
+        if (!user.phone || !user.location) {
+          return res.status(400).json({ message: 'رقم الجوال والموقع مطلوبان لتحويل الحساب إلى عامل.' });
+        }
+
+        const { primarySkillId, requestedSkillIds, skillExperienceById } = parseWorkerSkills(req.body, requestedRoleType);
+        const { selectedSkills, primarySkill } = await getWorkerSkillsOrThrow(requestedRoleType, requestedSkillIds, primarySkillId);
+        const workerRole = await getOrCreateRole('Worker');
+
+        transaction = await sequelize.transaction();
+        user.role_id = workerRole.id;
+        await user.save({ transaction });
+
+        const hasProfile = await userHasWorkerProfile(user.id, transaction);
+
+        if (!hasProfile) {
+          await createWorkerAccountDetails(user, selectedSkills, primarySkill, skillExperienceById, transaction);
+        }
+
+        await transaction.commit();
+        transaction = null;
+
+        const userWithRole = await findUserByIdWithRole(user.id);
+        const token = createToken(userWithRole);
+
+        return res.status(200).json({
+          message: 'Account upgraded to worker with Google successfully.',
+          token,
+          user: sanitizeUser(userWithRole),
+        });
+      }
+
+      if (registerIntent && requestedRoleType === 'Client' && currentRoleType === 'Worker') {
+        return res.status(409).json({
+          message: 'هذا البريد مسجل كعامل بالفعل. استخدم تسجيل الدخول عبر Google.',
+        });
       }
 
       await user.save();
