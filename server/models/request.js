@@ -14,6 +14,14 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: 'user_id',
             as: 'user',
         })
+        Request.belongsTo(models.User,{
+            foreignKey: 'worker_id',
+            as: 'worker',
+        })
+        Request.belongsTo(models.WorkerProfile,{
+            foreignKey: 'worker_profile_id',
+            as: 'worker_profile',
+        })
         Request.belongsTo(models.Offer, {
             foreignKey: 'offers_id',
             as: 'offer',
@@ -28,6 +36,12 @@ module.exports = (sequelize, DataTypes) => {
     date: DataTypes.DATE,
     status: DataTypes.STRING,
     user_id: DataTypes.INTEGER,
+    worker_id: DataTypes.INTEGER,
+    worker_profile_id: DataTypes.INTEGER,
+    craft_name: DataTypes.STRING,
+    client_name: DataTypes.STRING,
+    client_email: DataTypes.STRING,
+    client_phone: DataTypes.STRING,
     offers_id: DataTypes.INTEGER
   }, {
     sequelize,

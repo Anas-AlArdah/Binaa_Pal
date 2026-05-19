@@ -8,6 +8,7 @@ import CraftDetails from './pages/CraftsmanProfile/CraftDetails';
 import Homepage from './pages/Home/Homepage';
 import LoginPage from './pages/Login/LoginPage';
 import AdminPage from './pages/Admin/AdminPage';
+import OrdersPage from './pages/Orders/OrdersPage';
 import ScrollToTop from './components/ScrollToTop';
 
 function AppLayout() {
@@ -38,6 +39,7 @@ function App() {
           <Route path="/profile/:id" element={<PageProfile />} />
           <Route path="/craftsman" element={<Crafts />} />
           <Route path="/craftsman/:slug" element={<CraftDetails />} />
+          <Route path="/orders" element={<OrdersPage />} />
 
 
         </Route>

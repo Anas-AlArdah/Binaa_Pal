@@ -263,6 +263,11 @@ const PageProfile = () => {
   };
 
   const openServiceDialog = () => {
+    if (!authUser) {
+      navigate('/login');
+      return;
+    }
+
     setServiceDescription('');
     setRequestError('');
     setServiceDialogOpen(true);
@@ -377,7 +382,7 @@ const PageProfile = () => {
             <section className="profile-panel">
               <ProfileHeader 
                 profile={profile} 
-                onRequestService={openServiceDialog} 
+                onRequestService={canEditProfile ? null : openServiceDialog} 
                 onShowPortfolio={handleScrollToPortfolio} 
               />
             </section>

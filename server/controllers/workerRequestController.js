@@ -35,7 +35,37 @@ async function saveRequest(body, payload) {
     date: new Date(),
     status: 'pending',
     user_id: userId,
+    worker_id: payload.data.workerId,
+    worker_profile_id: payload.data.profileId,
+    craft_name: payload.data.craftName || null,
+    client_name: payload.data.clientName || null,
+    client_email: payload.data.clientEmail || null,
+    client_phone: payload.data.clientPhone || null,
   });
+}
+
+function formatRequest(requestModel) {
+  const request = requestModel?.get ? requestModel.get({ plain: true }) : requestModel;
+
+  return {
+    id: request.id,
+    description: request.description,
+    city: request.city,
+    date: request.date,
+    status: request.status || 'pending',
+    craftName: request.craft_name || '',
+    clientName:
+      request.client_name ||
+      [request.user?.firstname, request.user?.lastname].filter(Boolean).join(' ').trim() ||
+      'عميل بناء بال',
+    clientEmail: request.client_email || request.user?.email || '',
+    clientPhone: request.client_phone || request.user?.phone || '',
+    clientLocation: request.user?.location || request.city || '',
+    workerId: request.worker_id,
+    workerProfileId: request.worker_profile_id,
+    createdAt: request.createdAt,
+    updatedAt: request.updatedAt,
+  };
 }
 
 async function requestWorker(req, res) {
@@ -82,16 +112,8 @@ async function requestWorker(req, res) {
     sentAt: new Date().toISOString(),
   };
 
-  const n8nResult = await notifyN8n(payload);
-
-  if (!n8nResult.ok) {
-    return res.status(502).json({
-      message: 'n8n did not confirm the worker request.',
-      n8n: n8nResult.data || n8nResult.error || null,
-    });
-  }
-
   const savedRequest = await saveRequest(req.body, payload);
+  const n8nResult = await notifyN8n(payload);
 
   // Try sending direct email to worker
   const emailHtml = `
@@ -112,19 +134,95 @@ async function requestWorker(req, res) {
     </div>
   `;
 
-  await sendEmail({
+  const emailResult = await sendEmail({
     to: workerEmail,
     subject: `طلب خدمة جديد: ${cleanString(req.body.craftName) || 'صيانة'}`,
     html: emailHtml,
   });
 
-  return res.status(200).json({
+  return res.status(201).json({
     message: 'Service request sent successfully.',
     requestId: savedRequest?.id || null,
+    request: formatRequest(savedRequest),
     n8n: n8nResult.data || null,
+    n8nWarning: n8nResult.ok ? null : n8nResult.error || n8nResult.data || 'n8n did not confirm the request.',
+    email: emailResult,
   });
 }
 
+async function getWorkerRequests(req, res) {
+  const workerId = optionalNumber(req.params.workerId || req.query.workerId);
+
+  if (!workerId) {
+    return res.status(400).json({ message: 'workerId is required.' });
+  }
+
+  try {
+    const requests = await Request.findAll({
+      where: { worker_id: workerId },
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'firstname', 'lastname', 'email', 'phone', 'location'],
+          required: false,
+        },
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+
+    return res.status(200).json(requests.map(formatRequest));
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Failed to fetch worker requests.',
+      error: error.message,
+    });
+  }
+}
+
+async function updateWorkerRequestStatus(req, res) {
+  const requestId = optionalNumber(req.params.id);
+  const workerId = optionalNumber(req.body.workerId || req.query.workerId);
+  const nextStatus = cleanString(req.body.status);
+  const allowedStatuses = new Set(['pending', 'in_progress', 'completed', 'cancelled']);
+
+  if (!requestId) {
+    return res.status(400).json({ message: 'request id is required.' });
+  }
+
+  if (!workerId) {
+    return res.status(400).json({ message: 'workerId is required.' });
+  }
+
+  if (!allowedStatuses.has(nextStatus)) {
+    return res.status(400).json({ message: 'Invalid request status.' });
+  }
+
+  try {
+    const request = await Request.findOne({
+      where: {
+        id: requestId,
+        worker_id: workerId,
+      },
+    });
+
+    if (!request) {
+      return res.status(404).json({ message: 'Request not found.' });
+    }
+
+    await request.update({ status: nextStatus });
+
+    return res.status(200).json(formatRequest(request));
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Failed to update request status.',
+      error: error.message,
+    });
+  }
+}
+
 module.exports = {
+  getWorkerRequests,
   requestWorker,
+  updateWorkerRequestStatus,
 };

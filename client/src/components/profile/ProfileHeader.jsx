@@ -155,6 +155,7 @@ const ProfileHeader = ({ profile, onRequestService, onShowPortfolio }) => {
         </Box>
 
         <Stack spacing={1.5} sx={{ mt: 'auto' }}>
+          {onRequestService && (
           <Button
             variant="contained"
             fullWidth
@@ -174,6 +175,7 @@ const ProfileHeader = ({ profile, onRequestService, onShowPortfolio }) => {
           >
             طلب خدمة مباشرة
           </Button>
+          )}
           <Button
             variant="outlined"
             fullWidth
