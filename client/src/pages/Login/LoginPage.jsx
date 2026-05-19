@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
@@ -6,14 +6,15 @@ import { fetchJson, getApiErrorMessage } from '../../utils/api';
 import './LoginPage.css';
 
 const EXPERIENCE_MAX = 60;
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
 
 const text = {
-    welcomeBack: 'مرحباً بعودتك',
+    welcomeBack: 'مرحبا بعودتك',
     createAccount: 'إنشاء حساب جديد',
     adminWelcome: 'دخول الأدمن',
-    loginSubtitle: 'سجّل دخولك للوصول إلى حسابك',
+    loginSubtitle: 'سجل دخولك للوصول إلى حسابك',
     registerSubtitle: 'انضم إلى منصة بنّاء بال اليوم',
-    adminSubtitle: 'سجّل دخولك لإدارة منصة Binaa Pal',
+    adminSubtitle: 'سجل دخولك لإدارة منصة Binaa Pal',
     login: 'تسجيل الدخول',
     register: 'إنشاء حساب',
     admin: 'الأدمن',
@@ -23,8 +24,8 @@ const text = {
     lastnamePlaceholder: 'أدخل اسمك الثاني',
     email: 'البريد الإلكتروني',
     password: 'كلمة المرور',
-    phone: 'رقم الهاتف',
-    phonePlaceholder: '05X0000000',
+    phone: 'رقم الجوال',
+    phonePlaceholder: '0591234567',
     location: 'الموقع',
     locationPlaceholder: 'مثال: رام الله',
     iAm: 'أنا:',
@@ -48,6 +49,11 @@ const text = {
     registerSuccess: 'تم إنشاء الحساب بنجاح.',
     adminSuccess: 'تم تسجيل دخول الأدمن بنجاح.',
     adminSubmit: 'دخول لوحة الأدمن',
+    googleDivider: 'أو عبر Google',
+    googleUnavailable: 'فعّل Google Client ID حتى يظهر زر الدخول عبر Google.',
+    googleLoading: 'جاري المتابعة عبر Google...',
+    phoneInvalid: 'رقم الجوال يجب أن يكون محليا مثل 0591234567 بدون +970.',
+    googleRegisterMissing: 'لإنشاء حساب عبر Google أدخل رقم الجوال والموقع أولا.',
 };
 
 const initialFormValues = {
@@ -63,14 +69,30 @@ const initialFormValues = {
     secondaryExperienceYears: '',
 };
 
+const toWesternDigits = (value) => String(value || '').replace(/[٠-٩۰-۹]/g, (digit) => {
+    const arabicDigits = '٠١٢٣٤٥٦٧٨٩';
+    const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+    const arabicIndex = arabicDigits.indexOf(digit);
+
+    return String(arabicIndex >= 0 ? arabicIndex : persianDigits.indexOf(digit));
+});
+
+const normalizePhoneInput = (value) => toWesternDigits(value).replace(/\D/g, '').slice(0, 10);
+
+const isValidLocalPhone = (value) => /^05\d{8}$/.test(value);
+
 function LoginPage() {
     const navigate = useNavigate();
+    const googleButtonRef = useRef(null);
+    const googleContextRef = useRef(null);
     const [formMode, setFormMode] = useState('login');
     const [userType, setUserType] = useState('client');
     const [showPassword, setShowPassword] = useState(false);
     const [skills, setSkills] = useState([]);
     const [skillsLoading, setSkillsLoading] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
+    const [googleReady, setGoogleReady] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [formValues, setFormValues] = useState(initialFormValues);
@@ -78,11 +100,23 @@ function LoginPage() {
     const isRegister = formMode === 'register';
     const isAdmin = formMode === 'admin';
     const isWorkerRegister = isRegister && userType === 'worker';
+    const isBusy = loading || googleLoading;
+    const googleSignupOnly = isRegister && Boolean(GOOGLE_CLIENT_ID);
 
     const secondarySkills = useMemo(
         () => skills.filter((skill) => String(skill.id) !== String(formValues.primarySkillId)),
         [skills, formValues.primarySkillId]
     );
+
+    useEffect(() => {
+        googleContextRef.current = {
+            formMode,
+            formValues,
+            isAdmin,
+            isRegister,
+            userType,
+        };
+    }, [formMode, formValues, isAdmin, isRegister, userType]);
 
     useEffect(() => {
         if (!isWorkerRegister || skills.length > 0) {
@@ -121,25 +155,26 @@ function LoginPage() {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
+        const normalizedValue = name === 'phone' ? normalizePhoneInput(value) : value;
 
         setFormValues((currentValues) => {
             const nextValues = {
                 ...currentValues,
-                [name]: value,
+                [name]: normalizedValue,
             };
 
-            if (name === 'primarySkillId' && !value) {
+            if (name === 'primarySkillId' && !normalizedValue) {
                 nextValues.primaryExperienceYears = '';
                 nextValues.secondarySkillId = '';
                 nextValues.secondaryExperienceYears = '';
             }
 
-            if (name === 'primarySkillId' && currentValues.secondarySkillId === value) {
+            if (name === 'primarySkillId' && currentValues.secondarySkillId === normalizedValue) {
                 nextValues.secondarySkillId = '';
                 nextValues.secondaryExperienceYears = '';
             }
 
-            if (name === 'secondarySkillId' && !value) {
+            if (name === 'secondarySkillId' && !normalizedValue) {
                 nextValues.secondaryExperienceYears = '';
             }
 
@@ -169,7 +204,7 @@ function LoginPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const persistAuth = (data) => {
+    const persistAuth = useCallback((data) => {
         if (data?.token) {
             localStorage.setItem('binaa_auth_token', data.token);
         }
@@ -177,9 +212,9 @@ function LoginPage() {
         if (data?.user) {
             localStorage.setItem('binaa_auth_user', JSON.stringify(data.user));
         }
-    };
+    }, []);
 
-    const persistAdminAuth = (data) => {
+    const persistAdminAuth = useCallback((data) => {
         if (data?.token) {
             localStorage.setItem('binaa_admin_token', data.token);
         }
@@ -187,13 +222,164 @@ function LoginPage() {
         if (data?.admin) {
             localStorage.setItem('binaa_admin_user', JSON.stringify(data.admin));
         }
-    };
+    }, []);
+
+    const buildGooglePayload = useCallback((credential) => {
+        const context = googleContextRef.current || {};
+        const currentValues = context.formValues || initialFormValues;
+        const submittedPhone = normalizePhoneInput(currentValues.phone);
+        const payload = {
+            credential,
+            registerIntent: Boolean(context.isRegister),
+        };
+
+        if (context.isRegister) {
+            if (!submittedPhone || !currentValues.location.trim()) {
+                throw new Error(text.googleRegisterMissing);
+            }
+
+            if (!isValidLocalPhone(submittedPhone)) {
+                throw new Error(text.phoneInvalid);
+            }
+
+            payload.userType = context.userType;
+            payload.phone = submittedPhone;
+            payload.location = currentValues.location.trim();
+
+            if (context.userType === 'worker') {
+                if (!currentValues.primarySkillId || currentValues.primaryExperienceYears === '') {
+                    throw new Error('الصنعة الأساسية وخبرتها مطلوبة للعامل.');
+                }
+
+                payload.primarySkillId = Number(currentValues.primarySkillId);
+                payload.primaryExperienceYears = Number(currentValues.primaryExperienceYears);
+
+                if (currentValues.secondarySkillId) {
+                    if (currentValues.secondaryExperienceYears === '') {
+                        throw new Error('خبرة الصنعة الثانية مطلوبة عند اختيار صنعة ثانية.');
+                    }
+
+                    payload.secondarySkillId = Number(currentValues.secondarySkillId);
+                    payload.secondaryExperienceYears = Number(currentValues.secondaryExperienceYears);
+                }
+            }
+        }
+
+        return payload;
+    }, []);
+
+    const handleGoogleCredential = useCallback(async (response) => {
+        const context = googleContextRef.current || {};
+
+        if (context.isAdmin) {
+            setError('Google مخصص لحسابات العملاء والعمال فقط.');
+            return;
+        }
+
+        setError('');
+        setSuccess('');
+
+        try {
+            if (!response?.credential) {
+                throw new Error('تعذر استلام بيانات Google.');
+            }
+
+            const payload = buildGooglePayload(response.credential);
+            setGoogleLoading(true);
+
+            const data = await fetchJson('/api/auth/google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            persistAuth(data);
+            setSuccess(context.isRegister ? text.registerSuccess : text.loginSuccess);
+
+            setTimeout(() => {
+                navigate('/home');
+            }, 600);
+        } catch (err) {
+            setError(getApiErrorMessage(err));
+        } finally {
+            setGoogleLoading(false);
+        }
+    }, [buildGooglePayload, navigate, persistAuth]);
+
+    useEffect(() => {
+        if (!GOOGLE_CLIENT_ID || isAdmin) {
+            setGoogleReady(false);
+            return undefined;
+        }
+
+        let isMounted = true;
+
+        const renderGoogleButton = () => {
+            if (!isMounted || !window.google?.accounts?.id || !googleButtonRef.current) {
+                return;
+            }
+
+            window.google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleCredential,
+            });
+
+            googleButtonRef.current.innerHTML = '';
+            window.google.accounts.id.renderButton(googleButtonRef.current, {
+                locale: 'ar',
+                shape: 'rectangular',
+                size: 'large',
+                text: isRegister ? 'signup_with' : 'signin_with',
+                theme: 'outline',
+                width: Math.min(360, googleButtonRef.current.offsetWidth || 360),
+            });
+            setGoogleReady(true);
+        };
+
+        if (window.google?.accounts?.id) {
+            renderGoogleButton();
+            return () => {
+                isMounted = false;
+            };
+        }
+
+        const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+
+        if (existingScript) {
+            existingScript.addEventListener('load', renderGoogleButton, { once: true });
+
+            return () => {
+                isMounted = false;
+                existingScript.removeEventListener('load', renderGoogleButton);
+            };
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        script.onload = renderGoogleButton;
+        document.head.appendChild(script);
+
+        return () => {
+            isMounted = false;
+            script.onload = null;
+        };
+    }, [handleGoogleCredential, isAdmin, isRegister]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError('');
         setSuccess('');
+
+        const submittedPhone = normalizePhoneInput(formValues.phone);
+
+        if (isRegister && !isValidLocalPhone(submittedPhone)) {
+            setError(text.phoneInvalid);
+            setLoading(false);
+            return;
+        }
 
         const payload = {
             email: formValues.email.trim(),
@@ -203,7 +389,7 @@ function LoginPage() {
         if (isRegister) {
             payload.firstname = formValues.firstname.trim();
             payload.lastname = formValues.lastname.trim();
-            payload.phone = formValues.phone.trim();
+            payload.phone = submittedPhone;
             payload.location = formValues.location.trim();
             payload.userType = userType;
 
@@ -321,7 +507,7 @@ function LoginPage() {
                                                 type="button"
                                                 className={`user-type-btn ${userType === 'client' ? 'active' : ''}`}
                                                 onClick={() => handleUserTypeChange('client')}
-                                                disabled={loading}
+                                                disabled={isBusy}
                                             >
                                                 <span className="user-type-icon">👤</span>
                                                 <span>{text.client}</span>
@@ -331,7 +517,7 @@ function LoginPage() {
                                                 type="button"
                                                 className={`user-type-btn ${userType === 'worker' ? 'active' : ''}`}
                                                 onClick={() => handleUserTypeChange('worker')}
-                                                disabled={loading}
+                                                disabled={isBusy}
                                             >
                                                 <span className="user-type-icon">🛠️</span>
                                                 <span>{text.worker}</span>
@@ -354,7 +540,7 @@ function LoginPage() {
                                                         value={formValues.primarySkillId}
                                                         onChange={handleInputChange}
                                                         required
-                                                        disabled={loading || skillsLoading}
+                                                        disabled={isBusy || skillsLoading}
                                                     >
                                                         <option value="">
                                                             {skillsLoading ? text.craftsLoading : text.primaryCraftPlaceholder}
@@ -384,7 +570,7 @@ function LoginPage() {
                                                         max={EXPERIENCE_MAX}
                                                         inputMode="numeric"
                                                         required={Boolean(formValues.primarySkillId)}
-                                                        disabled={loading || !formValues.primarySkillId}
+                                                        disabled={isBusy || !formValues.primarySkillId}
                                                     />
                                                 </div>
                                             </div>
@@ -401,7 +587,7 @@ function LoginPage() {
                                                         className="form-input-custom"
                                                         value={formValues.secondarySkillId}
                                                         onChange={handleInputChange}
-                                                        disabled={loading || skillsLoading || !formValues.primarySkillId}
+                                                        disabled={isBusy || skillsLoading || !formValues.primarySkillId}
                                                     >
                                                         <option value="">{text.secondaryCraftPlaceholder}</option>
                                                         {secondarySkills.map((skill) => (
@@ -429,7 +615,7 @@ function LoginPage() {
                                                         max={EXPERIENCE_MAX}
                                                         inputMode="numeric"
                                                         required={Boolean(formValues.secondarySkillId)}
-                                                        disabled={loading || !formValues.secondarySkillId}
+                                                        disabled={isBusy || !formValues.secondarySkillId}
                                                     />
                                                 </div>
                                             </div>
@@ -437,7 +623,7 @@ function LoginPage() {
                                     </div>
                                 )}
 
-                                {isRegister && (
+                                {isRegister && !googleSignupOnly && (
                                     <div className="name-fields-grid">
                                         <div className="form-group">
                                             <label className="form-label-custom" htmlFor="firstname">{text.firstname}</label>
@@ -452,7 +638,7 @@ function LoginPage() {
                                                     value={formValues.firstname}
                                                     onChange={handleInputChange}
                                                     required
-                                                    disabled={loading}
+                                                    disabled={isBusy}
                                                 />
                                             </div>
                                         </div>
@@ -470,31 +656,33 @@ function LoginPage() {
                                                     value={formValues.lastname}
                                                     onChange={handleInputChange}
                                                     required
-                                                    disabled={loading}
+                                                    disabled={isBusy}
                                                 />
                                             </div>
                                         </div>
                                     </div>
                                 )}
 
-                                <div className="form-group">
-                                    <label className="form-label-custom" htmlFor="email">{text.email}</label>
-                                    <div className="input-wrapper">
-                                        <span className="input-icon">✉️</span>
-                                        <input
-                                            id="email"
-                                            name="email"
-                                            type="email"
-                                            className="form-input-custom"
-                                            placeholder={isAdmin ? 'admin@example.com' : 'you@example.com'}
-                                            value={formValues.email}
-                                            onChange={handleInputChange}
-                                            autoComplete="email"
-                                            required
-                                            disabled={loading}
-                                        />
+                                {!googleSignupOnly && (
+                                    <div className="form-group">
+                                        <label className="form-label-custom" htmlFor="email">{text.email}</label>
+                                        <div className="input-wrapper">
+                                            <span className="input-icon">✉️</span>
+                                            <input
+                                                id="email"
+                                                name="email"
+                                                type="email"
+                                                className="form-input-custom"
+                                                placeholder={isAdmin ? 'admin@example.com' : 'you@example.com'}
+                                                value={formValues.email}
+                                                onChange={handleInputChange}
+                                                autoComplete="email"
+                                                required
+                                                disabled={isBusy}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 {isRegister && (
                                     <>
@@ -510,8 +698,12 @@ function LoginPage() {
                                                     placeholder={text.phonePlaceholder}
                                                     value={formValues.phone}
                                                     onChange={handleInputChange}
+                                                    inputMode="numeric"
+                                                    maxLength="10"
+                                                    pattern="05[0-9]{8}"
+                                                    title={text.phoneInvalid}
                                                     required
-                                                    disabled={loading}
+                                                    disabled={isBusy}
                                                 />
                                             </div>
                                         </div>
@@ -529,64 +721,91 @@ function LoginPage() {
                                                     value={formValues.location}
                                                     onChange={handleInputChange}
                                                     required
-                                                    disabled={loading}
+                                                    disabled={isBusy}
                                                 />
                                             </div>
                                         </div>
                                     </>
                                 )}
 
-                                <div className="form-group">
-                                    <label className="form-label-custom" htmlFor="password">{text.password}</label>
-                                    <div className="input-wrapper">
-                                        <span className="input-icon">🔒</span>
-                                        <input
-                                            id="password"
-                                            name="password"
-                                            type={showPassword ? 'text' : 'password'}
-                                            className="form-input-custom"
-                                            placeholder="••••••••"
-                                            value={formValues.password}
-                                            onChange={handleInputChange}
-                                            autoComplete={isLogin || isAdmin ? 'current-password' : 'new-password'}
-                                            required
-                                            minLength="6"
-                                            disabled={loading}
-                                        />
-                                        <button
-                                            type="button"
-                                            className="toggle-password"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            aria-label="Show or hide password"
-                                            disabled={loading}
-                                        >
-                                            {showPassword ? (
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                                    <circle cx="12" cy="12" r="3" />
-                                                </svg>
-                                            ) : (
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-                                                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-                                                    <circle cx="12" cy="12" r="3" />
-                                                    <line x1="1" y1="1" x2="23" y2="23" />
-                                                </svg>
-                                            )}
-                                        </button>
+                                {!googleSignupOnly && (
+                                    <div className="form-group">
+                                        <label className="form-label-custom" htmlFor="password">{text.password}</label>
+                                        <div className="input-wrapper">
+                                            <span className="input-icon">🔒</span>
+                                            <input
+                                                id="password"
+                                                name="password"
+                                                type={showPassword ? 'text' : 'password'}
+                                                className="form-input-custom"
+                                                placeholder="••••••••"
+                                                value={formValues.password}
+                                                onChange={handleInputChange}
+                                                autoComplete={isLogin || isAdmin ? 'current-password' : 'new-password'}
+                                                required
+                                                minLength="6"
+                                                disabled={isBusy}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="toggle-password"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                aria-label="Show or hide password"
+                                                disabled={isBusy}
+                                            >
+                                                {showPassword ? (
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                                        <circle cx="12" cy="12" r="3" />
+                                                    </svg>
+                                                ) : (
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                                                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                                                        <circle cx="12" cy="12" r="3" />
+                                                        <line x1="1" y1="1" x2="23" y2="23" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
-                                <button
-                                    id="btn-submit"
-                                    type="submit"
-                                    className="submit-btn"
-                                    disabled={loading}
-                                >
-                                    {loading
-                                        ? (isAdmin ? text.adminLoggingIn : isLogin ? text.loggingIn : text.registering)
-                                        : (isAdmin ? text.adminSubmit : isLogin ? text.login : text.register)}
-                                </button>
+                                {!googleSignupOnly && (
+                                    <button
+                                        id="btn-submit"
+                                        type="submit"
+                                        className="submit-btn"
+                                        disabled={isBusy}
+                                    >
+                                        {loading
+                                            ? (isAdmin ? text.adminLoggingIn : isLogin ? text.loggingIn : text.registering)
+                                            : (isAdmin ? text.adminSubmit : isLogin ? text.login : text.register)}
+                                    </button>
+                                )}
+
+                                {!isAdmin && (
+                                    <div className="google-auth-block">
+                                        <div className="google-divider">
+                                            <span>{googleSignupOnly ? 'أكمل التسجيل عبر Google' : text.googleDivider}</span>
+                                        </div>
+
+                                        {GOOGLE_CLIENT_ID ? (
+                                            <>
+                                                <div
+                                                    ref={googleButtonRef}
+                                                    className={`google-button-slot ${googleReady ? 'is-ready' : ''}`}
+                                                    aria-busy={!googleReady || googleLoading}
+                                                />
+                                                {googleLoading && (
+                                                    <span className="google-inline-status">{text.googleLoading}</span>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <p className="google-config-note">{text.googleUnavailable}</p>
+                                        )}
+                                    </div>
+                                )}
                             </form>
 
                             {!isAdmin && (
@@ -596,7 +815,7 @@ function LoginPage() {
                                         type="button"
                                         className="switch-link"
                                         onClick={() => toggleForm(isLogin ? 'register' : 'login')}
-                                        disabled={loading}
+                                        disabled={isBusy}
                                     >
                                         {isLogin ? text.register : text.login}
                                     </button>
@@ -613,3 +832,4 @@ function LoginPage() {
 }
 
 export default LoginPage;
+

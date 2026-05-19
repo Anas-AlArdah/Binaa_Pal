@@ -284,6 +284,10 @@
     color: #94a3b8;
 }
 
+#phone {
+    direction: ltr;
+}
+
 .form-input-custom:disabled {
     color: #94a3b8;
     background: #f1f5f9;
@@ -388,6 +392,59 @@ select.form-input-custom {
 
 .submit-btn:active:not(:disabled) {
     transform: translateY(0);
+}
+
+.google-auth-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 2px;
+}
+
+.google-divider {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    color: var(--login-muted);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.google-divider::before,
+.google-divider::after {
+    content: '';
+    height: 1px;
+    background: var(--login-border);
+}
+
+.google-button-slot {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.google-button-slot.is-ready {
+    opacity: 1;
+}
+
+.google-button-slot[aria-busy="true"] {
+    pointer-events: none;
+}
+
+.google-config-note,
+.google-inline-status {
+    margin: 0;
+    color: var(--login-muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1.6;
+    text-align: center;
 }
 
 .submit-btn:disabled,
