@@ -246,6 +246,11 @@ function LoginPage() {
             payload.phone = submittedPhone;
             payload.location = currentValues.location.trim();
 
+            if (!currentValues.password || currentValues.password.length < 6) {
+                throw new Error('كلمة المرور مطلوبة ويجب أن تكون 6 أحرف على الأقل.');
+            }
+            payload.password = currentValues.password;
+
             if (context.userType === 'worker') {
                 if (!currentValues.primarySkillId || currentValues.primaryExperienceYears === '') {
                     throw new Error('الصنعة الأساسية وخبرتها مطلوبة للعامل.');
@@ -728,7 +733,7 @@ function LoginPage() {
                                     </>
                                 )}
 
-                                {!googleSignupOnly && (
+                                {(!googleSignupOnly || isRegister) && (
                                     <div className="form-group">
                                         <label className="form-label-custom" htmlFor="password">{text.password}</label>
                                         <div className="input-wrapper">

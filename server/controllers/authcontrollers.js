@@ -633,9 +633,14 @@ async function googleAuth(req, res) {
     const phone = normalizePhone(req.body.phone);
     const location = cleanString(req.body.location);
     const roleType = normalizeUserType(req.body.userType);
+    const password = String(req.body.password || '');
 
-    if (!phone || !location) {
-      return res.status(400).json({ message: 'رقم الجوال والموقع مطلوبان لإنشاء حساب Google.' });
+    if (!phone || !location || !password) {
+      return res.status(400).json({ message: 'رقم الجوال، الموقع، وكلمة المرور مطلوبة لإنشاء حساب Google.' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل.' });
     }
 
     validateLocalPhone(phone);
@@ -650,13 +655,15 @@ async function googleAuth(req, res) {
     const { selectedSkills, primarySkill } = await getWorkerSkillsOrThrow(roleType, requestedSkillIds, primarySkillId);
     const role = await getOrCreateRole(roleType);
 
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
     transaction = await sequelize.transaction();
 
     const createdUser = await User.create({
       firstname: googleProfile.firstname,
       lastname: googleProfile.lastname,
       email: googleProfile.email,
-      password: null,
+      password: hashedPassword,
       phone,
       location,
       role_id: role.id,
