@@ -3,7 +3,7 @@ import { Box, Stack, TextField, Typography } from '@mui/material';
 
 const PasswordSection = ({ form, updateField }) => (
     <Stack spacing={2}>
-        <Typography variant="h6" sx={{ fontWeight: 900, color: '#2d2a26' }}>
+        <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a' }}>
             تغيير كلمة المرور
         </Typography>
         <Box

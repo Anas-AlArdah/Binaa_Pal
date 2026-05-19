@@ -13,10 +13,10 @@ const ProfileEditDialogTitle = ({ disabled, onClose }) => (
         }}
     >
         <Box>
-            <Typography variant="h5" sx={{ fontWeight: 900, color: '#2d2a26' }}>
+            <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a', fontFamily: 'Cairo, sans-serif' }}>
                 تعديل بروفايل العامل
             </Typography>
-            <Typography sx={{ color: '#6f685d', fontSize: '14px', mt: 0.5 }}>
+            <Typography sx={{ color: '#64748b', fontSize: '14px', mt: 0.5, fontFamily: 'Cairo, sans-serif' }}>
                 حدّث الصورة، النبذة، المهارات، ومعرض الأعمال من مكان واحد.
             </Typography>
         </Box>

@@ -42,7 +42,7 @@ const PortfolioSection = ({
                 onClick={addPortfolioItem}
                 startIcon={<AddRoundedIcon />}
                 variant="outlined"
-                sx={{ borderRadius: '14px', textTransform: 'none', fontWeight: 700 }}
+                sx={{ borderRadius: '14px', textTransform: 'none', fontWeight: 700, borderColor: '#1a2744', color: '#1a2744' }}
             >
                 إضافة عمل
             </Button>
@@ -53,10 +53,10 @@ const PortfolioSection = ({
                 <Box
                     key={item.pro_id ?? `new-${index}`}
                     sx={{
-                        border: '1px solid rgba(85,107,47,0.12)',
+                        border: '1px solid rgba(26, 39, 68, 0.1)',
                         borderRadius: '22px',
                         p: 2.25,
-                        background: '#fff',
+                        background: '#f8fafc',
                     }}
                 >
                     <Box
@@ -72,8 +72,8 @@ const PortfolioSection = ({
                                     width: '100%',
                                     height: 180,
                                     borderRadius: '18px',
-                                    bgcolor: '#f4f1ea',
-                                    border: '1px dashed rgba(85,107,47,0.2)',
+                                    bgcolor: '#f1f5f9',
+                                    border: '1px dashed rgba(26, 39, 68, 0.2)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
@@ -117,7 +117,7 @@ const PortfolioSection = ({
                                 <Button
                                     component="label"
                                     variant="outlined"
-                                    sx={{ borderColor: '#556b2f', color: '#556b2f' }}
+                                    sx={{ borderColor: '#F59E0B', color: '#F59E0B' }}
                                 >
                                     رفع فيديو
                                     <input

@@ -8,7 +8,7 @@ const AvailabilitySection = ({
     updateAvailabilityField,
 }) => (
     <Stack spacing={2}>
-        <Typography variant="h6" sx={{ fontWeight: 900, color: '#2d2a26' }}>
+        <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a' }}>
             جدول التوفر
         </Typography>
 
@@ -20,17 +20,17 @@ const AvailabilitySection = ({
                 <Box
                     key={day}
                     sx={{
-                        border: '1px solid #e3ddd4',
+                        border: '1px solid rgba(26, 39, 68, 0.1)',
                         borderRadius: '16px',
                         p: 2,
-                        bgcolor: '#fbfaf8',
+                        bgcolor: '#f8fafc',
                         display: 'grid',
                         gridTemplateColumns: { xs: '1fr', md: '160px auto 1fr 1fr' },
                         gap: 2,
                         alignItems: 'center',
                     }}
                 >
-                    <Typography sx={{ fontWeight: 800, color: '#2d2a26' }}>
+                    <Typography sx={{ fontWeight: 800, color: '#0f172a' }}>
                         {day}
                     </Typography>
 
@@ -46,9 +46,9 @@ const AvailabilitySection = ({
                             updateAvailabilityField(day, 'end_time', '17:00');
                         }}
                         sx={{
-                            '& .MuiSwitch-thumb': { bgcolor: '#556b2f' },
+                            '& .MuiSwitch-thumb': { bgcolor: '#1a2744' },
                             '& .Mui-checked + .MuiSwitch-track': {
-                                bgcolor: 'rgba(85,107,47,0.4)',
+                                bgcolor: 'rgba(26, 39, 68, 0.4)',
                             },
                         }}
                     />

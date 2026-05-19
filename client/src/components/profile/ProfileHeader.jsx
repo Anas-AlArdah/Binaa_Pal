@@ -62,29 +62,12 @@ const ProfileHeader = ({ profile, onRequestService, onShowPortfolio }) => {
               boxShadow: '0 10px 25px rgba(26, 39, 68, 0.12)',
             }}
           />
-          <Box 
-            sx={{ 
-              position: 'absolute', bottom: -6, right: -6, 
-              bgcolor: '#10b981', width: 24, height: 24, 
-              borderRadius: '50%', border: '4px solid #fff' 
-            }} 
-            title="متواجد حالياً"
-          />
+
         </Box>
 
         <Box sx={{ flex: 1 }}>
           <Stack direction="row" spacing={1.2} useFlexGap flexWrap="wrap" sx={{ mb: 1.5 }}>
-            <Chip
-              label="متاح للعمل"
-              size="small"
-              sx={{
-                bgcolor: '#f0fdf4',
-                color: '#16a34a',
-                border: '1px solid #bbf7d0',
-                fontWeight: 800,
-                fontFamily: 'Cairo, sans-serif'
-              }}
-            />
+
             <Chip
               label={profile.major || 'عامل مهني'}
               size="small"

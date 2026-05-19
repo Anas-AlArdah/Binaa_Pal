@@ -11,24 +11,30 @@
 }
 
 .nh-inner {
-  max-width: 1300px;
+  max-width: 1480px;
   margin: 0 auto;
-  padding: 0 24px;
-  height: 60px;
-  display: flex;
+  padding: 0 32px;
+  height: 72px;
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto minmax(240px, 1fr);
+  grid-template-areas: "actions nav logo";
   align-items: center;
-  gap: 32px;
+  gap: 28px;
+  direction: ltr;
 }
 
 /* Logo */
 .nh-logo {
-  font-size: 1.35rem;
+  grid-area: logo;
+  justify-self: end;
+  font-size: 1.5rem;
   font-weight: 900;
   color: #fff;
   text-decoration: none;
   letter-spacing: 0.02em;
   white-space: nowrap;
   flex-shrink: 0;
+  direction: rtl;
 }
 
 .nh-logo:hover {
@@ -37,22 +43,25 @@
 
 /* Desktop nav */
 .nh-nav {
+  grid-area: nav;
+  justify-self: center;
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex: 1;
+  gap: 18px;
   justify-content: center;
+  direction: rtl;
 }
 
 .nh-link {
   color: rgba(255,255,255,0.82);
   text-decoration: none;
-  font-size: 0.95rem;
-  font-weight: 600;
-  padding: 6px 14px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  padding: 8px 16px;
   border-radius: 8px;
   transition: color 0.15s, background 0.15s;
   position: relative;
+  white-space: nowrap;
 }
 
 .nh-link:hover {
@@ -77,15 +86,18 @@
 
 /* Actions */
 .nh-actions {
+  grid-area: actions;
+  justify-self: start;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   flex-shrink: 0;
+  direction: rtl;
 }
 
 .nh-username {
   color: #fff;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -115,8 +127,8 @@
   border: 1.5px solid rgba(255,255,255,0.5);
   color: #fff;
   border-radius: 8px;
-  padding: 6px 16px;
-  font-size: 0.88rem;
+  padding: 8px 18px;
+  font-size: 0.98rem;
   font-weight: 700;
   font-family: 'Cairo', sans-serif;
   text-decoration: none;
@@ -135,8 +147,8 @@
   border: 1.5px solid rgba(255,100,100,0.5);
   color: #fc8181;
   border-radius: 8px;
-  padding: 6px 16px;
-  font-size: 0.85rem;
+  padding: 8px 18px;
+  font-size: 0.95rem;
   font-weight: 700;
   font-family: 'Cairo', sans-serif;
   cursor: pointer;
@@ -220,7 +232,16 @@
   }
 
   .nh-inner {
+    display: flex;
+    direction: rtl;
+    height: 60px;
+    padding: 0 24px;
     gap: 16px;
+  }
+
+  .nh-logo {
+    justify-self: auto;
+    font-size: 1.35rem;
   }
 }
 

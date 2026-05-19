@@ -121,9 +121,17 @@ const ProfileEditDialog = ({
         loadBackendData();
     }, [open, profile]);
 
+    const filteredAvailableSkills = useMemo(() => {
+        if (!form.major) return availableSkills;
+        const majorTrimmed = form.major.trim().toLowerCase();
+        return availableSkills.filter(
+            (skill) => skill.skill_name.trim().toLowerCase() !== majorTrimmed
+        );
+    }, [availableSkills, form.major]);
+
     const selectedSkills = useMemo(
-        () => availableSkills.filter((skill) => form.skill_ids.includes(skill.id)),
-        [availableSkills, form.skill_ids]
+        () => filteredAvailableSkills.filter((skill) => form.skill_ids.includes(skill.id)),
+        [filteredAvailableSkills, form.skill_ids]
     );
 
     const updateField = (field, value) => {
@@ -327,6 +335,10 @@ const ProfileEditDialog = ({
             onClose={isLoading ? undefined : onClose}
             fullWidth
             maxWidth="lg"
+            PaperProps={{
+                dir: 'rtl',
+                sx: { borderRadius: '24px' }
+            }}
         >
             <ProfileEditDialogTitle disabled={isLoading} onClose={onClose} />
 
@@ -340,7 +352,7 @@ const ProfileEditDialog = ({
                             minHeight: 200,
                         }}
                     >
-                        <CircularProgress sx={{ color: '#556b2f' }} />
+                        <CircularProgress sx={{ color: '#F59E0B' }} />
                     </Box>
                 ) : (
                     <Box component="form" onSubmit={handleSubmit}>
@@ -348,7 +360,7 @@ const ProfileEditDialog = ({
                             {submitError && <Alert severity="error">{submitError}</Alert>}
 
                             <PersonalInfoSection
-                                availableSkills={availableSkills}
+                                availableSkills={filteredAvailableSkills}
                                 form={form}
                                 selectedSkills={selectedSkills}
                                 updateField={updateField}
@@ -399,8 +411,8 @@ const ProfileEditDialog = ({
                             : <SaveRoundedIcon />
                     }
                     sx={{
-                        bgcolor: '#556b2f',
-                        '&:hover': { bgcolor: '#405123' },
+                        bgcolor: '#1a2744',
+                        '&:hover': { bgcolor: '#0f172a' },
                         textTransform: 'none',
                         fontWeight: 800,
                         borderRadius: '14px',

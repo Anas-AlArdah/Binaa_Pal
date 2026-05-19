@@ -349,6 +349,31 @@
   margin: 0 auto;
 }
 
+.hp-results-close-btn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.hp-results-close-btn:hover {
+  background: #f1f5f9;
+  color: #ef4444;
+}
+
 .hp-results-state {
   padding: 60px 20px;
   text-align: center;
@@ -408,6 +433,7 @@
   background: #e2e8f0;
   padding: 2px 10px;
   border-radius: 999px;
+  margin-left: 40px;
 }
 
 .hp-result-card {

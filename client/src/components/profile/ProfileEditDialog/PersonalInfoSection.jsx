@@ -36,8 +36,9 @@ const PersonalInfoSection = ({
             sx={{
                 p: 2.5,
                 borderRadius: '22px',
-                border: '1px solid rgba(85,107,47,0.14)',
-                background: 'linear-gradient(145deg,#faf8f3,#ffffff)',
+                border: '1px solid rgba(26, 39, 68, 0.1)',
+                background: 'linear-gradient(145deg, #f8fafc, #ffffff)',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
             }}
         >
             <Stack spacing={2} alignItems="center">
@@ -107,7 +108,7 @@ const PersonalInfoSection = ({
                     fullWidth
                 />
                 <TextField
-                    label="المسمى المهني"
+                    label="الصنعة"
                     value={form.major}
                     onChange={(event) => updateField('major', event.target.value)}
                     fullWidth
@@ -138,7 +139,7 @@ const PersonalInfoSection = ({
                         />
                     ))
                 }
-                renderInput={(params) => <TextField {...params} label="المهارات" />}
+                renderInput={(params) => <TextField {...params} label="الصنعة الثانوية" />}
             />
 
             <Box sx={twoColumnGrid}>

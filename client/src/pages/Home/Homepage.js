@@ -25,6 +25,17 @@ const TRUST_ITEMS = [
   { icon: "⭐", title: "تقييمات حقيقية", desc: "اختر بناءً على تجارب العملاء السابقة" },
 ];
 
+const readAuthStatus = () => {
+  try {
+    return Boolean(
+      localStorage.getItem("binaa_auth_user") ||
+      localStorage.getItem("binaa_admin_user")
+    );
+  } catch {
+    return false;
+  }
+};
+
 export default function Homepage() {
   const [crafts, setCrafts] = useState(STATIC_CRAFTS);
   const [skills, setSkills] = useState([]);
@@ -34,10 +45,8 @@ export default function Homepage() {
   const [results, setResults] = useState([]);
   const [searched, setSearched] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(readAuthStatus);
   const dropRef = useRef(null);
-  const user = JSON.parse(localStorage.getItem("binaa_auth_user") || "null");
-  const adminUser = JSON.parse(localStorage.getItem("binaa_admin_user") || "null");
-  const isLoggedIn = !!user || !!adminUser;
   const navigate = useNavigate();
 
   // Load crafts
@@ -73,6 +82,19 @@ export default function Homepage() {
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  useEffect(() => {
+    const syncAuthStatus = () => setIsLoggedIn(readAuthStatus());
+
+    window.addEventListener("storage", syncAuthStatus);
+    window.addEventListener("focus", syncAuthStatus);
+    syncAuthStatus();
+
+    return () => {
+      window.removeEventListener("storage", syncAuthStatus);
+      window.removeEventListener("focus", syncAuthStatus);
+    };
   }, []);
 
   const filtered = query.trim()
@@ -199,6 +221,13 @@ export default function Homepage() {
             {/* Results Area */}
             {searched && (
               <div className="hp-results-container">
+                <button 
+                  className="hp-results-close-btn" 
+                  onClick={() => setSearched(false)}
+                  title="إغلاق"
+                >
+                  ✕
+                </button>
                 {loading ? (
                   <div className="hp-results-state">
                     <div className="hp-spinner"></div>
