@@ -550,18 +550,6 @@
   box-shadow: 0 14px 26px rgba(15, 23, 42, 0.14);
 }
 
-.cd-status-dot {
-  position: absolute;
-  right: -2px;
-  bottom: -2px;
-  width: 17px;
-  height: 17px;
-  background: var(--cd-success);
-  border: 3px solid var(--cd-card);
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.16);
-}
-
 .cd-worker-title {
   min-width: 0;
 }

@@ -4,31 +4,11 @@ import Footer from "../../components/Footer";
 import { useNavigate } from "react-router-dom";
 import { fetchJson, getApiErrorMessage } from "../../utils/api";
 import { defaultCrafts } from "./craftPresentation";
-
-// استيراد أيقونات احترافية من مكتبة react-icons
-import { FiZap, FiTool, FiFeather, FiLayers, FiCpu, FiScissors, FiGrid, FiArrowLeft } from "react-icons/fi";
-import { MdOutlinePlumbing, MdConstruction } from "react-icons/md";
-
-// دالة لربط كل صنعة بالأيقونة المناسبة بناءً على slug
-const getIconForCraft = (slug) => {
-  switch (slug) {
-    case "electricity": return <FiZap />;
-    case "carpentry": return <FiTool />;
-    case "plumbing": return <MdOutlinePlumbing />;
-    case "painting": return <FiFeather />;
-    case "tiling": return <FiLayers />;
-    case "appliances": return <FiCpu />;
-    case "construction": return <MdConstruction />;
-    case "tailoring": return <FiScissors />;
-    case "blacksmithing": return <FiTool />;
-    default: return <FiGrid />;
-  }
-};
+import { FiArrowLeft } from "react-icons/fi";
 
 const buildCraftRows = (rows) =>
   rows.map((craft) => ({
     ...craft,
-    reactIcon: getIconForCraft(craft.slug),
     workersCount: craft.workersCount ?? craft.workers ?? craft.workerCount ?? 0,
   }));
 
@@ -79,10 +59,8 @@ function Crafts() {
         const rows = Array.isArray(data) ? data : data?.crafts || [];
 
         if (isMounted) {
-          // دمج الأيقونات الاحترافية مع البيانات القادمة من الـ API
           const enhancedCrafts = rows.map(c => ({
             ...c,
-            reactIcon: getIconForCraft(c.slug),
             workersCount: c.workersCount ?? c.workers ?? c.workerCount ?? 0
           }));
           setCrafts(enhancedCrafts.length > 0 ? enhancedCrafts : buildCraftRows(defaultCrafts));
@@ -169,9 +147,6 @@ function Crafts() {
               {filteredCrafts.map((craft, index) => (
                 <ScrollRevealCard key={craft.id} index={index} onClick={() => handleCraftClick(craft)}>
                   <div className="cr-card-top">
-                    <div className="cr-icon-container">
-                      {craft.reactIcon}
-                    </div>
                     <div className="cr-workers-badge">
                       <span className="cr-badge-dot"></span>
                       {craft.workersCount ?? 0} حرفي متاح

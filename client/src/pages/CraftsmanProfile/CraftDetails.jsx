@@ -22,6 +22,15 @@ const SORT_OPTIONS = [
   { value: "price", label: "حسب السعر", hint: "الأقل سعراً أولاً" },
   { value: "reviews", label: "معظم التقييمات", hint: "الأكثر طلباً" },
 ];
+const UNKNOWN_CITY_VALUES = new Set([
+  "n/a",
+  "na",
+  "not specified",
+  "undefined",
+  "null",
+  "\u063a\u064a\u0631 \u0645\u062d\u062f\u062f",
+  "\u063a\u064a\u0631 \u0645\u062d\u062f\u062f\u0629",
+]);
 
 function normalizeNumber(value, fallback = 0) {
   const numberValue = Number(value);
@@ -33,19 +42,29 @@ function formatRating(value) {
   return rating > 0 ? rating.toFixed(1) : "جديد";
 }
 
+function normalizeCityName(value) {
+  const city = String(value || "")
+    .split(/,|\u060c/)
+    .map((part) => part.trim())
+    .filter(Boolean)[0] || "";
+
+  return UNKNOWN_CITY_VALUES.has(city.toLowerCase()) ? "" : city;
+}
+
 function normalizeWorker(worker, craft) {
   const skills = Array.isArray(worker.skills) ? worker.skills.filter(Boolean) : [];
   const secondarySkill =
     worker.secondarySkill ||
     skills.find((skill) => skill !== craft.name && skill !== craft.skill_name) ||
     "";
+  const city = normalizeCityName(worker.city || worker.location);
 
   return {
     ...worker,
     id: worker.id,
     profileId: worker.profileId,
     name: worker.name || "عامل مجهول",
-    city: worker.city || worker.location || "غير محدد",
+    city,
     craftSlug: worker.craftSlug || craft.slug,
     craftName: worker.craftName || craft.name,
     secondarySkill,
@@ -334,9 +353,6 @@ function CraftDetails() {
                 {filteredWorkers.map((worker, index) => (
                   <article className="cd-worker-card" key={`${worker.id || "worker"}-${worker.profileId || index}`}>
                     <div className="cd-card-topline">
-                      <span>
-                        <FaCheckCircle /> موثوق
-                      </span>
                       <span>{worker.punctualityCount > 0 ? `التزام ${worker.punctualityRating}/5` : "عامل جديد"}</span>
                     </div>
 
@@ -347,7 +363,6 @@ function CraftDetails() {
                         ) : (
                           <span className="cd-avatar-placeholder">{worker.name.charAt(0)}</span>
                         )}
-                        <span className="cd-status-dot" />
                       </div>
 
                       <div className="cd-worker-title">
@@ -364,10 +379,12 @@ function CraftDetails() {
 
                     <div className="cd-worker-body">
                       <div className="cd-worker-meta-grid">
-                        <div className="cd-info-item">
-                          <FaMapMarkerAlt className="cd-info-icon text-gray" />
-                          <span>{worker.city}</span>
-                        </div>
+                        {worker.city && (
+                          <div className="cd-info-item">
+                            <FaMapMarkerAlt className="cd-info-icon text-gray" />
+                            <span>{worker.city}</span>
+                          </div>
+                        )}
                         <div className="cd-info-item">
                           <FaBriefcase className="cd-info-icon text-gray" />
                           <span>خبرة {worker.experience}</span>

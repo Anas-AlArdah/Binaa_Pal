@@ -119,7 +119,7 @@ function formatPrice(profile) {
   const min = formatNumber(profile?.min_price);
   const max = formatNumber(profile?.max_price);
 
-  return min && max ? `${min} - ${max}` : min || max || 'N/A';
+  return min && max ? `${min} - ${max}` : min || max || 'غير محدد';
 }
 
 function getPriceSort(profile) {
@@ -151,7 +151,7 @@ function formatExperienceYears(value) {
 
 function getExperience(profile) {
   if (!profile?.createdAt) {
-    return 'N/A';
+    return 'غير محددة';
   }
 
   return formatExperienceYears(Math.max(1, new Date().getFullYear() - new Date(profile.createdAt).getFullYear()));
@@ -171,10 +171,14 @@ function getReviewStats(profile) {
 }
 
 function getCity(location) {
-  return String(location || '')
+  const city = String(location || '')
     .split(/,|\u060c/)
     .map((part) => part.trim())
-    .filter(Boolean)[0] || 'N/A';
+    .filter(Boolean)[0] || '';
+
+  return ['n/a', 'na', 'not specified', 'undefined', 'null'].includes(city.toLowerCase())
+    ? ''
+    : city;
 }
 
 function getWorkerName(user) {

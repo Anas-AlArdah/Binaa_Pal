@@ -134,31 +134,9 @@
 
 .cr-card-top {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: flex-start;
   margin-bottom: 20px;
-}
-
-.cr-icon-container {
-  width: 56px;
-  height: 56px;
-  background: #f1f5f9;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #1a2744;
-  font-size: 1.8rem;
-  transition: all 0.3s;
-}
-
-.cr-card:hover .cr-icon-container {
-  background: rgba(245, 158, 11, 0.1);
-  color: #F59E0B;
-}
-
-[data-theme="dark"] .cr-icon-container {
-  background: #1e293b;
 }
 
 [data-theme="dark"] .cr-workers-badge {
