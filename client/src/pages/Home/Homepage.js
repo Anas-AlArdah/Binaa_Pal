@@ -333,9 +333,7 @@ export default function Homepage() {
               <Link to="/login" className="hp-btn-primary">سجل كحرفي الآن</Link>
             </div>
             <div className="hp-cta-image">
-              <div className="hp-cta-image-placeholder">
-                 <span style={{fontSize: '80px'}}>🛠️</span>
-              </div>
+              <div className="hp-cta-image-placeholder" aria-hidden="true" />
             </div>
           </div>
         </div>

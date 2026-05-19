@@ -169,6 +169,9 @@ function Crafts() {
               {filteredCrafts.map((craft, index) => (
                 <ScrollRevealCard key={craft.id} index={index} onClick={() => handleCraftClick(craft)}>
                   <div className="cr-card-top">
+                    <div className="cr-icon-container">
+                      {craft.reactIcon}
+                    </div>
                     <div className="cr-workers-badge">
                       <span className="cr-badge-dot"></span>
                       {craft.workersCount ?? 0} حرفي متاح

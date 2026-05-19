@@ -1,14 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-  --bg-primary: #f8fafc;
+  --bg-primary: #f6f8fb;
   --bg-secondary: #ffffff;
   --bg-card: #ffffff;
   --text-main: #0f172a;
   --text-muted: #64748b;
   --border-color: #e2e8f0;
-  --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-  --card-hover-shadow: 0 20px 35px -5px rgba(26, 39, 68, 0.08);
+  --brand-primary: #1a2744;
+  --brand-primary-2: #2563eb;
+  --brand-accent: #f59e0b;
+  --brand-success: #10b981;
+  --surface-elevated: rgba(255, 255, 255, 0.88);
+  --focus-ring: 0 0 0 4px rgba(245, 158, 11, 0.18);
+  --card-shadow: 0 10px 25px -8px rgba(15, 23, 42, 0.12);
+  --card-hover-shadow: 0 20px 40px -16px rgba(15, 23, 42, 0.22);
 }
 
 [data-theme="dark"] {
@@ -18,6 +24,7 @@
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --border-color: #1e293b;
+  --surface-elevated: rgba(20, 30, 48, 0.9);
   --card-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
   --card-hover-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.6);
 }
@@ -32,10 +39,31 @@ body {
   font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: var(--bg-primary);
+  background: linear-gradient(180deg, #f8fafc 0%, var(--bg-primary) 42%, #eef2f7 100%);
   color: var(--text-main);
   direction: rtl;
   transition: background 0.3s ease, color 0.3s ease;
+}
+
+[data-theme="dark"] body {
+  background: linear-gradient(180deg, #0b0f19 0%, #101827 100%);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 code {

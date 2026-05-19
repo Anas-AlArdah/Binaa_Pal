@@ -1,7 +1,7 @@
 /* ========== VARIABLES & ROOT ========== */
 :root {
-  --hp-primary: #1a2744;
-  --hp-primary-light: #243460;
+  --hp-primary: var(--brand-primary, #1a2744);
+  --hp-primary-light: #23365f;
   --hp-accent: #F59E0B;
   --hp-accent-hover: #d97706;
   --hp-bg: #f8fafc;
@@ -14,7 +14,7 @@
   --hp-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --hp-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --hp-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --hp-shadow-floating: 0 20px 60px -15px rgba(26, 39, 68, 0.3);
+  --hp-shadow-floating: 0 22px 60px -20px rgba(15, 23, 42, 0.36);
 }
 
 [data-theme="dark"] {
@@ -31,7 +31,8 @@
 .hp-root {
   font-family: 'Cairo', sans-serif;
   direction: rtl;
-  background-color: var(--hp-bg);
+  background:
+    linear-gradient(180deg, var(--hp-bg) 0%, color-mix(in srgb, var(--hp-bg) 88%, #e2e8f0) 100%);
   min-height: 100vh;
   color: var(--hp-text-main);
   overflow-x: hidden;
@@ -46,18 +47,19 @@
 /* ========== HERO SECTION ========== */
 .hp-hero {
   position: relative;
-  min-height: 600px;
+  min-height: min(720px, calc(100vh - 68px));
   background: url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 100px 24px 80px;
+  padding: 86px 24px 72px;
 }
 
 .hp-hero__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.88) 0%, rgba(30, 41, 59, 0.75) 100%);
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.94) 0%, rgba(26, 39, 68, 0.82) 55%, rgba(15, 23, 42, 0.66) 100%);
   z-index: 1;
 }
 
@@ -71,10 +73,10 @@
 
 .hp-hero__badge {
   display: inline-block;
-  background: rgba(245, 158, 11, 0.2);
+  background: rgba(245, 158, 11, 0.16);
   color: var(--hp-accent);
   padding: 6px 16px;
-  border-radius: 999px;
+  border-radius: 12px;
   font-size: 0.875rem;
   font-weight: 700;
   margin-bottom: 24px;
@@ -110,13 +112,13 @@
 
 .hp-search-card {
   background: var(--hp-surface);
-  border-radius: 100px; /* Pill shape */
-  padding: 12px 12px 12px 24px;
+  border-radius: 18px;
+  padding: 12px;
   display: flex;
   align-items: center;
   box-shadow: var(--hp-shadow-floating);
   margin: 0 auto;
-  max-width: 860px;
+  max-width: 900px;
   position: relative;
 }
 
@@ -215,7 +217,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--hp-text-muted);
-  background: #f8fafc;
+  background: color-mix(in srgb, var(--hp-surface) 92%, var(--hp-border));
   border-bottom: 1px solid var(--hp-border);
 }
 
@@ -236,7 +238,7 @@
 }
 
 .hp-dropdown-item:hover {
-  background: #f1f5f9;
+  background: color-mix(in srgb, var(--hp-surface) 86%, var(--hp-border));
   color: var(--hp-primary);
 }
 
@@ -250,7 +252,7 @@
   background: var(--hp-accent);
   color: #fff;
   border: none;
-  border-radius: 999px;
+  border-radius: 14px;
   padding: 0 32px;
   height: 56px;
   font-size: 1.1rem;
@@ -319,7 +321,7 @@
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
-  border-radius: 999px;
+  border-radius: 12px;
   padding: 6px 16px;
   font-size: 0.85rem;
   font-family: inherit;
@@ -340,7 +342,7 @@
   left: 0;
   right: 0;
   background: var(--hp-surface);
-  border-radius: 20px;
+  border-radius: 16px;
   box-shadow: var(--hp-shadow-xl);
   overflow: hidden;
   z-index: 90;
@@ -417,7 +419,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f8fafc;
+  background: color-mix(in srgb, var(--hp-surface) 92%, var(--hp-border));
   border-bottom: 1px solid var(--hp-border);
 }
 
@@ -432,7 +434,7 @@
   color: var(--hp-text-muted);
   background: #e2e8f0;
   padding: 2px 10px;
-  border-radius: 999px;
+  border-radius: 12px;
   margin-left: 40px;
 }
 
@@ -590,7 +592,7 @@
 
 .hp-category-card {
   background: var(--hp-surface);
-  border-radius: 20px;
+  border-radius: 16px;
   padding: 24px;
   display: flex;
   align-items: center;
@@ -612,7 +614,7 @@
   width: 56px;
   height: 56px;
   background: #f1f5f9;
-  border-radius: 16px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -662,7 +664,7 @@
 
 .hp-cta-wrapper {
   background: var(--hp-primary);
-  border-radius: 32px;
+  border-radius: 18px;
   display: flex;
   overflow: hidden;
   box-shadow: var(--hp-shadow-xl);
@@ -735,24 +737,20 @@
   overflow: hidden;
 }
 
-.hp-cta-image::before {
-  content: "";
-  position: absolute;
-  inset: -50%;
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.1) 0%, transparent 60%);
-}
-
 .hp-cta-image-placeholder {
-  width: 160px;
-  height: 160px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 50%;
+  width: min(70%, 260px);
+  aspect-ratio: 4 / 3;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.16), rgba(15, 23, 42, 0.46)),
+    url('https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=900&q=80') center/cover no-repeat;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   z-index: 2;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 24px 52px rgba(0, 0, 0, 0.22);
 }
 
 /* ========== RESPONSIVE ========== */
@@ -779,7 +777,7 @@
 
   .hp-search-card {
     flex-direction: column;
-    border-radius: 24px;
+    border-radius: 16px;
     padding: 16px;
     gap: 12px;
   }
@@ -799,6 +797,31 @@
     width: 100%;
     border-radius: 16px;
     margin: 8px 0 0;
+  }
+
+  .hp-quick-searches {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hp-chips {
+    justify-content: center;
+  }
+
+  .hp-results-container {
+    position: static;
+    margin-top: 18px;
+  }
+
+  .hp-result-card,
+  .hp-results-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hp-result-meta {
+    flex-direction: column;
+    gap: 6px;
   }
 
   .hp-cta-content {

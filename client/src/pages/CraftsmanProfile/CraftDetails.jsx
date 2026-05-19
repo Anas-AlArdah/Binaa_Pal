@@ -3,26 +3,34 @@ import { useNavigate, useParams } from "react-router-dom";
 import "./CraftDetails.css";
 import {
   FaBriefcase,
+  FaCheckCircle,
   FaMapMarkerAlt,
   FaMoneyBillWave,
   FaRegClock,
+  FaShieldAlt,
   FaStar,
+  FaUsers,
 } from "react-icons/fa";
-import { FiChevronLeft, FiFilter, FiMapPin } from "react-icons/fi";
+import { FiChevronLeft, FiFilter, FiMapPin, FiRefreshCw } from "react-icons/fi";
 import Footer from "../../components/Footer";
 import { fetchJson, getApiErrorMessage } from "../../utils/api";
 import { decorateCraft } from "./craftPresentation";
 
 const ALL_CITIES = "الجميع";
 const SORT_OPTIONS = [
-  "الأفضل في فلسطين",
-  "حسب السعر",
-  "معظم التقييمات",
+  { value: "best", label: "الأفضل في فلسطين", hint: "تقييم + مراجعات" },
+  { value: "price", label: "حسب السعر", hint: "الأقل سعراً أولاً" },
+  { value: "reviews", label: "معظم التقييمات", hint: "الأكثر طلباً" },
 ];
 
 function normalizeNumber(value, fallback = 0) {
   const numberValue = Number(value);
   return Number.isFinite(numberValue) ? numberValue : fallback;
+}
+
+function formatRating(value) {
+  const rating = normalizeNumber(value);
+  return rating > 0 ? rating.toFixed(1) : "جديد";
 }
 
 function normalizeWorker(worker, craft) {
@@ -52,6 +60,23 @@ function normalizeWorker(worker, craft) {
   };
 }
 
+function SkeletonCard() {
+  return (
+    <div className="cd-worker-card cd-worker-card--skeleton" aria-hidden="true">
+      <div className="cd-skeleton-head">
+        <span className="cd-skeleton-avatar" />
+        <div className="cd-skeleton-lines">
+          <span />
+          <span />
+        </div>
+      </div>
+      <span className="cd-skeleton-block" />
+      <span className="cd-skeleton-block short" />
+      <span className="cd-skeleton-button" />
+    </div>
+  );
+}
+
 function CraftDetails() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -61,12 +86,13 @@ function CraftDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCity, setSelectedCity] = useState(ALL_CITIES);
-  const [selectedSort, setSelectedSort] = useState(SORT_OPTIONS[0]);
+  const [selectedSort, setSelectedSort] = useState(SORT_OPTIONS[0].value);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     setCraft(fallbackCraft);
     setSelectedCity(ALL_CITIES);
-    setSelectedSort(SORT_OPTIONS[0]);
+    setSelectedSort(SORT_OPTIONS[0].value);
   }, [fallbackCraft]);
 
   useEffect(() => {
@@ -112,7 +138,7 @@ function CraftDetails() {
     return () => {
       isMounted = false;
     };
-  }, [slug, fallbackCraft]);
+  }, [slug, retryKey]);
 
   const cities = useMemo(() => {
     const cityNames = [...new Set(workers.map((worker) => worker.city).filter(Boolean))];
@@ -126,16 +152,32 @@ function CraftDetails() {
       result = result.filter((worker) => worker.city === selectedCity);
     }
 
-    if (selectedSort === SORT_OPTIONS[0]) {
+    if (selectedSort === "best") {
       result.sort((a, b) => b.rating - a.rating || b.reviewsCount - a.reviewsCount);
-    } else if (selectedSort === SORT_OPTIONS[1]) {
+    } else if (selectedSort === "price") {
       result.sort((a, b) => a.priceSort - b.priceSort);
-    } else if (selectedSort === SORT_OPTIONS[2]) {
-      result.sort((a, b) => b.reviewsCount - a.reviewsCount);
+    } else if (selectedSort === "reviews") {
+      result.sort((a, b) => b.reviewsCount - a.reviewsCount || b.rating - a.rating);
     }
 
     return result;
   }, [workers, selectedCity, selectedSort]);
+
+  const averageRating = useMemo(() => {
+    const ratedWorkers = workers.filter((worker) => worker.rating > 0);
+    if (!ratedWorkers.length) return "جديد";
+
+    const total = ratedWorkers.reduce((sum, worker) => sum + worker.rating, 0);
+    return (total / ratedWorkers.length).toFixed(1);
+  }, [workers]);
+
+  const selectedSortLabel = SORT_OPTIONS.find((option) => option.value === selectedSort)?.label;
+  const hasActiveFilters = selectedCity !== ALL_CITIES || selectedSort !== SORT_OPTIONS[0].value;
+
+  const resetFilters = () => {
+    setSelectedCity(ALL_CITIES);
+    setSelectedSort(SORT_OPTIONS[0].value);
+  };
 
   const openProfile = (worker) => {
     if (worker.profileId) {
@@ -145,49 +187,94 @@ function CraftDetails() {
 
   return (
     <div className="cd-page-wrapper" dir="rtl">
-      {/* 
-        NOTE: Header is removed here because AppLayout (in App.js) 
-        already renders it. This fixes the double header issue! 
-      */}
+      <section className="cd-hero">
+        <div className="cd-hero-overlay" />
 
-      {/* HERO SECTION */}
-      <div className="cd-hero">
-        <div className="cd-hero-overlay"></div>
         <div className="cd-container cd-hero-content">
-          <button className="cd-back-btn" onClick={() => navigate('/craftsman')}>
-            <FiChevronLeft /> <span>العودة للصنعات</span>
+          <button className="cd-back-btn" type="button" onClick={() => navigate("/craftsman")}>
+            <FiChevronLeft />
+            <span>العودة للصنعات</span>
           </button>
-          
-          <div className="cd-hero-main">
-            <div className="cd-hero-icon-wrap">
-              {craft.icon}
+
+          <div className="cd-hero-layout">
+            <div className="cd-hero-main">
+              <div className="cd-hero-icon-wrap">{craft.icon}</div>
+
+              <div className="cd-hero-text">
+                <span className="cd-eyebrow">
+                  <FaShieldAlt /> نتائج موثوقة حسب التقييم والخبرة
+                </span>
+                <h1>
+                  اختار أفضل حرفيي <span>{craft.name}</span> بثقة
+                </h1>
+                <p>
+                  {craft.description ||
+                    "نوصلك بأمهر الصنايعية الموثوقين وأصحاب الخبرة الطويلة في هذا المجال، مع فلاتر تساعدك تختار الأنسب بسرعة."}
+                </p>
+              </div>
             </div>
-            <div className="cd-hero-text">
-              <h1>أفضل حرفيي <span>{craft.name}</span></h1>
-              <p>{craft.description || "نوصلك بأمهر الصنايعية الموثوقين وأصحاب الخبرة الطويلة في هذا المجال."}</p>
+
+            <aside className="cd-hero-panel" aria-label="ملخص النتائج">
+              <span className="cd-panel-label">متاح الآن</span>
+              <strong>{workers.length}</strong>
+              <p>حرفي لهذه الصنعة</p>
+              <div className="cd-panel-rating">
+                <FaStar />
+                <span>{averageRating}</span>
+                <small>متوسط التقييم</small>
+              </div>
+            </aside>
+          </div>
+
+          <div className="cd-hero-stats">
+            <div className="cd-stat-chip">
+              <FaUsers />
+              <span>{workers.length} حرفي</span>
+            </div>
+            <div className="cd-stat-chip">
+              <FiMapPin />
+              <span>{Math.max(cities.length - 1, 0)} مدينة</span>
+            </div>
+            <div className="cd-stat-chip">
+              <FaCheckCircle />
+              <span>بروفايلات قابلة للعرض</span>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="cd-main-section">
+      <main className="cd-main-section">
         <div className="cd-container">
-          
-          {/* FILTERS AREA */}
-          <div className="cd-filters-card">
-            
+          <section className="cd-filters-card" aria-label="فلاتر البحث">
+            <div className="cd-filters-top">
+              <div>
+                <span className="cd-section-kicker">فلترة النتائج</span>
+                <h2>رتّب الصنايعية بالطريقة المناسبة إلك</h2>
+              </div>
+
+              {hasActiveFilters && (
+                <button className="cd-reset-btn" type="button" onClick={resetFilters}>
+                  <FiRefreshCw /> إعادة التعيين
+                </button>
+              )}
+            </div>
+
             <div className="cd-filter-group">
               <div className="cd-filter-label">
-                <FiFilter className="cd-icon" /> ترتيب حسب:
+                <FiFilter className="cd-icon" />
+                <span>ترتيب حسب</span>
               </div>
+
               <div className="cd-filter-options">
                 {SORT_OPTIONS.map((option) => (
                   <button
-                    key={option}
-                    className={`cd-pill-btn ${selectedSort === option ? "active" : ""}`}
-                    onClick={() => setSelectedSort(option)}
+                    key={option.value}
+                    type="button"
+                    className={`cd-pill-btn ${selectedSort === option.value ? "active" : ""}`}
+                    onClick={() => setSelectedSort(option.value)}
                   >
-                    {option}
+                    <strong>{option.label}</strong>
+                    <small>{option.hint}</small>
                   </button>
                 ))}
               </div>
@@ -195,12 +282,15 @@ function CraftDetails() {
 
             <div className="cd-filter-group">
               <div className="cd-filter-label">
-                <FiMapPin className="cd-icon" /> تصفية بالمدينة:
+                <FiMapPin className="cd-icon" />
+                <span>تصفية بالمدينة</span>
               </div>
+
               <div className="cd-filter-options">
                 {cities.map((city) => (
                   <button
                     key={city}
+                    type="button"
                     className={`cd-pill-btn cd-pill-btn--outline ${selectedCity === city ? "active" : ""}`}
                     onClick={() => setSelectedCity(city)}
                   >
@@ -209,55 +299,71 @@ function CraftDetails() {
                 ))}
               </div>
             </div>
+          </section>
 
-          </div>
-
-          {/* WORKERS RESULTS */}
-          <div className="cd-results-section">
+          <section className="cd-results-section" aria-live="polite">
             <div className="cd-results-header">
-              <h2>الصنايعية المتاحين ({filteredWorkers.length})</h2>
+              <div>
+                <span className="cd-section-kicker">النتائج</span>
+                <h2>الصنايعية المتاحين ({filteredWorkers.length})</h2>
+              </div>
+
+              <div className="cd-active-summary">
+                <span>{selectedSortLabel}</span>
+                <span>{selectedCity === ALL_CITIES ? "كل المدن" : selectedCity}</span>
+              </div>
             </div>
 
             {loading ? (
-              <div className="cd-state-box">
-                <div className="cd-spinner"></div>
-                <p>جاري البحث عن الحرفيين المناسبين...</p>
+              <div className="cd-workers-grid">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <SkeletonCard key={index} />
+                ))}
               </div>
             ) : error ? (
               <div className="cd-state-box cd-state-error">
                 <span className="cd-state-icon">⚠️</span>
+                <h3>صار خطأ أثناء تحميل البيانات</h3>
                 <p>{error}</p>
-                <button onClick={() => window.location.reload()} className="cd-retry-btn">إعادة المحاولة</button>
+                <button onClick={() => setRetryKey((value) => value + 1)} className="cd-retry-btn" type="button">
+                  إعادة المحاولة
+                </button>
               </div>
             ) : filteredWorkers.length > 0 ? (
               <div className="cd-workers-grid">
-                {filteredWorkers.map((worker) => (
-                  <div className="cd-worker-card" key={worker.id}>
-                    
+                {filteredWorkers.map((worker, index) => (
+                  <article className="cd-worker-card" key={`${worker.id || "worker"}-${worker.profileId || index}`}>
+                    <div className="cd-card-topline">
+                      <span>
+                        <FaCheckCircle /> موثوق
+                      </span>
+                      <span>{worker.punctualityCount > 0 ? `التزام ${worker.punctualityRating}/5` : "عامل جديد"}</span>
+                    </div>
+
                     <div className="cd-worker-header">
                       <div className="cd-worker-avatar">
                         {worker.imageUrl ? (
-                          <img src={worker.imageUrl} alt={worker.name} />
+                          <img src={worker.imageUrl} alt={worker.name} loading="lazy" />
                         ) : (
                           <span className="cd-avatar-placeholder">{worker.name.charAt(0)}</span>
                         )}
-                        <span className="cd-status-dot"></span>
+                        <span className="cd-status-dot" />
                       </div>
-                      
+
                       <div className="cd-worker-title">
                         <h3>{worker.name}</h3>
                         <span className="cd-badge-primary">{worker.craftName}</span>
                       </div>
-                      
-                      <div className="cd-worker-rating">
-                        <span className="cd-rating-val">{worker.rating}</span>
+
+                      <div className="cd-worker-rating" aria-label="تقييم العامل">
                         <FaStar className="cd-star-icon" />
-                        <span className="cd-reviews-cnt">({worker.reviewsCount})</span>
+                        <span className="cd-rating-val">{formatRating(worker.rating)}</span>
+                        <span className="cd-reviews-cnt">{worker.reviewsCount} تقييم</span>
                       </div>
                     </div>
 
                     <div className="cd-worker-body">
-                      <div className="cd-info-row">
+                      <div className="cd-worker-meta-grid">
                         <div className="cd-info-item">
                           <FaMapMarkerAlt className="cd-info-icon text-gray" />
                           <span>{worker.city}</span>
@@ -266,16 +372,13 @@ function CraftDetails() {
                           <FaBriefcase className="cd-info-icon text-gray" />
                           <span>خبرة {worker.experience}</span>
                         </div>
-                      </div>
-
-                      <div className="cd-info-row">
-                        <div className="cd-info-item">
+                        <div className="cd-info-item cd-info-item--price">
                           <FaMoneyBillWave className="cd-info-icon text-green" />
-                          <span className="font-bold">{worker.price}</span>
+                          <span>{worker.price}</span>
                         </div>
                         <div className="cd-info-item">
                           <FaRegClock className="cd-info-icon text-green" />
-                          <span>الالتزام: {worker.punctualityCount > 0 ? `${worker.punctualityRating}/5` : "جديد"}</span>
+                          <span>{worker.punctualityCount > 0 ? "ملتزم بالمواعيد" : "بانتظار تقييمات"}</span>
                         </div>
                       </div>
 
@@ -287,25 +390,31 @@ function CraftDetails() {
                     </div>
 
                     <div className="cd-worker-footer">
-                      <button className="cd-btn-profile" onClick={() => openProfile(worker)}>
+                      <button
+                        className={`cd-btn-profile ${!worker.profileId ? "disabled" : ""}`}
+                        onClick={() => openProfile(worker)}
+                        type="button"
+                        disabled={!worker.profileId}
+                      >
                         عرض البروفايل الكامل
                       </button>
                     </div>
-
-                  </div>
+                  </article>
                 ))}
               </div>
             ) : (
               <div className="cd-state-box">
                 <span className="cd-state-icon">😕</span>
-                <h3>لا توجد نتائج!</h3>
-                <p>لم نتمكن من العثور على صنايعية يطابقون خياراتك الحالية.</p>
-                <button onClick={() => { setSelectedCity(ALL_CITIES); setSelectedSort(SORT_OPTIONS[0]); }} className="cd-retry-btn">إعادة تعيين الفلاتر</button>
+                <h3>لا توجد نتائج مناسبة</h3>
+                <p>جرّب تغيير المدينة أو ارجع للترتيب الافتراضي لعرض كل الصنايعية المتاحين.</p>
+                <button onClick={resetFilters} className="cd-retry-btn" type="button">
+                  إعادة تعيين الفلاتر
+                </button>
               </div>
             )}
-          </div>
+          </section>
         </div>
-      </div>
+      </main>
 
       <Footer />
     </div>
