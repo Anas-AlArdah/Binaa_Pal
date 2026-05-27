@@ -66,6 +66,18 @@ button {
   box-shadow: var(--focus-ring);
 }
 
+.hp-search-card input:focus,
+.hp-search-card input:focus-visible,
+.cr-search-box input:focus,
+.cr-search-box input:focus-visible,
+.search-container input:focus,
+.search-container input:focus-visible,
+input[type="search"]:focus,
+input[type="search"]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }

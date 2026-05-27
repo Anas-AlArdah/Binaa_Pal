@@ -9,6 +9,11 @@
   --hp-text-main: #0f172a;
   --hp-text-muted: #64748b;
   --hp-border: #e2e8f0;
+  --hp-search-placeholder: #64748b;
+  --hp-search-muted-icon: #64748b;
+  --hp-dropdown-header-bg: #f8fafc;
+  --hp-dropdown-hover-bg: rgba(245, 158, 11, 0.12);
+  --hp-dropdown-hover-text: #b45309;
   
   --hp-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --hp-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -23,6 +28,11 @@
   --hp-text-main: #f8fafc;
   --hp-text-muted: #94a3b8;
   --hp-border: #1e293b;
+  --hp-search-placeholder: #94a3b8;
+  --hp-search-muted-icon: #94a3b8;
+  --hp-dropdown-header-bg: #101827;
+  --hp-dropdown-hover-bg: rgba(245, 158, 11, 0.18);
+  --hp-dropdown-hover-text: #fbbf24;
   --hp-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
   --hp-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
   --hp-shadow-floating: 0 20px 60px -15px rgba(0, 0, 0, 0.6);
@@ -153,7 +163,7 @@
 }
 
 .hp-search-field__icon--muted {
-  color: #94a3b8;
+  color: var(--hp-search-muted-icon);
 }
 
 .hp-search-field__input {
@@ -188,7 +198,7 @@
 }
 
 .hp-search-field__input input::placeholder {
-  color: #94a3b8;
+  color: var(--hp-search-placeholder);
 }
 
 /* Search Dropdown */
@@ -217,7 +227,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--hp-text-muted);
-  background: color-mix(in srgb, var(--hp-surface) 92%, var(--hp-border));
+  background: var(--hp-dropdown-header-bg);
   border-bottom: 1px solid var(--hp-border);
 }
 
@@ -234,16 +244,20 @@
   color: var(--hp-text-main);
   cursor: pointer;
   text-align: right;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
 
 .hp-dropdown-item:hover {
-  background: color-mix(in srgb, var(--hp-surface) 86%, var(--hp-border));
-  color: var(--hp-primary);
+  background: var(--hp-dropdown-hover-bg);
+  color: var(--hp-dropdown-hover-text);
+}
+
+.hp-dropdown-item:hover .hp-dropdown-item__icon {
+  color: var(--hp-dropdown-hover-text);
 }
 
 .hp-dropdown-item__icon {
-  color: #94a3b8;
+  color: var(--hp-search-muted-icon);
   font-size: 1.1rem;
 }
 
