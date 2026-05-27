@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Binaa Pal construction icon">
+  <rect width="512" height="512" rx="84" fill="#F8FAFC"/>
+  <path d="M64 424h384" stroke="#0E5A7A" stroke-width="22" stroke-linecap="round"/>
+
+  <path d="M92 133h248" stroke="#0E5A7A" stroke-width="24" stroke-linecap="round"/>
+  <path d="M135 92 92 133h86z" fill="#0E5A7A"/>
+  <path d="M130 118h35v306h-35z" fill="#0E5A7A"/>
+  <path d="M151 133 188 94M151 186l38-38M151 240l38-38M151 294l38-38M151 348l38-38" stroke="#F8FAFC" stroke-width="10" stroke-linecap="round"/>
+  <path d="M205 133 234 98M260 133l29-35M315 133l28-35" stroke="#F8FAFC" stroke-width="10" stroke-linecap="round"/>
+  <path d="M340 133v64" stroke="#0E5A7A" stroke-width="14" stroke-linecap="round"/>
+  <path d="M320 198h40v21h-40z" fill="#0E5A7A"/>
+  <circle cx="340" cy="236" r="20" fill="#0E5A7A"/>
+
+  <path d="M311 188h76v236h-76z" fill="#0E5A7A"/>
+  <path d="M387 254 446 287v137h-59z" fill="#0E5A7A"/>
+  <path d="M331 216h14v27h-14zM365 216h14v27h-14zM331 266h14v27h-14zM365 266h14v27h-14zM331 316h14v27h-14zM365 316h14v27h-14z" fill="#FFFFFF"/>
+  <path d="M408 310h23v12h-23zM408 350h23v12h-23zM408 390h23v12h-23z" fill="#FFFFFF"/>
+
+  <path d="M170 280 261 202l91 78h-35v144H205V280z" fill="#0E5A7A"/>
+  <path d="M178 286h83v138h-83z" fill="#D97706"/>
+  <path d="M163 279 261 190l98 89h-50l-48-43-48 43z" fill="#0E5A7A"/>
+  <path d="M205 333h29v91h-29zM285 307h25v31h-25zM285 361h25v31h-25z" fill="#FFFFFF"/>
+  <path d="M210 291h22v30h-22z" fill="#FFFFFF"/>
+
+  <path d="M69 348h83v76H69z" fill="#0E5A7A"/>
+  <path d="M82 317h58v35H82z" fill="#0E5A7A"/>
+  <path d="M91 300a20 20 0 0 1 40 0v24H91z" fill="#0E5A7A"/>
+  <path d="M79 383a14 14 0 0 1 28 0v41H79zM116 383a14 14 0 0 1 28 0v41h-28z" fill="#FFFFFF"/>
+</svg>
