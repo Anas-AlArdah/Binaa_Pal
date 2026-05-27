@@ -284,12 +284,6 @@ function AdminPage() {
     [dashboard.stats]
   );
 
-  const handleLogout = () => {
-    localStorage.removeItem('binaa_admin_token');
-    localStorage.removeItem('binaa_admin_user');
-    navigate('/login', { replace: true });
-  };
-
   const refreshCraftStat = (change) => {
     setDashboard((currentDashboard) => ({
       ...currentDashboard,

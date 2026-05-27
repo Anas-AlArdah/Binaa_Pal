@@ -157,7 +157,7 @@ function CraftDetails() {
     return () => {
       isMounted = false;
     };
-  }, [slug, retryKey]);
+  }, [slug, retryKey, fallbackCraft]);
 
   const cities = useMemo(() => {
     const cityNames = [...new Set(workers.map((worker) => worker.city).filter(Boolean))];
