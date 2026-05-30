@@ -11,7 +11,7 @@ import {
     Stack,
 } from '@mui/material';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
-import { getApiUrl } from '../../utils/api';
+import { fetchJson } from '../../utils/api';
 import AvailabilitySection from './ProfileEditDialog/AvailabilitySection';
 import PasswordSection from './ProfileEditDialog/PasswordSection';
 import PersonalInfoSection from './ProfileEditDialog/PersonalInfoSection';
@@ -26,16 +26,6 @@ import {
     getProfileUserId,
     parseProjectMeta,
 } from './ProfileEditDialog/profileEditDialogUtils';
-
-const readJson = async (response) => {
-    const data = await response.json().catch(() => null);
-
-    if (!response.ok) {
-        throw new Error(data?.message || `Request failed with status ${response.status}`);
-    }
-
-    return data;
-};
 
 const mapProjectsToPortfolioItems = (projects) =>
     Array.isArray(projects) && projects.length > 0
@@ -101,8 +91,8 @@ const ProfileEditDialog = ({
             setLoadingData(true);
             try {
                 const [projects, availability] = await Promise.all([
-                    fetch(getApiUrl(`/api/projects/user/${userId}`)).then(readJson),
-                    fetch(getApiUrl(`/api/availability/user/${userId}`)).then(readJson),
+                    fetchJson(`/api/projects/user/${userId}`),
+                    fetchJson(`/api/availability/user/${userId}`),
                 ]);
 
                 setForm((current) => ({
@@ -200,10 +190,10 @@ const ProfileEditDialog = ({
 
     const savePortfolio = async (userId) => {
         for (const proId of removedProjectIds) {
-            await fetch(getApiUrl(`/api/projects/${proId}`), {
+            await fetchJson(`/api/projects/${proId}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-            }).then(readJson);
+            });
         }
 
         for (const item of form.portfolio_items) {
@@ -218,13 +208,13 @@ const ProfileEditDialog = ({
             let proId = item.pro_id;
 
             if (proId) {
-                await fetch(getApiUrl(`/api/projects/${proId}`), {
+                await fetchJson(`/api/projects/${proId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ title_p: item.title, description_p }),
-                }).then(readJson);
+                });
             } else {
-                const created = await fetch(getApiUrl('/api/projects'), {
+                const created = await fetchJson('/api/projects', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -232,7 +222,7 @@ const ProfileEditDialog = ({
                         title_p: item.title,
                         description_p,
                     }),
-                }).then(readJson);
+                });
 
                 proId = created?.project?.pro_id;
 
@@ -245,11 +235,11 @@ const ProfileEditDialog = ({
                 const photoPath = item.photo_id
                     ? `/api/photos/${item.photo_id}`
                     : '/api/photos';
-                const savedPhoto = await fetch(getApiUrl(photoPath), {
+                const savedPhoto = await fetchJson(photoPath, {
                     method: item.photo_id ? 'PUT' : 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ image_url: item.image, pro_id: proId }),
-                }).then(readJson);
+                });
 
                 if (!item.photo_id && savedPhoto?.photo?.id) {
                     item.photo_id = savedPhoto.photo.id;
@@ -260,10 +250,10 @@ const ProfileEditDialog = ({
 
     const saveAvailability = async (userId) => {
         for (const avId of removedAvailabilityIds) {
-            await fetch(getApiUrl(`/api/availability/${avId}`), {
+            await fetchJson(`/api/availability/${avId}`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
-            }).then(readJson);
+            });
         }
 
         for (const [arabicDay, times] of Object.entries(form.availability)) {
@@ -272,7 +262,7 @@ const ProfileEditDialog = ({
             if (!englishDay || !times.start_time || !times.end_time) continue;
 
             if (times.av_id) {
-                await fetch(getApiUrl(`/api/availability/${times.av_id}`), {
+                await fetchJson(`/api/availability/${times.av_id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -280,9 +270,9 @@ const ProfileEditDialog = ({
                         end_time: times.end_time,
                         is_available: true,
                     }),
-                }).then(readJson);
+                });
             } else {
-                await fetch(getApiUrl('/api/availability'), {
+                await fetchJson('/api/availability', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -292,7 +282,7 @@ const ProfileEditDialog = ({
                         end_time: times.end_time,
                         is_available: true,
                     }),
-                }).then(readJson);
+                });
             }
         }
     };

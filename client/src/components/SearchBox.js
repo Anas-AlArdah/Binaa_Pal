@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom';
-import { getApiUrl } from '../utils/api';
+import { fetchJson } from '../utils/api';
 
 
 export default function SearchBox() {
@@ -14,8 +14,7 @@ const[skills, setSkills] = useState([]);
 
    const getskills = async () => {
       try {
-        const res=await  fetch(getApiUrl('/api/skills'))
-          const json=await res.json()
+          const json = await fetchJson('/api/skills')
           setSkills(Array.isArray(json) ? json : [])
 
       }catch(err){
@@ -31,8 +30,7 @@ const[skills, setSkills] = useState([]);
         setLoading(true);
         setSearched(true);
         try {
-            const res = await fetch(getApiUrl(`/api/search?q=${encodeURIComponent(q)}`));
-            const data = await res.json();
+            const data = await fetchJson(`/api/search?q=${encodeURIComponent(q)}`);
             setResults(data.workers || []);
         } catch (err) {
             console.error(err);
