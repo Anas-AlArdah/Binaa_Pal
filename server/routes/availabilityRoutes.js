@@ -1,5 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const {
+    authenticateToken,
+    requireAvailabilityOwner,
+    requireSelfBody,
+} = require('../middleware/authMiddleware');
 
 const {
     getAllAvailability,
@@ -20,12 +25,12 @@ router.get('/user/:userId', getAvailabilityByUser);
 router.get('/:id', getAvailabilityById);
 
 // CREATE availability
-router.post('/', createAvailability);
+router.post('/', authenticateToken, requireSelfBody('user_id'), createAvailability);
 
 // UPDATE availability
-router.put('/:id', updateAvailability);
+router.put('/:id', authenticateToken, requireAvailabilityOwner('id'), updateAvailability);
 
 // DELETE availability
-router.delete('/:id', deleteAvailability);
+router.delete('/:id', authenticateToken, requireAvailabilityOwner('id'), deleteAvailability);
 
 module.exports = router;

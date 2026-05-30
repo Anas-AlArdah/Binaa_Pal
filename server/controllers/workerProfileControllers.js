@@ -255,6 +255,14 @@ async function persistWorkerProfile(req, res, { create = false } = {}) {
         await transaction.rollback();
         return res.status(404).json({ message: 'Worker profile not found' });
       }
+
+      if (
+        req.body.user_id !== undefined &&
+        Number(req.body.user_id) !== Number(profile.user_id)
+      ) {
+        await transaction.rollback();
+        return res.status(403).json({ message: 'Worker profile ownership cannot be changed' });
+      }
     }
 
     const requestedUserId = req.body.user_id !== undefined ? Number(req.body.user_id) : undefined;
