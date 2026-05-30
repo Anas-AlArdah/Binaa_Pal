@@ -69,9 +69,16 @@ function formatRequest(requestModel) {
 }
 
 async function requestWorker(req, res) {
-  const clientEmail = cleanString(req.body.clientEmail).toLowerCase();
+  const authenticatedUserId = optionalNumber(req.user?.id);
+  const clientEmail = cleanString(req.user?.email || req.body.clientEmail).toLowerCase();
   const workerEmail = cleanString(req.body.workerEmail).toLowerCase();
   const serviceDescription = cleanString(req.body.serviceDescription || req.body.description);
+
+  if (!authenticatedUserId) {
+    return res.status(401).json({
+      message: 'Authentication token is required.',
+    });
+  }
 
   if (!clientEmail) {
     return res.status(400).json({
@@ -112,7 +119,10 @@ async function requestWorker(req, res) {
     sentAt: new Date().toISOString(),
   };
 
-  const savedRequest = await saveRequest(req.body, payload);
+  const savedRequest = await saveRequest(
+    { ...req.body, clientUserId: authenticatedUserId },
+    payload
+  );
   const n8nResult = await notifyN8n(payload);
 
   // Try sending direct email to worker
@@ -152,9 +162,14 @@ async function requestWorker(req, res) {
 
 async function getWorkerRequests(req, res) {
   const workerId = optionalNumber(req.params.workerId || req.query.workerId);
+  const authenticatedUserId = optionalNumber(req.user?.id);
 
   if (!workerId) {
     return res.status(400).json({ message: 'workerId is required.' });
+  }
+
+  if (!authenticatedUserId || workerId !== authenticatedUserId) {
+    return res.status(403).json({ message: 'You can only view your own worker requests.' });
   }
 
   try {
@@ -182,7 +197,7 @@ async function getWorkerRequests(req, res) {
 
 async function updateWorkerRequestStatus(req, res) {
   const requestId = optionalNumber(req.params.id);
-  const workerId = optionalNumber(req.body.workerId || req.query.workerId);
+  const workerId = optionalNumber(req.user?.id);
   const nextStatus = cleanString(req.body.status);
   const allowedStatuses = new Set(['pending', 'in_progress', 'completed', 'cancelled']);
 
@@ -191,7 +206,7 @@ async function updateWorkerRequestStatus(req, res) {
   }
 
   if (!workerId) {
-    return res.status(400).json({ message: 'workerId is required.' });
+    return res.status(401).json({ message: 'Authentication token is required.' });
   }
 
   if (!allowedStatuses.has(nextStatus)) {

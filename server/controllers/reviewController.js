@@ -27,24 +27,30 @@ const getWorkerReviews = async (req, res) => {
 // POST create a new review
 const createReview = async (req, res) => {
     try {
+        const authenticatedUserId = Number(req.user?.id);
         const {
             worker_id, // WorkerProfile ID
-            user_id,   // Reviewer (User) ID
             request_id,
             comment,
             rating,
             punctuality
         } = req.body;
 
-        if (!worker_id || !user_id || !rating) {
+        if (!Number.isInteger(authenticatedUserId) || authenticatedUserId <= 0) {
+            return res.status(401).json({
+                message: 'Authentication token is required.'
+            });
+        }
+
+        if (!worker_id || !rating) {
             return res.status(400).json({
-                message: 'Worker ID, User ID, and rating are required.'
+                message: 'Worker ID and rating are required.'
             });
         }
 
         const review = await Review.create({
             worker_id,
-            user_id,
+            user_id: authenticatedUserId,
             request_id: request_id || null,
             comment,
             rating,

@@ -119,7 +119,7 @@ export default function OrdersPage() {
       const updated = await fetchJson(`/api/worker-request/${requestId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workerId, status }),
+        body: JSON.stringify({ status }),
       });
 
       setRequests((current) =>
