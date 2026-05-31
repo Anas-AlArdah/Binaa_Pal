@@ -6,7 +6,6 @@ import AIAssistant from "./AIAssistant";
 
 
 function Hero({craft = []}) {
-    console.log(craft);
     const navigate = useNavigate();
 
 
