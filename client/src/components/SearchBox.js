@@ -17,8 +17,8 @@ const[skills, setSkills] = useState([]);
           const json = await fetchJson('/api/skills')
           setSkills(Array.isArray(json) ? json : [])
 
-      }catch(err){
-          console.log(err)
+      }catch{
+          setSkills([])
       }
    }
    getskills();
@@ -32,8 +32,7 @@ const[skills, setSkills] = useState([]);
         try {
             const data = await fetchJson(`/api/search?q=${encodeURIComponent(q)}`);
             setResults(data.workers || []);
-        } catch (err) {
-            console.error(err);
+        } catch {
             setResults([]);
         } finally {
             setLoading(false);
