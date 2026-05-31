@@ -28,6 +28,9 @@ export default function Header() {
   const isAdminLoggedIn = !!adminUser;
   const isLoggedIn = !!user || isAdminLoggedIn;
   const isWorker = String(user?.role?.type || "").toLowerCase() === "worker";
+  const workerProfilePath = user?.worker_profile?.id
+    ? `/profile/${user.worker_profile.id}`
+    : "/profile";
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -87,8 +90,8 @@ export default function Header() {
           {isLoggedIn && isWorker && !isAdminLoggedIn && (
             <>
               <Link
-                to="/"
-                className={`nh-link ${isActive("/") ? "nh-link--active" : ""}`}
+                to={workerProfilePath}
+                className={`nh-link ${isActive(workerProfilePath) ? "nh-link--active" : ""}`}
                 onClick={handleNavClick}
               >
                 خدماتي
@@ -128,7 +131,7 @@ export default function Header() {
                 <>
                   {isWorker && (
                     <Link
-                      to={`/profile/${user?.worker_profile?.id}`}
+                      to={workerProfilePath}
                       className="nh-avatar"
                       onClick={handleNavClick}
                       title="الملف الشخصي"
@@ -173,7 +176,7 @@ export default function Header() {
           </button>
           {isLoggedIn && isWorker && !isAdminLoggedIn && (
             <>
-              <Link to="/"       className="nh-mobile-link" onClick={handleNavClick}>خدماتي</Link>
+              <Link to={workerProfilePath} className="nh-mobile-link" onClick={handleNavClick}>خدماتي</Link>
               <Link to="/orders" className="nh-mobile-link" onClick={handleNavClick}>الطلبات</Link>
             </>
           )}
