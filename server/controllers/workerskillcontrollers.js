@@ -34,7 +34,7 @@ async function addWorkerSkill(req, res) {
         });
         res.status(201).json(workerSkill);
     } catch (err) {
-        console.log(err);
+        console.error('addWorkerSkill error:', err);
         res.status(err.statusCode || 500).json({
             message: "Failed to add worker skill.",
             error: err.message
