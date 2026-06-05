@@ -24,13 +24,55 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Review.init({
-    worker_id: DataTypes.INTEGER,
-    request_id: DataTypes.INTEGER,
-    user_id: DataTypes.INTEGER,
-    date: DataTypes.DATE,
-    comment: DataTypes.TEXT,
-    rating: DataTypes.INTEGER,
-    punctuality: DataTypes.INTEGER
+    worker_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        min: 1,
+      },
+    },
+    request_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      validate: {
+        min: 1,
+      },
+    },
+    user_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        min: 1,
+      },
+    },
+    date: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    comment: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      validate: {
+        len: [0, 1000],
+      },
+    },
+    rating: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        min: 1,
+        max: 5,
+      },
+    },
+    punctuality: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      validate: {
+        min: 1,
+        max: 5,
+      },
+    }
   }, {
     sequelize,
     modelName: 'Review',
