@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/usercontrollers');
+const { authenticateAdminToken } = require('../middleware/authMiddleware');
+
+router.use(authenticateAdminToken);
 
 router.get('/', userController.getAllUsers);
 router.post('/', userController.createUser);

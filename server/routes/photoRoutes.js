@@ -1,5 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const {
+    authenticateToken,
+    requirePhotoOwner,
+    requireProjectBodyOwner,
+} = require('../middleware/authMiddleware');
 
 const {
     getAllPhotos,
@@ -21,12 +26,18 @@ router.get('/project/:projectId', getPhotosByProject);
 router.get('/:id', getPhotoById);
 
 // POST /api/photos
-router.post('/', createPhoto);
+router.post('/', authenticateToken, requireProjectBodyOwner('pro_id'), createPhoto);
 
 // PUT /api/photos/:id
-router.put('/:id', updatePhoto);
+router.put(
+    '/:id',
+    authenticateToken,
+    requirePhotoOwner('id'),
+    requireProjectBodyOwner('pro_id'),
+    updatePhoto
+);
 
 // DELETE /api/photos/:id
-router.delete('/:id', deletePhoto);
+router.delete('/:id', authenticateToken, requirePhotoOwner('id'), deletePhoto);
 
 module.exports = router;

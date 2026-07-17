@@ -1,60 +1,139 @@
-# Binaa_Pal
-🏗️ Platform connecting clients with skilled tradespeople in Palestine — React &amp; Node.js
+# Binaa Pal
 
+Binaa Pal is a React and Node.js platform for connecting clients with skilled tradespeople in Palestine. Clients can browse crafts, search for workers, view profiles, send service requests, and leave reviews. Workers can manage profile details, portfolio work, availability, and incoming service requests.
 
+## Features
 
-- 🔍 **البحث الذكي** — البحث عن الحرفيين حسب المهنة والموقع
-- 👷 **ملفات الحرفيين** — عرض المهارات، التقييمات، وسجل الأعمال
-- 📋 **طلب الخدمة** — إرسال طلبات مباشرة للحرفيين
-- ⭐ **نظام التقييم** — تقييم الحرفيين بعد إتمام العمل
-- 🤖 **مساعد ذكي** — فهم احتياجات العميل وتوصيات مخصصة
-- 🔔 **إشعارات فورية** — تحديثات لحظية على حالة الطلبات
+- Smart worker search by skill, location, and name.
+- Worker profiles with skills, portfolio items, availability, prices, and reviews.
+- Service requests from profile pages to workers.
+- Worker orders dashboard for tracking and updating request status.
+- Admin dashboard for platform management.
+- Optional AI assistant and AI-powered search parsing.
 
----
+## Tech Stack
 
-## 🛠️ التقنيات المستخدمة | Tech Stack
+Frontend:
 
-### Frontend
-| التقنية | الاستخدام |
-|---------|-----------|
-| React.js | واجهة المستخدم |
-| React Router | التنقل بين الصفحات |
-| Axios | طلبات HTTP |
-| CSS Modules / Bootstrap | التنسيق |
+- React 18
+- React Router
+- Material UI
+- Bootstrap and custom CSS
+- Native `fetch` through the shared `client/src/utils/api.js` helper
 
-### Backend
-| التقنية | الاستخدام |
-|---------|-----------|
-| Node.js | بيئة التشغيل |
-| Express.js | إطار عمل الـ API |
-| MongoDB / MySQL | قاعدة البيانات |
-| JWT | المصادقة والتوثيق |
+Backend:
 
----
+- Node.js
+- Express
+- Sequelize
+- MySQL or compatible hosted SQL database
+- JWT authentication
+- Optional Groq integration for AI features
 
+## Project Structure
 
-## 📁 هيكل المشروع | Project Structure
-
-```
+```text
 Binaa_Pal/
-├── client/                 # React Frontend
-│   ├── public/
-│   └── src/
-│       ├── components/     # مكونات قابلة لإعادة الاستخدام
-│       ├── pages/          # صفحات التطبيق
-│       ├── services/       # طلبات API
-│       └── App.js
-│
-├── server/                 # Node.js Backend
-│   ├── routes/             # مسارات الـ API
-│   ├── controllers/        # منطق العمل
-│   ├── models/             # نماذج قاعدة البيانات
-│   ├── middleware/         # وسطاء المصادقة
-│   └── server.js
-│
-└── README.md
+  client/                  React frontend
+    public/
+    src/
+      components/
+      pages/
+      utils/
+      App.js
+  server/                  Express and Sequelize backend
+    config/
+    controllers/
+    middleware/
+    migrations/
+    models/
+    routes/
+    app.js
+    index.js
+  scripts/
+  DEPLOYMENT.md
+  README.md
 ```
 
----
+## Local Setup
 
-*This project is for educational purposes only.*
+Install frontend dependencies:
+
+```bash
+npm --prefix client ci
+```
+
+Install backend dependencies:
+
+```bash
+npm --prefix server ci
+```
+
+Create backend environment variables:
+
+```bash
+copy server\.env.example server\.env
+```
+
+Then fill in the database, JWT, Google, email, and optional AI values in `server/.env`.
+
+Create frontend environment variables when needed:
+
+```bash
+copy client\.env.example client\.env
+```
+
+## Database
+
+The backend reads database settings from environment variables first. `server/config/config.json` only contains non-secret local defaults and should not contain real passwords.
+
+Useful backend commands:
+
+```bash
+npm --prefix server run db:create
+npm --prefix server run db:migrate
+npm --prefix server run db:seed
+npm --prefix server start
+```
+
+## Development
+
+Run the backend:
+
+```bash
+npm --prefix server start
+```
+
+Run the frontend:
+
+```bash
+npm --prefix client start
+```
+
+The frontend dev server proxies local API requests to `http://localhost:3001`.
+
+## Verification
+
+Run the frontend test suite:
+
+```bash
+npm --prefix client test -- --watchAll=false
+```
+
+Build the frontend:
+
+```bash
+npm --prefix client run build
+```
+
+Check backend module loading:
+
+```bash
+node -e "require('./server/app'); console.log('server modules loaded')"
+```
+
+## Deployment
+
+See `DEPLOYMENT.md` for Netlify and Railway-oriented deployment notes. In production, set either `DATABASE_URL`/`MYSQL_URL` or the explicit `DB_HOST`, `DB_USERNAME`, and `DB_NAME` environment variables.
+
+Do not commit real API keys, database passwords, JWT secrets, admin passwords, SMTP credentials, or production webhook URLs.

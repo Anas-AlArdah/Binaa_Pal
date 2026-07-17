@@ -10,6 +10,18 @@ const envOrDefault = (key, defaultValue) =>
 
 const sslEnabled = String(process.env.DB_SSL || '').toLowerCase() === 'true';
 const rejectUnauthorized = String(process.env.DB_SSL_REJECT_UNAUTHORIZED || 'true').toLowerCase() !== 'false';
+const isProduction = env === 'production';
+
+if (
+  isProduction &&
+  !process.env.DATABASE_URL &&
+  !process.env.MYSQL_URL &&
+  (!process.env.DB_HOST || !process.env.DB_USERNAME || !(process.env.DB_NAME || process.env.DB_DATABASE))
+) {
+  throw new Error(
+    'Production database configuration is missing. Set DATABASE_URL/MYSQL_URL or DB_HOST, DB_USERNAME, and DB_NAME.'
+  );
+}
 
 const baseConfig = {
   dialect: envOrDefault('DB_DIALECT', fallback.dialect || 'mysql'),

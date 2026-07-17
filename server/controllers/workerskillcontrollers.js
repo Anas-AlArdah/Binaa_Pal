@@ -1,98 +1,120 @@
-const { Worker_Skill,Skill } = require('../models');
+const { Worker_Skill, Skill } = require('../models');
+
+function buildClientError(message) {
+  const error = new Error(message);
+  error.statusCode = 400;
+  return error;
+}
+
+function normalizePositiveInteger(value, fieldName) {
+  const normalizedValue = typeof value === 'string' ? value.trim() : value;
+  const numericValue = Number(normalizedValue);
+
+  if (!Number.isInteger(numericValue) || numericValue <= 0) {
+    throw buildClientError(`${fieldName} must be a positive integer.`);
+  }
+
+  return numericValue;
+}
 
 function normalizeExperienceYears(value) {
-    const normalizedValue = typeof value === 'string' ? value.trim() : value;
+  const normalizedValue = typeof value === 'string' ? value.trim() : value;
 
-    if (normalizedValue === undefined || normalizedValue === null || normalizedValue === '') {
-        return null;
-    }
+  if (normalizedValue === undefined || normalizedValue === null || normalizedValue === '') {
+    return null;
+  }
 
-    const numericValue = Number(normalizedValue);
+  const numericValue = Number(normalizedValue);
 
-    if (!Number.isInteger(numericValue) || numericValue < 0 || numericValue > 60) {
-        const error = new Error('experience_years must be a whole number between 0 and 60.');
-        error.statusCode = 400;
-        throw error;
-    }
+  if (!Number.isInteger(numericValue) || numericValue < 0 || numericValue > 60) {
+    throw buildClientError('experience_years must be a whole number between 0 and 60.');
+  }
 
-    return numericValue;
+  return numericValue;
+}
+
+function sendControllerError(res, err, fallbackMessage) {
+  return res.status(err.statusCode || 500).json({
+    message: fallbackMessage,
+    error: err.message,
+  });
 }
 
 async function addWorkerSkill(req, res) {
-    const { worker_id, skill_id } = req.body;
+  try {
+    const workerId = normalizePositiveInteger(req.body.worker_id, 'worker_id');
+    const skillId = normalizePositiveInteger(req.body.skill_id, 'skill_id');
+    const experienceYears = normalizeExperienceYears(req.body.experience_years);
 
-  
-    if (!worker_id || !skill_id) {
-        return res.status(400).json({ message: "worker_id and skill_id are required." });
+    const [workerSkill, created] = await Worker_Skill.findOrCreate({
+      where: {
+        worker_id: workerId,
+        skill_id: skillId,
+      },
+      defaults: {
+        worker_id: workerId,
+        skill_id: skillId,
+        experience_years: experienceYears,
+      },
+    });
+
+    if (!created) {
+      await workerSkill.update({ experience_years: experienceYears });
     }
-    try {
-        const experienceYears = normalizeExperienceYears(req.body.experience_years);
-        const workerSkill = await Worker_Skill.create({
-            worker_id: req.body.worker_id,
-            skill_id: req.body.skill_id,
-            experience_years: experienceYears
-        });
-        res.status(201).json(workerSkill);
-    } catch (err) {
-        console.log(err);
-        res.status(err.statusCode || 500).json({
-            message: "Failed to add worker skill.",
-            error: err.message
-        });
-    }
+
+    return res.status(created ? 201 : 200).json(workerSkill);
+  } catch (err) {
+    console.error('addWorkerSkill error:', err);
+    return sendControllerError(res, err, 'Failed to add worker skill.');
+  }
 }
 
 async function getWorkerSkillsByWorkerId(req, res) {
-    try {
-        const workerSkills = await Worker_Skill.findAll({
-            where: {
-                worker_id: req.params.worker_id,
-            },
-            include: [
-                {
-                    model: Skill,
-                    attributes: ['skill_name'],
-                    as: 'skill',
+  try {
+    const workerId = normalizePositiveInteger(req.params.worker_id, 'worker_id');
+    const workerSkills = await Worker_Skill.findAll({
+      where: {
+        worker_id: workerId,
+      },
+      include: [
+        {
+          model: Skill,
+          attributes: ['skill_name'],
+          as: 'skill',
+        },
+      ],
+    });
 
-                }
-            ]
-        });
-        res.status(200).json(workerSkills);
-    } catch (err) {
-        res.status(500).json({
-            message: "Failed to get worker skills.",
-            error: err.message
-        });
-    }
+    return res.status(200).json(workerSkills);
+  } catch (err) {
+    return sendControllerError(res, err, 'Failed to get worker skills.');
+  }
 }
 
 async function removeWorkerSkill(req, res) {
-    try {
-        // Find the specific skill for the specific worker
-        const workerSkill = await Worker_Skill.findOne({
-            where: {
-                worker_id: req.body.worker_id,
-                skill_id: req.body.skill_id
-            }
-        });
-        
-        if (!workerSkill) {
-            return res.status(404).json({ message: "Worker skill not found" });
-        }
-        
-        await workerSkill.destroy();
-        res.status(200).json({ message: "Worker skill removed successfully" });
-    } catch (err) {
-        res.status(500).json({
-            message: "Failed to remove worker skill.",
-            error: err.message
-        });
+  try {
+    const workerId = normalizePositiveInteger(req.body.worker_id, 'worker_id');
+    const skillId = normalizePositiveInteger(req.body.skill_id, 'skill_id');
+    const workerSkill = await Worker_Skill.findOne({
+      where: {
+        worker_id: workerId,
+        skill_id: skillId,
+      },
+    });
+
+    if (!workerSkill) {
+      return res.status(404).json({ message: 'Worker skill not found' });
     }
+
+    await workerSkill.destroy();
+    return res.status(200).json({ message: 'Worker skill removed successfully' });
+  } catch (err) {
+    return sendControllerError(res, err, 'Failed to remove worker skill.');
+  }
 }
 
 module.exports = {
-    addWorkerSkill,
-    getWorkerSkillsByWorkerId,
-    removeWorkerSkill
+  addWorkerSkill,
+  getWorkerSkillsByWorkerId,
+  removeWorkerSkill,
 };
-

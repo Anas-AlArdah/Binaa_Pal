@@ -57,6 +57,9 @@ export default function OrdersPage() {
   const [error, setError] = useState('');
   const workerId = getWorkerId(user);
   const canViewOrders = Boolean(workerId && isWorker(user));
+  const workerProfilePath = user?.worker_profile?.id
+    ? `/profile/${user.worker_profile.id}`
+    : '/profile';
 
   const stats = useMemo(() => {
     const counts = {
@@ -119,7 +122,7 @@ export default function OrdersPage() {
       const updated = await fetchJson(`/api/worker-request/${requestId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ workerId, status }),
+        body: JSON.stringify({ status }),
       });
 
       setRequests((current) =>
@@ -153,7 +156,7 @@ export default function OrdersPage() {
           <h1>طلبات العملاء</h1>
           <p>كل طلب خدمة يرسله العميل من بروفايلك يظهر هنا مع بيانات التواصل والتفاصيل.</p>
         </div>
-        <Link to={`/profile/${user?.worker_profile?.id || ''}`} className="orders-profile-link">
+        <Link to={workerProfilePath} className="orders-profile-link">
           عرض البروفايل
         </Link>
       </section>

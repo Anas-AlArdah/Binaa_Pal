@@ -164,7 +164,9 @@ async function aiSearch(req, res) {
         }
 
         const filters = await extractFiltersWithAI(q);
-        console.log('AI Filters:', filters);
+        if (process.env.NODE_ENV === 'development' && process.env.DEBUG_AI_SEARCH === 'true') {
+            console.log('AI Filters:', filters);
+        }
 
         const workerRole = await Role.findOne({
             where: {

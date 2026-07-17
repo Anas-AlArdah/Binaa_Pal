@@ -1,5 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const {
+    authenticateToken,
+    requireProjectOwner,
+    requireSelfBody,
+} = require('../middleware/authMiddleware');
 
 const {
     getAllProjects,
@@ -20,12 +25,12 @@ router.get('/user/:userId', getProjectsByUser);
 router.get('/:id', getProjectById);
 
 // POST /api/projects
-router.post('/', createProject);
+router.post('/', authenticateToken, requireSelfBody('user_id'), createProject);
 
 // PUT /api/projects/:id
-router.put('/:id', updateProject);
+router.put('/:id', authenticateToken, requireProjectOwner('id'), updateProject);
 
 // DELETE /api/projects/:id
-router.delete('/:id', deleteProject);
+router.delete('/:id', authenticateToken, requireProjectOwner('id'), deleteProject);
 
 module.exports = router;

@@ -6,7 +6,6 @@ import SearchBox from "./SearchBox";
 
 
 function Hero({craft = []}) {
-    console.log(craft);
     const navigate = useNavigate();
 
 

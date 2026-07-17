@@ -1,11 +1,25 @@
 const express = require('express');
 const workerRequestController = require('../controllers/workerRequestController');
+const {
+  authenticateToken,
+  requireSelfParam,
+} = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-router.post('/', workerRequestController.requestWorker);
-router.get('/worker/:workerId', workerRequestController.getWorkerRequests);
-router.get('/user/:userId', workerRequestController.getClientRequests);
-router.patch('/:id/status', workerRequestController.updateWorkerRequestStatus);
+router.post('/', authenticateToken, workerRequestController.requestWorker);
+router.get(
+  '/worker/:workerId',
+  authenticateToken,
+  requireSelfParam('workerId'),
+  workerRequestController.getWorkerRequests
+);
+router.get(
+  '/user/:userId',
+  authenticateToken,
+  requireSelfParam('userId'),
+  workerRequestController.getClientRequests
+);
+router.patch('/:id/status', authenticateToken, workerRequestController.updateWorkerRequestStatus);
 
 module.exports = router;

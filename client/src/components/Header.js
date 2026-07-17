@@ -28,6 +28,9 @@ export default function Header() {
   const isAdminLoggedIn = !!adminUser;
   const isLoggedIn = !!user || isAdminLoggedIn;
   const isWorker = String(user?.role?.type || "").toLowerCase() === "worker";
+  const workerProfilePath = user?.worker_profile?.id
+    ? `/profile/${user.worker_profile.id}`
+    : "/profile";
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -128,7 +131,7 @@ export default function Header() {
                 <>
                   {isWorker && (
                     <Link
-                      to={`/profile/${user?.worker_profile?.id}`}
+                      to={workerProfilePath}
                       className="nh-avatar"
                       onClick={handleNavClick}
                       title="الملف الشخصي"

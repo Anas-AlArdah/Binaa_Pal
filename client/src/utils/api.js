@@ -27,6 +27,26 @@ const buildApiBaseUrl = () => {
 
 const apiBaseUrl = buildApiBaseUrl();
 
+const getStoredToken = (path = '') => {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  try {
+    const normalizedPath = String(path || '');
+    const adminToken = window.localStorage.getItem('binaa_admin_token') || '';
+    const userToken = window.localStorage.getItem('binaa_auth_token') || '';
+
+    if (normalizedPath.startsWith('/api/admin')) {
+      return adminToken || userToken;
+    }
+
+    return userToken || adminToken;
+  } catch {
+    return '';
+  }
+};
+
 export class ApiError extends Error {
   constructor(message, status = 0, payload = null) {
     super(message);
@@ -39,6 +59,26 @@ export class ApiError extends Error {
 export const getApiUrl = (path) => {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${apiBaseUrl}${normalizedPath}`;
+};
+
+export const apiFetch = (path, options = {}) => {
+  const headers = {
+    Accept: 'application/json',
+    ...(options.headers || {}),
+  };
+  const hasAuthorization = Object.keys(headers).some(
+    (key) => key.toLowerCase() === 'authorization'
+  );
+  const token = getStoredToken(path);
+
+  if (token && !hasAuthorization) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return fetch(getApiUrl(path), {
+    ...options,
+    headers,
+  });
 };
 
 export const getApiErrorMessage = (
@@ -61,15 +101,7 @@ export const getApiErrorMessage = (
 };
 
 export async function fetchJson(path, options = {}) {
-  const headers = {
-    Accept: 'application/json',
-    ...(options.headers || {}),
-  };
-
-  const response = await fetch(getApiUrl(path), {
-    ...options,
-    headers,
-  });
+  const response = await apiFetch(path, options);
 
   const contentType = response.headers.get('content-type') || '';
   const rawBody = await response.text();

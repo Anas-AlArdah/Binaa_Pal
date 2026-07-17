@@ -38,7 +38,6 @@ const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           worker_id: workerProfileId,
-          user_id: user.id,
           rating,
           comment,
         }),

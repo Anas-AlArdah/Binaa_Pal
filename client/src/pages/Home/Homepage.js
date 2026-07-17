@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Footer from "../../components/Footer";
-import { fetchJson, getApiUrl } from "../../utils/api";
-
+import { fetchJson } from "../../utils/api";
+import AIAssistant from "../../components/AIAssistant";
 import "./Homepage.css";
 
 const STATIC_CRAFTS = [
@@ -69,8 +69,7 @@ export default function Homepage() {
 
   // Load skills
   useEffect(() => {
-    fetch(getApiUrl("/api/skills"))
-      .then((r) => r.json())
+    fetchJson("/api/skills")
       .then((data) => { if (Array.isArray(data)) setSkills(data); })
       .catch(() => {});
   }, []);
@@ -110,8 +109,7 @@ export default function Homepage() {
     try {
       let url = `/api/search?q=${encodeURIComponent(q)}`;
       if (nameQ.trim()) url += `&name=${encodeURIComponent(nameQ.trim())}`;
-      const res = await fetch(getApiUrl(url));
-      const data = await res.json();
+      const data = await fetchJson(url);
       setResults(data.workers || []);
     } catch {
       setResults([]);
@@ -343,6 +341,8 @@ export default function Homepage() {
       {/* ========== FOOTER ========== */}
       <Footer />
 
+      {/* ========== FLOATING AI ========== */}
+      <AIAssistant />
 
     </div>
   );
