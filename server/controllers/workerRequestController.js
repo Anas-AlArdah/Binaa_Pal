@@ -180,6 +180,51 @@ async function getWorkerRequests(req, res) {
   }
 }
 
+async function getClientRequests(req, res) {
+  const userId = optionalNumber(req.params.userId || req.query.userId);
+
+  if (!userId) {
+    return res.status(400).json({ message: 'userId is required.' });
+  }
+
+  try {
+    const requests = await Request.findAll({
+      where: { user_id: userId },
+      include: [
+        {
+          model: User,
+          as: 'worker',
+          attributes: ['id', 'firstname', 'lastname', 'email', 'phone', 'location'],
+          required: false,
+        }
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+
+    return res.status(200).json(requests.map(r => ({
+      id: r.id,
+      description: r.description,
+      city: r.city,
+      date: r.date,
+      status: r.status || 'pending',
+      craftName: r.craft_name || '',
+      workerName: [r.worker?.firstname, r.worker?.lastname].filter(Boolean).join(' ').trim() || 'عامل بناء بال',
+      workerEmail: r.worker?.email || '',
+      workerPhone: r.worker?.phone || '',
+      workerLocation: r.worker?.location || '',
+      workerProfileId: r.worker_profile_id,
+      workerId: r.worker_id,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    })));
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Failed to fetch client requests.',
+      error: error.message,
+    });
+  }
+}
+
 async function updateWorkerRequestStatus(req, res) {
   const requestId = optionalNumber(req.params.id);
   const workerId = optionalNumber(req.body.workerId || req.query.workerId);
@@ -223,6 +268,7 @@ async function updateWorkerRequestStatus(req, res) {
 
 module.exports = {
   getWorkerRequests,
+  getClientRequests,
   requestWorker,
   updateWorkerRequestStatus,
 };

@@ -386,7 +386,7 @@
 }
 
 .hp-results-close-btn:hover {
-  background: #f1f5f9;
+  background: var(--hp-border);
   color: #ef4444;
 }
 
@@ -446,7 +446,7 @@
 .hp-results-header span {
   font-size: 0.85rem;
   color: var(--hp-text-muted);
-  background: #e2e8f0;
+  background: var(--hp-border);
   padding: 2px 10px;
   border-radius: 12px;
   margin-left: 40px;
@@ -458,12 +458,12 @@
   gap: 16px;
   padding: 20px 24px;
   text-decoration: none;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--hp-border);
   transition: background 0.15s;
 }
 
 .hp-result-card:hover {
-  background: #f8fafc;
+  background: var(--hp-dropdown-hover-bg);
 }
 
 .hp-result-avatar {
@@ -510,8 +510,9 @@
 }
 
 .hp-tag {
-  background: #f1f5f9;
+  background: color-mix(in srgb, var(--hp-surface) 60%, var(--hp-border) 40%);
   color: var(--hp-text-main);
+  border: 1px solid var(--hp-border);
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 0.75rem;

@@ -382,7 +382,7 @@ const PageProfile = () => {
             <section className="profile-panel">
               <ProfileHeader 
                 profile={profile} 
-                onRequestService={canEditProfile ? null : openServiceDialog} 
+                onRequestService={(!canEditProfile && authUser) ? openServiceDialog : null} 
                 onShowPortfolio={handleScrollToPortfolio} 
               />
             </section>

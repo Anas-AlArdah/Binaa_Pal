@@ -2,7 +2,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import SearchBox from "./SearchBox";
-import AIAssistant from "./AIAssistant";
+
 
 
 function Hero({craft = []}) {
@@ -58,11 +58,7 @@ function Hero({craft = []}) {
             </div>
 
 
-            <div className="text-center my-5">
-               <AIAssistant/>
 
-
-            </div>
 
             <div className="d-flex justify-content-center flex-wrap gap-2">
                 <h1 className="fw-bold mb-3" style={{ fontSize: "2.6rem", color: "#1A6B8A" }}>

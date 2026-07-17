@@ -84,23 +84,23 @@ export default function Header() {
               لوحة الآدمن
             </Link>
           )}
+          {isLoggedIn && !isAdminLoggedIn && (
+            <Link
+              to="/my-services"
+              className={`nh-link ${isActive("/my-services") ? "nh-link--active" : ""}`}
+              onClick={handleNavClick}
+            >
+              خدماتي
+            </Link>
+          )}
           {isLoggedIn && isWorker && !isAdminLoggedIn && (
-            <>
-              <Link
-                to="/"
-                className={`nh-link ${isActive("/") ? "nh-link--active" : ""}`}
-                onClick={handleNavClick}
-              >
-                خدماتي
-              </Link>
-              <Link
-                to="/orders"
-                className={`nh-link ${isActive("/orders") ? "nh-link--active" : ""}`}
-                onClick={handleNavClick}
-              >
-                الطلبات
-              </Link>
-            </>
+            <Link
+              to="/orders"
+              className={`nh-link ${isActive("/orders") ? "nh-link--active" : ""}`}
+              onClick={handleNavClick}
+            >
+              الطلبات
+            </Link>
           )}
         </nav>
 
@@ -171,11 +171,11 @@ export default function Header() {
           <button className="nh-mobile-link nh-mobile-theme-btn" onClick={() => { toggleTheme(); closeMenu(); }}>
             {theme === "light" ? "المظهر الداكن 🌙" : "المظهر الفاتح ☀️"}
           </button>
+          {isLoggedIn && !isAdminLoggedIn && (
+            <Link to="/my-services" className="nh-mobile-link" onClick={handleNavClick}>خدماتي</Link>
+          )}
           {isLoggedIn && isWorker && !isAdminLoggedIn && (
-            <>
-              <Link to="/"       className="nh-mobile-link" onClick={handleNavClick}>خدماتي</Link>
-              <Link to="/orders" className="nh-mobile-link" onClick={handleNavClick}>الطلبات</Link>
-            </>
+            <Link to="/orders"      className="nh-mobile-link" onClick={handleNavClick}>الطلبات</Link>
           )}
           {!isLoggedIn ? (
             <Link to="/login" className="nh-mobile-link nh-mobile-link--cta" onClick={handleNavClick}>

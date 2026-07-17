@@ -9,6 +9,7 @@ import Homepage from './pages/Home/Homepage';
 import LoginPage from './pages/Login/LoginPage';
 import AdminPage from './pages/Admin/AdminPage';
 import OrdersPage from './pages/Orders/OrdersPage';
+import MyServicesPage from './pages/MyServices/MyServicesPage';
 import ScrollToTop from './components/ScrollToTop';
 
 function AppLayout() {
@@ -40,8 +41,7 @@ function App() {
           <Route path="/craftsman" element={<Crafts />} />
           <Route path="/craftsman/:slug" element={<CraftDetails />} />
           <Route path="/orders" element={<OrdersPage />} />
-
-
+          <Route path="/my-services" element={<MyServicesPage />} />
         </Route>
       </Routes>
     </Router>
