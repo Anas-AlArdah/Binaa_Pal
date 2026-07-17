@@ -9,7 +9,6 @@ Binaa Pal is a React and Node.js platform for connecting clients with skilled tr
 - Service requests from profile pages to workers.
 - Worker orders dashboard for tracking and updating request status.
 - Admin dashboard for platform management.
-- Optional AI assistant and AI-powered search parsing.
 
 ## Tech Stack
 
@@ -28,7 +27,6 @@ Backend:
 - Sequelize
 - MySQL or compatible hosted SQL database
 - JWT authentication
-- Optional Groq integration for AI features
 
 ## Project Structure
 
@@ -75,7 +73,7 @@ Create backend environment variables:
 copy server\.env.example server\.env
 ```
 
-Then fill in the database, JWT, Google, email, and optional AI values in `server/.env`.
+Then fill in the database, JWT, Google, and email values in `server/.env`.
 
 Create frontend environment variables when needed:
 

@@ -18,7 +18,7 @@
 .cr-hero {
   background:
     linear-gradient(135deg, rgba(26, 39, 68, 0.98) 0%, rgba(37, 99, 235, 0.86) 100%),
-    url('https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1800&q=80') center/cover no-repeat;
+    url('https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1400&q=70') center/cover no-repeat;
   padding: 80px 0 100px;
   color: #ffffff;
   text-align: center;

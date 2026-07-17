@@ -35,8 +35,8 @@ const text = {
     primaryCraftPlaceholder: 'اختر الصنعة',
     secondaryCraft: 'صنعة ثانية (اختياري)',
     secondaryCraftPlaceholder: 'بدون صنعة ثانية',
-    primaryExperience: 'سنوات الخبرة في الصنعة الأساسية',
-    secondaryExperience: 'سنوات الخبرة في الصنعة الثانية',
+    primaryExperience: 'سنوات الخبرة',
+    secondaryExperience: 'سنوات الخبرة',
     experiencePlaceholder: 'مثال: 5',
     craftsLoading: 'جاري تحميل الصنعات...',
     craftsLoadError: 'تعذر تحميل الصنعات.',
@@ -534,7 +534,7 @@ function LoginPage() {
                                 {isWorkerRegister && (
                                     <div className="worker-craft-fields">
                                         <div className="craft-pair">
-                                            <div className="form-group">
+                                            <div className="form-group craft-field">
                                                 <label className="form-label-custom" htmlFor="primarySkillId">{text.primaryCraft}</label>
                                                 <div className="input-wrapper">
                                                     <span className="input-icon">🛠️</span>
@@ -559,7 +559,7 @@ function LoginPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="form-group">
+                                            <div className="form-group experience-field">
                                                 <label className="form-label-custom" htmlFor="primaryExperienceYears">{text.primaryExperience}</label>
                                                 <div className="input-wrapper">
                                                     <span className="input-icon">↗</span>
@@ -582,7 +582,7 @@ function LoginPage() {
                                         </div>
 
                                         <div className="craft-pair">
-                                            <div className="form-group">
+                                            <div className="form-group craft-field">
                                                 <label className="form-label-custom" htmlFor="secondarySkillId">{text.secondaryCraft}</label>
                                                 <div className="input-wrapper">
                                                     <span className="input-icon">+</span>
@@ -604,7 +604,7 @@ function LoginPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="form-group">
+                                            <div className="form-group experience-field">
                                                 <label className="form-label-custom" htmlFor="secondaryExperienceYears">{text.secondaryExperience}</label>
                                                 <div className="input-wrapper">
                                                     <span className="input-icon">↗</span>

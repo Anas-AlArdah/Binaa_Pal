@@ -29,10 +29,6 @@ if (-not $env:JWT_SECRET) {
 
 Invoke-Railway variable set JWT_SECRET=$env:JWT_SECRET --service $ServiceName --environment $EnvironmentName --skip-deploys
 
-if ($env:GROQ_API_KEY) {
-  Invoke-Railway variable set GROQ_API_KEY=$env:GROQ_API_KEY --service $ServiceName --environment $EnvironmentName --skip-deploys
-}
-
 if ($env:ADMIN_EMAIL) {
   Invoke-Railway variable set ADMIN_EMAIL=$env:ADMIN_EMAIL --service $ServiceName --environment $EnvironmentName --skip-deploys
 }

@@ -58,7 +58,7 @@
 .hp-hero {
   position: relative;
   min-height: min(720px, calc(100vh - 68px));
-  background: url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+  background: url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1400&q=70') center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -757,7 +757,7 @@
   height: 100%;
   background:
     linear-gradient(90deg, rgba(26, 39, 68, 0.02) 0%, rgba(26, 39, 68, 0.38) 100%),
-    url('../../assets/cta-craftsman.png') center/cover no-repeat;
+    url('../../assets/cta-craftsman.jpg') center/cover no-repeat;
   z-index: 2;
 }
 

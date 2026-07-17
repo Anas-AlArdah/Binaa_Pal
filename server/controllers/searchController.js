@@ -1,8 +1,6 @@
 const { User, Skill, Worker_Skill, WorkerProfile, Role } = require('../models');
 const { Op } = require('sequelize');
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-
 const LOCATIONS = [
     'رام الله',
     'نابلس',
@@ -32,19 +30,6 @@ function normalizeSearchText(value) {
         .replace(/[أإآ]/g, 'ا')
         .replace(/ة/g, 'ه')
         .replace(/\s+/g, ' ');
-}
-
-function normalizeFilters(filters) {
-    const normalized = blankFilters();
-
-    for (const key of Object.keys(normalized)) {
-        const value = filters?.[key];
-        normalized[key] = typeof value === 'string' && value.trim()
-            ? value.trim()
-            : null;
-    }
-
-    return normalized;
 }
 
 async function extractFiltersFallback(userText) {
@@ -88,71 +73,7 @@ async function extractFiltersFallback(userText) {
     return filters;
 }
 
-async function extractFiltersWithAI(userText) {
-    if (!GROQ_API_KEY) {
-        return extractFiltersFallback(userText);
-    }
-
-    try {
-        const response = await fetch(
-            'https://api.groq.com/openai/v1/chat/completions',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${GROQ_API_KEY}`
-                },
-                body: JSON.stringify({
-                    model: 'llama-3.3-70b-versatile',
-                    temperature: 0,
-                    messages: [
-                        {
-                            role: 'system',
-                            content: `
-أنت مساعد ذكي لمنصة "بناء بال".
-
-استخرج المعلومات بصيغة JSON فقط.
-لا تضف markdown.
-لا تكتب أي شيء خارج JSON.
-
-{
-  "skill": "اسم المهارة أو null",
-  "location": "المدينة أو null",
-  "name": "اسم الشخص أو null"
-}
-`
-                        },
-                        {
-                            role: 'user',
-                            content: userText
-                        }
-                    ]
-                })
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(`Groq request failed with status ${response.status}`);
-        }
-
-        const data = await response.json();
-        const raw = data?.choices?.[0]?.message?.content || '{}';
-        const clean = raw.replace(/```json/g, '').replace(/```/g, '').trim();
-        const aiFilters = normalizeFilters(JSON.parse(clean));
-        const fallbackFilters = await extractFiltersFallback(userText);
-
-        return {
-            skill: aiFilters.skill || fallbackFilters.skill,
-            location: aiFilters.location || fallbackFilters.location,
-            name: aiFilters.name || fallbackFilters.name
-        };
-    } catch (error) {
-        console.warn('AI search filter extraction failed, using fallback:', error.message);
-        return extractFiltersFallback(userText);
-    }
-}
-
-async function aiSearch(req, res) {
+async function searchWorkers(req, res) {
     try {
         const { q } = req.query;
 
@@ -163,9 +84,9 @@ async function aiSearch(req, res) {
             });
         }
 
-        const filters = await extractFiltersWithAI(q);
-        if (process.env.NODE_ENV === 'development' && process.env.DEBUG_AI_SEARCH === 'true') {
-            console.log('AI Filters:', filters);
+        const filters = await extractFiltersFallback(q);
+        if (process.env.NODE_ENV === 'development' && process.env.DEBUG_SEARCH === 'true') {
+            console.log('Search filters:', filters);
         }
 
         const workerRole = await Role.findOne({
@@ -278,5 +199,5 @@ async function aiSearch(req, res) {
 }
 
 module.exports = {
-    aiSearch
+    searchWorkers
 };

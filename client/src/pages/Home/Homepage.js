@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Footer from "../../components/Footer";
 import { fetchJson } from "../../utils/api";
-import AIAssistant from "../../components/AIAssistant";
 import "./Homepage.css";
 
 const STATIC_CRAFTS = [
@@ -340,9 +339,6 @@ export default function Homepage() {
 
       {/* ========== FOOTER ========== */}
       <Footer />
-
-      {/* ========== FLOATING AI ========== */}
-      <AIAssistant />
 
     </div>
   );

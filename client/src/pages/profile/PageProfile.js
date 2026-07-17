@@ -19,7 +19,6 @@ import EditRoundedIcon from '@mui/icons-material/EditRounded';
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import ProfileSkills from '../../components/profile/ProfileSkills';
 import ProfileStats from '../../components/profile/ProfileStats';
-import ProfileAiReview from '../../components/profile/ProfileAiReview';
 import ProfileAvailability from '../../components/profile/ProfileAvailability';
 import ProfilePortfolio from '../../components/profile/ProfilePortfolio';
 import ProfileRegions from '../../components/profile/ProfileRegions';
@@ -421,12 +420,6 @@ const PageProfile = () => {
               <div className="profile-panel">
                 <ProfileTrustBadges profile={profile} />
               </div>
-
-              {profile.reviews && profile.reviews.length > 0 && (
-                <div className="profile-panel">
-                  <ProfileAiReview reviews={profile.reviews} />
-                </div>
-              )}
 
               <div className="profile-panel" style={{ padding: 0, background: 'transparent', border: 'none' }}>
                 <ProfileVideoStats />

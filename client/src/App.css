@@ -10,3 +10,19 @@
   min-height: calc(100vh - 68px);
   padding: 0;
 }
+
+.app-page-loader {
+  width: 38px;
+  height: 38px;
+  margin: 96px auto;
+  border: 3px solid rgba(26, 39, 68, 0.16);
+  border-top-color: #f59e0b;
+  border-radius: 50%;
+  animation: appLoaderSpin 0.8s linear infinite;
+}
+
+@keyframes appLoaderSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

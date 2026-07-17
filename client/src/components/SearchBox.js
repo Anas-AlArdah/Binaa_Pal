@@ -53,7 +53,7 @@ const[skills, setSkills] = useState([]);
             }}>
 
                 <p style={{ color: 'rgb(15,39,39)', fontSize: 24, }}>
-                    اكتب بالعربي بشكل طبيعي — الذكاء الاصطناعي بيفهمك
+                    اكتب الخدمة أو اسم الحرفي وابحث بسهولة
                 </p>
 
                 {/* Search Bar */}
@@ -124,21 +124,6 @@ const[skills, setSkills] = useState([]);
             {/* Results */}
             {searched && (
                 <div style={{ padding: '1.5rem', maxWidth: 700, margin: '0 auto' }}>
-
-                    {/* AI فهم شو*/}
-                    {/*{filters && (*/}
-                    {/*    <div style={{*/}
-                    {/*        background: '#E1F5EE', borderRadius: 8, padding: '8px 14px',*/}
-                    {/*        fontSize: 13, color: '#0F6E56', marginBottom: 12,*/}
-                    {/*        display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center',*/}
-                    {/*    }}>*/}
-                    {/*        <span>🤖 فهمت:</span>*/}
-                    {/*        {filters.skill    && <span>خدمة: <strong>{filters.skill}</strong></span>}*/}
-                    {/*        {filters.location && <span>مدينة: <strong>{filters.location}</strong></span>}*/}
-                    {/*        {filters.name     && <span>اسم: <strong>{filters.name}</strong></span>}*/}
-
-                    {/*    </div>*/}
-                    {/*)}*/}
 
                     {loading ? (
                         <p style={{ textAlign: 'center', color: '#666' }}>جاري البحث...</p>
