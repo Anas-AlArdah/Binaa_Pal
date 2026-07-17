@@ -270,3 +270,55 @@
     padding: 20px;
   }
 }
+
+@media (max-width: 560px) {
+  .profile-page {
+    padding: 72px 12px 56px;
+  }
+
+  .profile-banner {
+    margin-bottom: 20px;
+  }
+
+  .profile-banner__content {
+    padding: 20px 16px;
+  }
+
+  .profile-banner__title {
+    font-size: 1.55rem !important;
+  }
+
+  .profile-banner__subtitle,
+  .profile-banner__text {
+    font-size: 0.95rem !important;
+  }
+
+  .profile-banner__meta {
+    gap: 10px;
+  }
+
+  .profile-banner__pill {
+    padding: 14px;
+  }
+
+  .profile-panel,
+  .profile-contact-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .profile-stack {
+    gap: 16px;
+  }
+
+  .profile-contact-card__row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .profile-contact-card__row strong {
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+}

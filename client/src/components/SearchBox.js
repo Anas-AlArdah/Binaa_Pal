@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom';
+import { FiMapPin, FiPhone, FiSearch } from 'react-icons/fi';
 import { fetchJson } from '../utils/api';
 
 
@@ -63,7 +64,7 @@ const[skills, setSkills] = useState([]);
                     padding: '5px 5px 5px 18px', gap: 8,
                     width: '100%', maxWidth: 540,
                 }}>
-                    <span style={{ fontSize: 16 }}>🔍</span>
+                    <FiSearch size={17} color="#64748b" />
                     <input
                         value={query}
                         onChange={e => setQuery(e.target.value)}
@@ -170,8 +171,9 @@ const[skills, setSkills] = useState([]);
 
 
                                         </div>
-                                        <div style={{fontSize: 15, color: "#555", marginBottom: 6,}}>
-                                            📍 {w.location}
+                                        <div style={{fontSize: 15, color: "#555", marginBottom: 6, display: "flex", alignItems: "center", gap: 5}}>
+                                            <FiMapPin size={15} />
+                                            <span>{w.location}</span>
                                         </div>
 
                                         <div style={{display: "flex", gap: 5, flexWrap: "wrap",}}>
@@ -186,8 +188,9 @@ const[skills, setSkills] = useState([]);
                                         </div>
                                     </div>
 
-                                    <div style={{fontSize: 12, color: "#666", whiteSpace: "nowrap",}}>
-                                        📞 {w.phone}
+                                    <div style={{fontSize: 12, color: "#666", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 5}}>
+                                        <FiPhone size={14} />
+                                        <span>{w.phone}</span>
                                     </div>
                                 </Link>
                             ))}

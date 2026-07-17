@@ -21,7 +21,7 @@ function Hero({craft = []}) {
         <div className=" mt-md-5 "style={ {background: '#f4f7f9'}}>
             <div className="container-fluid hero position-relative overflow-hidden" style={{ height: "60vh" }}>
 
-                {/* 🎥 الفيديو */}
+                {/* الفيديو */}
                 <video
                     autoPlay
                     loop

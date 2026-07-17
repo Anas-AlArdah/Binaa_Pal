@@ -172,7 +172,10 @@ export default function Header() {
             <Link to="/admin" className="nh-mobile-link" onClick={handleNavClick}>لوحة الآدمن</Link>
           )}
           <button className="nh-mobile-link nh-mobile-theme-btn" onClick={() => { toggleTheme(); closeMenu(); }}>
-            {theme === "light" ? "المظهر الداكن 🌙" : "المظهر الفاتح ☀️"}
+            <span className="nh-mobile-link__icon">
+              {theme === "light" ? <FiMoon /> : <FiSun />}
+            </span>
+            {theme === "light" ? "المظهر الداكن" : "المظهر الفاتح"}
           </button>
           {isLoggedIn && !isAdminLoggedIn && (
             <Link to="/my-services" className="nh-mobile-link" onClick={handleNavClick}>خدماتي</Link>

@@ -110,7 +110,7 @@
 /* ===== GRID & CARDS ===== */
 .cr-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 24px;
 }
 
@@ -246,9 +246,27 @@
 }
 
 .cr-error-icon, .cr-empty-icon {
-  font-size: 3rem;
-  display: block;
+  width: 58px;
+  height: 58px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 16px;
+  border-radius: 16px;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  font-size: 1.75rem;
+}
+
+.cr-error-icon {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.cr-error-icon svg,
+.cr-empty-icon svg {
+  width: 1em;
+  height: 1em;
 }
 
 .cr-empty-state h3 {
@@ -295,6 +313,34 @@
   
   .cr-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .cr-container {
+    padding-inline: 16px;
+  }
+
+  .cr-hero {
+    padding: 48px 12px 72px;
+  }
+
+  .cr-title {
+    font-size: 1.75rem;
+  }
+
+  .cr-search-box {
+    padding-inline: 16px;
+  }
+
+  .cr-card {
+    padding: 20px;
+  }
+
+  .cr-card-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
   }
 }
 

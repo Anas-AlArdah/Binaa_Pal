@@ -1,5 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+    FiBriefcase,
+    FiLock,
+    FiMail,
+    FiMapPin,
+    FiPhone,
+    FiPlus,
+    FiTool,
+    FiTrendingUp,
+    FiUser,
+} from 'react-icons/fi';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { fetchJson, getApiErrorMessage } from '../../utils/api';
@@ -514,7 +525,7 @@ function LoginPage() {
                                                 onClick={() => handleUserTypeChange('client')}
                                                 disabled={isBusy}
                                             >
-                                                <span className="user-type-icon">👤</span>
+                                                <span className="user-type-icon"><FiUser /></span>
                                                 <span>{text.client}</span>
                                             </button>
                                             <button
@@ -524,7 +535,7 @@ function LoginPage() {
                                                 onClick={() => handleUserTypeChange('worker')}
                                                 disabled={isBusy}
                                             >
-                                                <span className="user-type-icon">🛠️</span>
+                                                <span className="user-type-icon"><FiBriefcase /></span>
                                                 <span>{text.worker}</span>
                                             </button>
                                         </div>
@@ -537,7 +548,7 @@ function LoginPage() {
                                             <div className="form-group craft-field">
                                                 <label className="form-label-custom" htmlFor="primarySkillId">{text.primaryCraft}</label>
                                                 <div className="input-wrapper">
-                                                    <span className="input-icon">🛠️</span>
+                                                    <span className="input-icon"><FiTool /></span>
                                                     <select
                                                         id="primarySkillId"
                                                         name="primarySkillId"
@@ -562,7 +573,7 @@ function LoginPage() {
                                             <div className="form-group experience-field">
                                                 <label className="form-label-custom" htmlFor="primaryExperienceYears">{text.primaryExperience}</label>
                                                 <div className="input-wrapper">
-                                                    <span className="input-icon">↗</span>
+                                                    <span className="input-icon"><FiTrendingUp /></span>
                                                     <input
                                                         id="primaryExperienceYears"
                                                         name="primaryExperienceYears"
@@ -585,7 +596,7 @@ function LoginPage() {
                                             <div className="form-group craft-field">
                                                 <label className="form-label-custom" htmlFor="secondarySkillId">{text.secondaryCraft}</label>
                                                 <div className="input-wrapper">
-                                                    <span className="input-icon">+</span>
+                                                    <span className="input-icon"><FiPlus /></span>
                                                     <select
                                                         id="secondarySkillId"
                                                         name="secondarySkillId"
@@ -607,7 +618,7 @@ function LoginPage() {
                                             <div className="form-group experience-field">
                                                 <label className="form-label-custom" htmlFor="secondaryExperienceYears">{text.secondaryExperience}</label>
                                                 <div className="input-wrapper">
-                                                    <span className="input-icon">↗</span>
+                                                    <span className="input-icon"><FiTrendingUp /></span>
                                                     <input
                                                         id="secondaryExperienceYears"
                                                         name="secondaryExperienceYears"
@@ -633,7 +644,7 @@ function LoginPage() {
                                         <div className="form-group">
                                             <label className="form-label-custom" htmlFor="firstname">{text.firstname}</label>
                                             <div className="input-wrapper">
-                                                <span className="input-icon">👤</span>
+                                                <span className="input-icon"><FiUser /></span>
                                                 <input
                                                     id="firstname"
                                                     name="firstname"
@@ -651,7 +662,7 @@ function LoginPage() {
                                         <div className="form-group">
                                             <label className="form-label-custom" htmlFor="lastname">{text.lastname}</label>
                                             <div className="input-wrapper">
-                                                <span className="input-icon">👤</span>
+                                                <span className="input-icon"><FiUser /></span>
                                                 <input
                                                     id="lastname"
                                                     name="lastname"
@@ -672,7 +683,7 @@ function LoginPage() {
                                     <div className="form-group">
                                         <label className="form-label-custom" htmlFor="email">{text.email}</label>
                                         <div className="input-wrapper">
-                                            <span className="input-icon">✉️</span>
+                                            <span className="input-icon"><FiMail /></span>
                                             <input
                                                 id="email"
                                                 name="email"
@@ -694,7 +705,7 @@ function LoginPage() {
                                         <div className="form-group">
                                             <label className="form-label-custom" htmlFor="phone">{text.phone}</label>
                                             <div className="input-wrapper">
-                                                <span className="input-icon">☎</span>
+                                                <span className="input-icon"><FiPhone /></span>
                                                 <input
                                                     id="phone"
                                                     name="phone"
@@ -716,7 +727,7 @@ function LoginPage() {
                                         <div className="form-group">
                                             <label className="form-label-custom" htmlFor="location">{text.location}</label>
                                             <div className="input-wrapper">
-                                                <span className="input-icon">📍</span>
+                                                <span className="input-icon"><FiMapPin /></span>
                                                 <input
                                                     id="location"
                                                     name="location"
@@ -737,7 +748,7 @@ function LoginPage() {
                                     <div className="form-group">
                                         <label className="form-label-custom" htmlFor="password">{text.password}</label>
                                         <div className="input-wrapper">
-                                            <span className="input-icon">🔒</span>
+                                            <span className="input-icon"><FiLock /></span>
                                             <input
                                                 id="password"
                                                 name="password"

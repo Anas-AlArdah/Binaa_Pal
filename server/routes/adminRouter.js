@@ -11,8 +11,10 @@ router.get('/stats', adminController.getStats);
 router.get('/users', adminController.getUsers);
 router.get('/workers', adminController.getWorkers);
 router.get('/requests', adminController.getRequests);
+router.patch('/requests/:id/status', adminController.updateRequestStatus);
 router.get('/crafts', adminController.getCrafts);
 router.post('/crafts', adminController.createCraft);
+router.patch('/crafts/:id', adminController.updateCraft);
 router.delete('/crafts/:id', adminController.deleteCraft);
 
 module.exports = router;

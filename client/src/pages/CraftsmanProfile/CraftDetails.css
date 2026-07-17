@@ -731,9 +731,26 @@
 }
 
 .cd-state-icon {
-  display: block;
+  width: 64px;
+  height: 64px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 18px;
-  font-size: 3.35rem;
+  border-radius: 18px;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--cd-primary);
+  font-size: 1.9rem;
+}
+
+.cd-state-error .cd-state-icon {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--cd-danger);
+}
+
+.cd-state-icon svg {
+  width: 1em;
+  height: 1em;
 }
 
 .cd-state-box h3 {
@@ -956,6 +973,20 @@
 }
 
 @media (max-width: 420px) {
+  .cd-container {
+    width: min(100% - 22px, 1240px);
+  }
+
+  .cd-hero {
+    padding-top: 28px;
+  }
+
+  .cd-filters-card,
+  .cd-worker-card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
   .cd-card-topline {
     flex-direction: column;
     align-items: flex-start;
@@ -963,6 +994,19 @@
 
   .cd-hero-stats {
     display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .cd-worker-header {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .cd-worker-avatar {
+    margin-inline: auto;
+  }
+
+  .cd-worker-actions {
     grid-template-columns: 1fr;
   }
 }

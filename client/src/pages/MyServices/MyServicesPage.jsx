@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FiAlertTriangle, FiPhoneCall, FiSearch } from 'react-icons/fi';
 import { fetchJson, getApiErrorMessage } from '../../utils/api';
 import './MyServicesPage.css';
 
@@ -90,7 +91,7 @@ export default function MyServicesPage() {
     return (
       <main className="myserv-page" dir="rtl">
         <section className="myserv-access">
-          <span className="myserv-access__icon">!</span>
+          <span className="myserv-access__icon"><FiAlertTriangle /></span>
           <h1>الرجاء تسجيل الدخول</h1>
           <p>يجب عليك تسجيل الدخول لرؤية الطلبات والخدمات التي قمت بطلبها.</p>
           <Link to="/login" className="myserv-primary-link">تسجيل الدخول</Link>
@@ -143,7 +144,7 @@ export default function MyServicesPage() {
         </section>
       ) : requests.length === 0 ? (
         <section className="myserv-empty">
-          <span className="myserv-empty__icon">🔍</span>
+          <span className="myserv-empty__icon"><FiSearch /></span>
           <h2>لم تطلب أي خدمات بعد</h2>
           <p>تصفح قائمة الحرفيين في المنصة واطلب خدماتهم مباشرة لتظهر طلباتك هنا.</p>
           <Link to="/craftsman" className="myserv-primary-link">ابحث عن حرفي الآن</Link>
@@ -202,7 +203,8 @@ export default function MyServicesPage() {
                   className={`myserv-action-btn myserv-action-btn--call ${!request.workerPhone ? 'disabled' : ''}`}
                   onClick={(e) => !request.workerPhone && e.preventDefault()}
                 >
-                  اتصال بالحرفي 📞
+                  <FiPhoneCall />
+                  <span>اتصال بالحرفي</span>
                 </a>
               </div>
             </article>

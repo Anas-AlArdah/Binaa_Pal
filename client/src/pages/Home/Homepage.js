@@ -1,27 +1,68 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  FiArrowUpLeft,
+  FiCheckCircle,
+  FiDollarSign,
+  FiMapPin,
+  FiPhone,
+  FiSearch,
+  FiShield,
+  FiStar,
+  FiTool,
+  FiX,
+  FiZap,
+} from "react-icons/fi";
+import {
+  FaBolt,
+  FaHammer,
+  FaHardHat,
+  FaPaintRoller,
+  FaPlug,
+  FaThLarge,
+  FaTools,
+  FaWrench,
+} from "react-icons/fa";
 import Footer from "../../components/Footer";
 import { fetchJson } from "../../utils/api";
 import "./Homepage.css";
 
+const CRAFT_ICONS = [FaBolt, FaHammer, FaWrench, FaPaintRoller, FaThLarge, FaPlug, FaHardHat, FaTools];
+
+const CRAFT_ICON_BY_SLUG = {
+  electricity: FaBolt,
+  electrical: FaBolt,
+  carpentry: FaHammer,
+  plumbing: FaWrench,
+  painting: FaPaintRoller,
+  tiling: FaThLarge,
+  appliances: FaPlug,
+  construction: FaHardHat,
+  blacksmithing: FaTools,
+  masonry: FaHardHat,
+};
+
+const getCraftIcon = (craft = {}, index = 0) =>
+  CRAFT_ICON_BY_SLUG[craft.slug] || CRAFT_ICON_BY_SLUG[craft.iconKey] || CRAFT_ICONS[index] || FiTool;
+
 const STATIC_CRAFTS = [
-  { id: 1, slug: "electricity", icon: "⚡", name: "كهرباء",      description: "تأسيس وصيانة كهربائية متكاملة" },
-  { id: 2, slug: "carpentry",   icon: "🪵", name: "نجارة",       description: "تفصيل وصيانة الأثاث والأبواب" },
-  { id: 3, slug: "plumbing",    icon: "🔧", name: "سباكة",       description: "تأسيس وصيانة شبكات المياه" },
-  { id: 4, slug: "painting",    icon: "🎨", name: "دهان",        description: "أعمال الطلاء والديكور الداخلي" },
-  { id: 5, slug: "tiling",      icon: "⬜", name: "تبليط",       description: "تركيب السيراميك والرخام" },
-  { id: 6, slug: "appliances",  icon: "🔌", name: "صيانة أجهزة", description: "إصلاح الأجهزة المنزلية" },
-  { id: 7, slug: "construction",icon: "🏗️", name: "بناء",        description: "أعمال البناء والتشطيبات" },
-  { id: 8, slug: "blacksmithing",icon:"🔨", name: "حدادة",       description: "أعمال الحدادة والأبواب المعدنية" },
+  { id: 1, slug: "electricity", icon: FaBolt, name: "كهرباء",      description: "تأسيس وصيانة كهربائية متكاملة" },
+  { id: 2, slug: "carpentry",   icon: FaHammer, name: "نجارة",       description: "تفصيل وصيانة الأثاث والأبواب" },
+  { id: 3, slug: "plumbing",    icon: FaWrench, name: "سباكة",       description: "تأسيس وصيانة شبكات المياه" },
+  { id: 4, slug: "painting",    icon: FaPaintRoller, name: "دهان",        description: "أعمال الطلاء والديكور الداخلي" },
+  { id: 5, slug: "tiling",      icon: FaThLarge, name: "تبليط",       description: "تركيب السيراميك والرخام" },
+  { id: 6, slug: "appliances",  icon: FaPlug, name: "صيانة أجهزة", description: "إصلاح الأجهزة المنزلية" },
+  { id: 7, slug: "construction",icon: FaHardHat, name: "بناء",        description: "أعمال البناء والتشطيبات" },
+  { id: 8, slug: "blacksmithing",icon: FaTools, name: "حدادة",       description: "أعمال الحدادة والأبواب المعدنية" },
 ];
 
 const QUICK_CHIPS = ["كهرباء", "سباكة", "نجارة", "دهان", "تبليط"];
 
 const TRUST_ITEMS = [
-  { icon: "🛡️", title: "حرفيون موثوقون", desc: "تم التحقق من هويتهم وكفاءتهم" },
-  { icon: "⚡", title: "سرعة في الإنجاز", desc: "تواصل مباشر وخدمة سريعة" },
-  { icon: "💰", title: "أسعار تنافسية", desc: "خيارات متعددة تناسب ميزانيتك" },
-  { icon: "⭐", title: "تقييمات حقيقية", desc: "اختر بناءً على تجارب العملاء السابقة" },
+  { icon: FiShield, title: "حرفيون موثوقون", desc: "تم التحقق من هويتهم وكفاءتهم" },
+  { icon: FiZap, title: "سرعة في الإنجاز", desc: "تواصل مباشر وخدمة سريعة" },
+  { icon: FiDollarSign, title: "أسعار تنافسية", desc: "خيارات متعددة تناسب ميزانيتك" },
+  { icon: FiStar, title: "تقييمات حقيقية", desc: "اختر بناءً على تجارب العملاء السابقة" },
 ];
 
 const readAuthStatus = () => {
@@ -53,11 +94,10 @@ export default function Homepage() {
     fetchJson("/api/crafts")
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
-          const icons = ["⚡","🪵","🔧","🎨","⬜","🔌","🏗️","🔨"];
           setCrafts(
             data.slice(0, 8).map((c, i) => ({
               ...c,
-              icon: c.icon || icons[i] || "🔧",
+              icon: getCraftIcon(c, i),
               description: c.description || "خدمة احترافية موثوقة",
             }))
           );
@@ -167,7 +207,7 @@ export default function Homepage() {
                         className="hp-dropdown-item"
                         onClick={() => selectSkill(s.skill_name)}
                       >
-                        <span className="hp-dropdown-item__icon">↗</span>
+                        <span className="hp-dropdown-item__icon"><FiArrowUpLeft /></span>
                         {s.skill_name}
                       </button>
                     ))}
@@ -223,7 +263,7 @@ export default function Homepage() {
                   onClick={() => setSearched(false)}
                   title="إغلاق"
                 >
-                  ✕
+                  <FiX />
                 </button>
                 {loading ? (
                   <div className="hp-results-state">
@@ -232,7 +272,7 @@ export default function Homepage() {
                   </div>
                 ) : results.length === 0 ? (
                   <div className="hp-results-state">
-                    <span className="hp-state-icon">😕</span>
+                    <span className="hp-state-icon"><FiSearch /></span>
                     <p>عذراً، لم نتمكن من العثور على حرفيين بهذه المواصفات.</p>
                     <span className="hp-state-hint">جرب استخدام مصطلحات بحث مختلفة أو تصفح الأقسام بالأسفل.</span>
                   </div>
@@ -248,8 +288,8 @@ export default function Homepage() {
                         <div className="hp-result-info">
                           <h4 className="hp-result-name">{w.name}</h4>
                           <div className="hp-result-meta">
-                            <span className="hp-meta-item">📍 {w.location}</span>
-                            <span className="hp-meta-item">📞 {w.phone}</span>
+                            <span className="hp-meta-item"><FiMapPin /> {w.location}</span>
+                            <span className="hp-meta-item"><FiPhone /> {w.phone}</span>
                           </div>
                           {w.skills && w.skills.length > 0 && (
                             <div className="hp-result-tags">
@@ -278,7 +318,9 @@ export default function Homepage() {
           <div className="hp-features-grid">
             {TRUST_ITEMS.map((item, index) => (
               <div key={index} className="hp-feature-card">
-                <div className="hp-feature-icon">{item.icon}</div>
+                <div className="hp-feature-icon">
+                  <item.icon />
+                </div>
                 <h3 className="hp-feature-title">{item.title}</h3>
                 <p className="hp-feature-desc">{item.desc}</p>
               </div>
@@ -299,7 +341,9 @@ export default function Homepage() {
             {crafts.map((craft) => (
               <div key={craft.slug || craft.id} className="hp-category-card" onClick={() => navigate(`/craftsman/${craft.slug}`)}>
                 <div className="hp-category-icon-wrapper">
-                  <span className="hp-category-icon">{craft.icon}</span>
+                  <span className="hp-category-icon">
+                    {typeof craft.icon === "function" ? <craft.icon /> : <FiTool />}
+                  </span>
                 </div>
                 <div className="hp-category-content">
                   <h3 className="hp-category-name">{craft.name}</h3>
@@ -323,9 +367,9 @@ export default function Homepage() {
               <h2>هل أنت حرفي محترف؟</h2>
               <p>انضم إلى شبكة بناء بال، وسّع نطاق عملك، وزد من دخلك من خلال الوصول إلى مئات العملاء يومياً.</p>
               <ul className="hp-cta-benefits">
-                <li>✓ تسجيل مجاني وسريع</li>
-                <li>✓ إدارة سهلة لطلباتك</li>
-                <li>✓ تسويق احترافي لخدماتك</li>
+                <li><FiCheckCircle /> تسجيل مجاني وسريع</li>
+                <li><FiCheckCircle /> إدارة سهلة لطلباتك</li>
+                <li><FiCheckCircle /> تسويق احترافي لخدماتك</li>
               </ul>
               <Link to="/login" className="hp-btn-primary">سجل كحرفي الآن</Link>
             </div>

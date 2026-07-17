@@ -5,6 +5,7 @@
   position: sticky;
   top: 0;
   z-index: 1000;
+  width: 100%;
   background: #1a2744;
   box-shadow: 0 2px 16px rgba(0,0,0,0.25);
   font-family: 'Cairo', sans-serif;
@@ -187,6 +188,8 @@
   background: #1e2e55;
   padding: 12px 0;
   border-top: 1px solid rgba(255,255,255,0.08);
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
 }
 
 .nh-mobile-link {
@@ -219,8 +222,48 @@
   color: #fc8181;
 }
 
+.nh-mobile-link__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  vertical-align: -2px;
+}
+
+.nh-mobile-link__icon svg {
+  width: 1.05em;
+  height: 1.05em;
+  stroke-width: 2.2;
+}
+
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 1180px) {
+  .nh-inner {
+    grid-template-columns: minmax(180px, 1fr) auto minmax(180px, 1fr);
+    gap: 16px;
+    padding-inline: 22px;
+  }
+
+  .nh-nav {
+    gap: 8px;
+  }
+
+  .nh-link {
+    padding-inline: 10px;
+    font-size: 0.98rem;
+  }
+
+  .nh-actions {
+    gap: 8px;
+  }
+
+  .nh-btn-login,
+  .nh-btn-logout {
+    padding-inline: 12px;
+  }
+}
+
+@media (max-width: 1024px) {
   .nh-nav,
   .nh-actions {
     display: none;
@@ -245,7 +288,17 @@
   }
 }
 
-@media (min-width: 769px) {
+@media (max-width: 420px) {
+  .nh-inner {
+    padding-inline: 16px;
+  }
+
+  .nh-logo {
+    font-size: 1.18rem;
+  }
+}
+
+@media (min-width: 1025px) {
   .nh-mobile-menu {
     display: none;
   }

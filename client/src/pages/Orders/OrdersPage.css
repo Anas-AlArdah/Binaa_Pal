@@ -278,6 +278,13 @@
   font-weight: 900;
 }
 
+.orders-empty__icon svg,
+.orders-access__icon svg {
+  width: 1em;
+  height: 1em;
+  stroke-width: 2.1;
+}
+
 .orders-empty h2,
 .orders-access h1 {
   margin: 0 0 10px;
@@ -394,6 +401,19 @@
   }
 
   .orders-status {
-    width: fit-content;
+    width: 100%;
+  }
+
+  .orders-profile-link,
+  .orders-primary-link {
+    width: 100%;
+  }
+
+  .orders-card__actions {
+    flex-direction: column;
+  }
+
+  .orders-card__actions button {
+    width: 100%;
   }
 }

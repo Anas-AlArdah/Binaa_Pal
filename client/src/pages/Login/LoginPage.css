@@ -261,6 +261,13 @@
     justify-content: center;
 }
 
+.input-icon svg,
+.user-type-icon svg {
+    width: 1.05em;
+    height: 1.05em;
+    stroke-width: 2.2;
+}
+
 .form-input-custom {
     width: 100%;
     min-width: 0;
@@ -670,5 +677,33 @@ select.form-input-custom {
     .experience-field .form-input-custom {
         text-align: right;
         padding: 12px 42px 12px 40px;
+    }
+}
+
+@media (max-width: 420px) {
+    .login-auth-area {
+        padding-inline: 10px;
+    }
+
+    .login-card {
+        padding: 24px 16px;
+    }
+
+    .toggle-container {
+        gap: 3px;
+        padding: 4px;
+    }
+
+    .toggle-btn {
+        min-height: 42px;
+        font-size: 0.84rem;
+    }
+
+    .user-type-toggle {
+        gap: 8px;
+    }
+
+    .user-type-btn {
+        padding-inline: 10px;
     }
 }

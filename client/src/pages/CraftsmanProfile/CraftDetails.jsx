@@ -11,7 +11,14 @@ import {
   FaStar,
   FaUsers,
 } from "react-icons/fa";
-import { FiChevronLeft, FiFilter, FiMapPin, FiRefreshCw } from "react-icons/fi";
+import {
+  FiAlertTriangle,
+  FiChevronLeft,
+  FiFilter,
+  FiMapPin,
+  FiRefreshCw,
+  FiSearch,
+} from "react-icons/fi";
 import Footer from "../../components/Footer";
 import { fetchJson, getApiErrorMessage } from "../../utils/api";
 import { decorateCraft } from "./craftPresentation";
@@ -341,7 +348,7 @@ function CraftDetails() {
               </div>
             ) : error ? (
               <div className="cd-state-box cd-state-error">
-                <span className="cd-state-icon">⚠️</span>
+                <span className="cd-state-icon"><FiAlertTriangle /></span>
                 <h3>صار خطأ أثناء تحميل البيانات</h3>
                 <p>{error}</p>
                 <button onClick={() => setRetryKey((value) => value + 1)} className="cd-retry-btn" type="button">
@@ -421,7 +428,7 @@ function CraftDetails() {
               </div>
             ) : (
               <div className="cd-state-box">
-                <span className="cd-state-icon">😕</span>
+                <span className="cd-state-icon"><FiSearch /></span>
                 <h3>لا توجد نتائج مناسبة</h3>
                 <p>جرّب تغيير المدينة أو ارجع للترتيب الافتراضي لعرض كل الصنايعية المتاحين.</p>
                 <button onClick={resetFilters} className="cd-retry-btn" type="button">

@@ -120,10 +120,27 @@
 
 @media (max-width: 560px) {
   .site-footer {
-    padding-top: 42px;
+    padding: 42px 0 18px;
+  }
+
+  .site-footer__inner {
+    width: min(100% - 24px, 1200px);
   }
 
   .site-footer__grid {
     grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .site-footer__brand {
+    margin-bottom: 26px;
+  }
+
+  .site-footer__socials {
+    flex-wrap: wrap;
+  }
+
+  .site-footer__bottom {
+    font-size: 0.84rem;
   }
 }

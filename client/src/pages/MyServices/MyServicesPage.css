@@ -292,6 +292,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   min-height: 46px;
   padding: 10px 16px;
   border-radius: 12px;
@@ -301,6 +302,12 @@
   transition: all 0.2s ease;
   cursor: pointer;
   border: none;
+}
+
+.myserv-action-btn svg {
+  width: 1.05em;
+  height: 1.05em;
+  stroke-width: 2.2;
 }
 
 .myserv-action-btn--profile {
@@ -359,6 +366,13 @@
   background: #fff7ed;
   color: #d97706;
   font-size: 2rem;
+}
+
+.myserv-empty__icon svg,
+.myserv-access__icon svg {
+  width: 1em;
+  height: 1em;
+  stroke-width: 2.1;
 }
 
 .myserv-empty h2,
@@ -500,6 +514,15 @@
     padding: 28px 14px 56px;
   }
 
+  .myserv-hero {
+    padding: 22px;
+  }
+
+  .myserv-browse-link,
+  .myserv-primary-link {
+    width: 100%;
+  }
+
   .myserv-stats,
   .myserv-meta {
     grid-template-columns: 1fr;
@@ -511,6 +534,29 @@
   }
 
   .myserv-status {
-    width: fit-content;
+    width: 100%;
+  }
+
+  .myserv-card {
+    padding: 20px;
+  }
+
+  .myserv-card__actions {
+    flex-direction: column;
+  }
+
+  .myserv-action-btn {
+    width: 100%;
+  }
+
+  .myserv-meta-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .myserv-meta-value {
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }

@@ -1,61 +1,107 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaClipboardList,
-  FaHardHat,
-  FaPlus,
-  FaRegClock,
-  FaShieldAlt,
-  FaTrash,
-  FaTools,
-  FaUsers,
-} from 'react-icons/fa';
+  FiActivity,
+  FiAlertTriangle,
+  FiBriefcase,
+  FiCheckCircle,
+  FiClock,
+  FiDatabase,
+  FiEdit3,
+  FiFilter,
+  FiGrid,
+  FiLock,
+  FiLogOut,
+  FiMail,
+  FiMapPin,
+  FiPhone,
+  FiPlus,
+  FiRefreshCw,
+  FiSave,
+  FiSearch,
+  FiShield,
+  FiTool,
+  FiTrash2,
+  FiUsers,
+  FiX,
+} from 'react-icons/fi';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { fetchJson, getApiErrorMessage } from '../../utils/api';
 import './AdminPage.css';
 
 const text = {
-  craftsManagement: '\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u0635\u0646\u0639\u0627\u062a',
-  craftNameLabel: '\u0627\u0633\u0645 \u0627\u0644\u0635\u0646\u0639\u0629',
-  craftNamePlaceholder: '\u0645\u062b\u0627\u0644: \u0646\u062c\u0627\u0631\u0629',
-  addCraft: '\u0625\u0636\u0627\u0641\u0629 \u0635\u0646\u0639\u0629',
-  addingCraft: '\u062c\u0627\u0631\u064a \u0627\u0644\u0625\u0636\u0627\u0641\u0629...',
-  craftsLoading: '\u062c\u0627\u0631\u064a \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u0635\u0646\u0639\u0627\u062a...',
-  emptyCrafts: '\u0644\u0627 \u062a\u0648\u062c\u062f \u0635\u0646\u0639\u0627\u062a \u0628\u0639\u062f.',
-  deleteCraft: '\u062d\u0630\u0641',
-  deletingCraft: '\u062c\u0627\u0631\u064a \u0627\u0644\u062d\u0630\u0641...',
-  workersLinked: '\u0639\u0627\u0645\u0644 \u0645\u0631\u062a\u0628\u0637',
-  craftAddSuccess: '\u062a\u0645\u062a \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0635\u0646\u0639\u0629.',
-  craftDeleteSuccess:
-    '\u062a\u0645 \u062d\u0630\u0641 \u0627\u0644\u0635\u0646\u0639\u0629 \u0628\u062f\u0648\u0646 \u062d\u0630\u0641 \u0627\u0644\u0639\u0645\u0627\u0644.',
-  craftRequired:
-    '\u0627\u0643\u062a\u0628 \u0627\u0633\u0645 \u0627\u0644\u0635\u0646\u0639\u0629 \u0623\u0648\u0644\u0627\u064b.',
-  craftDuplicate:
-    '\u0627\u0644\u0635\u0646\u0639\u0629 \u0645\u0648\u062c\u0648\u062f\u0629 \u0645\u0633\u0628\u0642\u0627\u064b.',
-  craftAddError:
-    '\u062a\u0639\u0630\u0631 \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0635\u0646\u0639\u0629.',
-  craftDeleteError:
-    '\u062a\u0639\u0630\u0631 \u062d\u0630\u0641 \u0627\u0644\u0635\u0646\u0639\u0629.',
-  craftsLoadError:
-    '\u062a\u0639\u0630\u0631 \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u0635\u0646\u0639\u0627\u062a.',
-  craftDeleteConfirm:
-    '\u0647\u0644 \u0623\u0646\u062a \u0645\u062a\u0623\u0643\u062f \u0645\u0646 \u062d\u0630\u0641 \u0647\u0630\u0647 \u0627\u0644\u0635\u0646\u0639\u0629\u061f \u0627\u0644\u0639\u0645\u0627\u0644 \u0644\u0646 \u064a\u062a\u0645 \u062d\u0630\u0641\u0647\u0645.',
-  title: 'لوحة الآدمن',
-  subtitle: 'متابعة حالة الموقع، المستخدمين، الصنايعية، الطلبات، والصنعات من مكان واحد',
-  quickActions: 'إجراءات سريعة',
-  recentRequests: 'آخر الطلبات',
-  recentWorkers: 'آخر الصنايعية المسجلين',
+  title: 'لوحة تحكم الأدمن',
+  subtitle: 'إدارة تشغيلية كاملة للمستخدمين، الصنايعية، الطلبات، والصنعات من مكان واحد.',
+  loading: 'جاري تجهيز لوحة التحكم...',
+  refresh: 'تحديث البيانات',
+  logout: 'تسجيل الخروج',
+  searchPlaceholder: 'ابحث بالاسم، البريد، المدينة، الخدمة...',
+  allStatuses: 'كل الحالات',
+  noResults: 'لا توجد نتائج مطابقة.',
   platformStatus: 'حالة المنصة',
-  customer: 'العميل',
-  service: 'الخدمة',
-  city: 'المدينة',
-  status: 'الحالة',
-  priceRange: 'السعر',
-  loading: 'جاري تجهيز لوحة الآدمن...',
-  emptyRequests: 'لا يوجد طلبات لعرضها حالياً.',
-  emptyWorkers: 'لا يوجد صنايعية لعرضهم حالياً.',
+  adminPowers: 'صلاحيات الأدمن',
+  requestsManagement: 'إدارة الطلبات',
+  usersManagement: 'إدارة المستخدمين',
+  workersManagement: 'إدارة الصنايعية',
+  craftsManagement: 'إدارة الصنعات',
+  recentRequests: 'آخر الطلبات',
+  recentWorkers: 'صنايعية جدد',
+  addCraft: 'إضافة صنعة',
+  addingCraft: 'جاري الإضافة...',
+  save: 'حفظ',
+  saving: 'جاري الحفظ...',
+  cancel: 'إلغاء',
+  deleteCraft: 'حذف',
+  deletingCraft: 'جاري الحذف...',
+  craftNameLabel: 'اسم الصنعة',
+  craftNamePlaceholder: 'مثال: نجارة',
+  craftRequired: 'اكتب اسم الصنعة أولاً.',
+  craftDuplicate: 'الصنعة موجودة مسبقاً.',
+  craftAddSuccess: 'تمت إضافة الصنعة.',
+  craftUpdateSuccess: 'تم تعديل الصنعة.',
+  craftDeleteSuccess: 'تم حذف الصنعة بدون حذف العمال.',
+  craftAddError: 'تعذر إضافة الصنعة.',
+  craftUpdateError: 'تعذر تعديل الصنعة.',
+  craftDeleteError: 'تعذر حذف الصنعة.',
+  craftDeleteConfirm: 'هل أنت متأكد من حذف هذه الصنعة؟ سيتم فك ارتباطها من العمال بدون حذف العمال.',
+  requestsLoadError: 'تعذر تحميل الطلبات.',
+  usersLoadError: 'تعذر تحميل المستخدمين.',
+  workersLoadError: 'تعذر تحميل الصنايعية.',
+  craftsLoadError: 'تعذر تحميل الصنعات.',
+  requestStatusError: 'تعذر تحديث حالة الطلب.',
+  dashboardLoadError: 'تعذر تحميل بيانات لوحة الأدمن.',
+  workersLinked: 'عامل مرتبط',
+  unknown: 'غير محدد',
 };
+
+const STATUS_OPTIONS = [
+  { value: 'pending', label: 'بانتظار الرد' },
+  { value: 'in_progress', label: 'تم التواصل' },
+  { value: 'completed', label: 'مكتمل' },
+  { value: 'cancelled', label: 'ملغي' },
+];
+
+const STATUS_LABELS = STATUS_OPTIONS.reduce(
+  (labels, status) => ({
+    ...labels,
+    [status.value]: status.label,
+  }),
+  {
+    done: 'مكتمل',
+    closed: 'مغلق',
+    new: 'جديد',
+  }
+);
+
+const TABS = [
+  { id: 'overview', label: 'نظرة عامة', icon: FiGrid },
+  { id: 'requests', label: 'الطلبات', icon: FiClock },
+  { id: 'users', label: 'المستخدمين', icon: FiUsers },
+  { id: 'workers', label: 'الصنايعية', icon: FiBriefcase },
+  { id: 'crafts', label: 'الصنعات', icon: FiTool },
+  { id: 'permissions', label: 'الصلاحيات', icon: FiLock },
+];
 
 const fallbackDashboard = {
   stats: {
@@ -77,21 +123,47 @@ const fallbackDashboard = {
 };
 
 function formatDate(value) {
-  if (!value) {
-    return '';
-  }
+  if (!value) return '';
 
   const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
 
-  if (Number.isNaN(date.getTime())) {
-    return '';
-  }
-
-  return date.toLocaleDateString('ar');
+  return new Intl.DateTimeFormat('ar', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
 }
 
 function formatNumber(value) {
   return Number(value || 0).toLocaleString('ar');
+}
+
+function normalizeSearch(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function compact(values) {
+  return values.filter(Boolean).join(' ');
+}
+
+function statusLabel(status) {
+  const cleanStatus = normalizeSearch(status);
+  return STATUS_LABELS[cleanStatus] || status || text.unknown;
+}
+
+function statusClass(status) {
+  const cleanStatus = normalizeSearch(status).replace(/\s+/g, '_');
+  const aliases = {
+    مكتمل: 'completed',
+    مغلق: 'closed',
+    جديد: 'new',
+  };
+
+  if (aliases[cleanStatus]) {
+    return aliases[cleanStatus];
+  }
+
+  return cleanStatus || 'unknown';
 }
 
 function normalizeDashboard(data) {
@@ -111,10 +183,12 @@ function normalizeDashboard(data) {
   };
 }
 
-function normalizeCraftRows(data) {
-  const rows = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
+function getItems(data) {
+  return Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
+}
 
-  return rows
+function normalizeCraftRows(data) {
+  return getItems(data)
     .filter(Boolean)
     .map((craft) => ({
       id: craft.id,
@@ -125,31 +199,127 @@ function normalizeCraftRows(data) {
     .filter((craft) => craft.id && craft.name);
 }
 
+function normalizeUserRows(data) {
+  return getItems(data).map((user) => ({
+    id: user.id,
+    name: user.name || compact([user.firstname, user.lastname]) || user.email || text.unknown,
+    email: user.email || '',
+    phone: user.phone || '',
+    city: user.location || '',
+    role: user.role || text.unknown,
+    createdAt: user.createdAt,
+  }));
+}
+
+function normalizeWorkerRows(data) {
+  return getItems(data).map((worker) => ({
+    id: worker.id,
+    name: worker.name || text.unknown,
+    email: worker.email || '',
+    phone: worker.phone || '',
+    city: worker.city || '',
+    service: Array.isArray(worker.skill_names) && worker.skill_names.length
+      ? worker.skill_names.join('، ')
+      : worker.major || text.unknown,
+    price:
+      worker.min_price && worker.max_price
+        ? `${worker.min_price} - ${worker.max_price}`
+        : text.unknown,
+    rating: worker.rating || null,
+    reviewsCount: Number(worker.reviewsCount || 0),
+    createdAt: worker.createdAt,
+  }));
+}
+
+function normalizeRequestRows(data) {
+  return getItems(data).map((request) => ({
+    id: request.id,
+    description: request.description || '',
+    service: request.craftName || request.description || 'طلب خدمة',
+    city: request.city || request.customer?.location || '',
+    status: request.status || 'pending',
+    date: request.date || request.createdAt,
+    customerName:
+      request.customer?.name ||
+      request.clientName ||
+      compact([request.customer?.firstname, request.customer?.lastname]) ||
+      request.clientEmail ||
+      text.unknown,
+    customerEmail: request.customer?.email || request.clientEmail || '',
+    customerPhone: request.customer?.phone || request.clientPhone || '',
+    workerName: request.worker?.name || compact([request.worker?.firstname, request.worker?.lastname]) || '',
+    workerEmail: request.worker?.email || '',
+    workerPhone: request.worker?.phone || '',
+    updatedAt: request.updatedAt,
+  }));
+}
+
+function rowMatchesSearch(row, searchTerm, fields) {
+  const cleanSearch = normalizeSearch(searchTerm);
+  if (!cleanSearch) return true;
+
+  return fields.some((field) => normalizeSearch(row[field]).includes(cleanSearch));
+}
+
+function SectionEmpty({ message = text.noResults }) {
+  return (
+    <div className="admin-empty-state">
+      <FiSearch />
+      <span>{message}</span>
+    </div>
+  );
+}
+
 function AdminPage() {
   const navigate = useNavigate();
   const [checkingAccess, setCheckingAccess] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
   const [dashboard, setDashboard] = useState(fallbackDashboard);
-  const [error, setError] = useState('');
+  const [requests, setRequests] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [workers, setWorkers] = useState([]);
   const [crafts, setCrafts] = useState([]);
-  const [craftsLoading, setCraftsLoading] = useState(true);
+  const [loading, setLoading] = useState({
+    dashboard: false,
+    requests: false,
+    users: false,
+    workers: false,
+    crafts: false,
+  });
+  const [error, setError] = useState('');
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [craftName, setCraftName] = useState('');
-  const [craftActionError, setCraftActionError] = useState('');
-  const [craftActionSuccess, setCraftActionSuccess] = useState('');
+  const [editingCraftId, setEditingCraftId] = useState(null);
+  const [editingCraftName, setEditingCraftName] = useState('');
+  const [craftMessage, setCraftMessage] = useState({ type: '', text: '' });
   const [addingCraft, setAddingCraft] = useState(false);
+  const [updatingCraftId, setUpdatingCraftId] = useState(null);
   const [deletingCraftId, setDeletingCraftId] = useState(null);
+  const [updatingRequestId, setUpdatingRequestId] = useState(null);
 
-  const handleAdminAuthError = (err) => {
-    if (err?.status === 401 || err?.status === 403) {
-      localStorage.removeItem('binaa_admin_token');
-      localStorage.removeItem('binaa_admin_user');
-      navigate('/login', { replace: true });
-      return true;
-    }
+  const setSectionLoading = useCallback((section, value) => {
+    setLoading((current) => ({
+      ...current,
+      [section]: value,
+    }));
+  }, []);
 
-    return false;
-  };
+  const handleAdminAuthError = useCallback(
+    (err) => {
+      if (err?.status === 401 || err?.status === 403) {
+        localStorage.removeItem('binaa_admin_token');
+        localStorage.removeItem('binaa_admin_user');
+        navigate('/login', { replace: true });
+        return true;
+      }
 
-  const getAdminHeaders = () => {
+      return false;
+    },
+    [navigate]
+  );
+
+  const getAdminHeaders = useCallback(() => {
     const token = localStorage.getItem('binaa_admin_token');
 
     if (!token) {
@@ -157,10 +327,104 @@ function AdminPage() {
       return null;
     }
 
-    return {
-      Authorization: `Bearer ${token}`,
-    };
-  };
+    return { Authorization: `Bearer ${token}` };
+  }, [navigate]);
+
+  const fetchAdmin = useCallback(
+    (path, options = {}) => {
+      const headers = getAdminHeaders();
+
+      if (!headers) {
+        return Promise.reject(new Error('Missing admin token.'));
+      }
+
+      return fetchJson(path, {
+        ...options,
+        headers: {
+          ...headers,
+          ...(options.headers || {}),
+        },
+      });
+    },
+    [getAdminHeaders]
+  );
+
+  const loadDashboard = useCallback(async () => {
+    setSectionLoading('dashboard', true);
+    try {
+      const data = await fetchAdmin('/api/admin/dashboard');
+      setDashboard(normalizeDashboard(data));
+      setError('');
+    } catch (err) {
+      if (!handleAdminAuthError(err)) {
+        setError(getApiErrorMessage(err, text.dashboardLoadError));
+      }
+    } finally {
+      setSectionLoading('dashboard', false);
+    }
+  }, [fetchAdmin, handleAdminAuthError, setSectionLoading]);
+
+  const loadRequests = useCallback(async () => {
+    setSectionLoading('requests', true);
+    try {
+      const data = await fetchAdmin('/api/admin/requests?limit=50');
+      setRequests(normalizeRequestRows(data));
+    } catch (err) {
+      if (!handleAdminAuthError(err)) {
+        setError(getApiErrorMessage(err, text.requestsLoadError));
+      }
+    } finally {
+      setSectionLoading('requests', false);
+    }
+  }, [fetchAdmin, handleAdminAuthError, setSectionLoading]);
+
+  const loadUsers = useCallback(async () => {
+    setSectionLoading('users', true);
+    try {
+      const data = await fetchAdmin('/api/admin/users?limit=50');
+      setUsers(normalizeUserRows(data));
+    } catch (err) {
+      if (!handleAdminAuthError(err)) {
+        setError(getApiErrorMessage(err, text.usersLoadError));
+      }
+    } finally {
+      setSectionLoading('users', false);
+    }
+  }, [fetchAdmin, handleAdminAuthError, setSectionLoading]);
+
+  const loadWorkers = useCallback(async () => {
+    setSectionLoading('workers', true);
+    try {
+      const data = await fetchAdmin('/api/admin/workers?limit=50');
+      setWorkers(normalizeWorkerRows(data));
+    } catch (err) {
+      if (!handleAdminAuthError(err)) {
+        setError(getApiErrorMessage(err, text.workersLoadError));
+      }
+    } finally {
+      setSectionLoading('workers', false);
+    }
+  }, [fetchAdmin, handleAdminAuthError, setSectionLoading]);
+
+  const loadCrafts = useCallback(async () => {
+    setSectionLoading('crafts', true);
+    try {
+      const data = await fetchAdmin('/api/admin/crafts?limit=50');
+      setCrafts(normalizeCraftRows(data));
+    } catch (err) {
+      if (!handleAdminAuthError(err)) {
+        setCraftMessage({ type: 'error', text: getApiErrorMessage(err, text.craftsLoadError) });
+      }
+    } finally {
+      setSectionLoading('crafts', false);
+    }
+  }, [fetchAdmin, handleAdminAuthError, setSectionLoading]);
+
+  const refreshAll = useCallback(async () => {
+    setError('');
+    setCraftMessage({ type: '', text: '' });
+    await Promise.all([loadDashboard(), loadRequests(), loadUsers(), loadWorkers(), loadCrafts()]);
+  }, [loadCrafts, loadDashboard, loadRequests, loadUsers, loadWorkers]);
 
   useEffect(() => {
     const token = localStorage.getItem('binaa_admin_token');
@@ -170,77 +434,25 @@ function AdminPage() {
       return;
     }
 
-    fetchJson('/api/admin/dashboard', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((data) => {
-        setDashboard(normalizeDashboard(data));
-        setCheckingAccess(false);
-      })
-      .catch((err) => {
-        if (err?.status === 401 || err?.status === 403) {
-          localStorage.removeItem('binaa_admin_token');
-          localStorage.removeItem('binaa_admin_user');
-          navigate('/login', { replace: true });
-          return;
-        }
-
-        setError(getApiErrorMessage(err, 'تعذر تحميل بيانات لوحة الآدمن.'));
-        setCheckingAccess(false);
-      });
-  }, [navigate]);
-
-  useEffect(() => {
-    const token = localStorage.getItem('binaa_admin_token');
     let isMounted = true;
 
-    if (!token) {
-      return () => {
-        isMounted = false;
-      };
-    }
-
-    setCraftsLoading(true);
-
-    fetchJson('/api/admin/crafts?limit=50', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((data) => {
-        if (!isMounted) {
-          return;
-        }
-
-        setCrafts(normalizeCraftRows(data));
-        setCraftActionError('');
-      })
-      .catch((err) => {
-        if (!isMounted) {
-          return;
-        }
-
-        if (err?.status === 401 || err?.status === 403) {
-          localStorage.removeItem('binaa_admin_token');
-          localStorage.removeItem('binaa_admin_user');
-          navigate('/login', { replace: true });
-          return;
-        }
-
-        setCraftActionError(getApiErrorMessage(err, text.craftsLoadError));
-      })
-      .finally(() => {
-        if (isMounted) {
-          setCraftsLoading(false);
-        }
-      });
+    setCheckingAccess(true);
+    refreshAll().finally(() => {
+      if (isMounted) {
+        setCheckingAccess(false);
+      }
+    });
 
     return () => {
       isMounted = false;
     };
-  }, [navigate]);
+  }, [navigate, refreshAll]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('binaa_admin_token');
+    localStorage.removeItem('binaa_admin_user');
+    navigate('/login', { replace: true });
+  };
 
   const stats = useMemo(
     () => [
@@ -248,41 +460,93 @@ function AdminPage() {
         label: 'المستخدمون',
         value: dashboard.stats.users,
         note: 'كل الحسابات المسجلة',
-        icon: <FaUsers />,
+        icon: FiUsers,
+        tone: 'blue',
       },
       {
         label: 'الصنايعية',
         value: dashboard.stats.workers,
         note: 'بروفايلات العمال',
-        icon: <FaHardHat />,
+        icon: FiBriefcase,
+        tone: 'amber',
       },
       {
         label: 'الطلبات',
         value: dashboard.stats.requests,
         note: `${formatNumber(dashboard.stats.openRequests)} طلب مفتوح`,
-        icon: <FaClipboardList />,
+        icon: FiClock,
+        tone: 'green',
       },
       {
         label: 'الصنعات',
         value: dashboard.stats.crafts,
         note: 'الخدمات المتاحة',
-        icon: <FaTools />,
+        icon: FiTool,
+        tone: 'violet',
       },
       {
         label: 'الطلبات المكتملة',
         value: dashboard.stats.completedRequests,
         note: 'طلبات منتهية',
-        icon: <FaRegClock />,
+        icon: FiCheckCircle,
+        tone: 'emerald',
       },
       {
         label: 'التقييمات',
         value: dashboard.stats.reviews,
         note: 'مراجعات العملاء',
-        icon: <FaShieldAlt />,
+        icon: FiShield,
+        tone: 'slate',
       },
     ],
     [dashboard.stats]
   );
+
+  const filteredRequests = useMemo(
+    () =>
+      requests
+        .filter((request) => statusFilter === 'all' || request.status === statusFilter)
+        .filter((request) =>
+          rowMatchesSearch(request, query, [
+            'customerName',
+            'customerEmail',
+            'customerPhone',
+            'workerName',
+            'workerEmail',
+            'service',
+            'city',
+            'description',
+          ])
+        ),
+    [query, requests, statusFilter]
+  );
+
+  const filteredUsers = useMemo(
+    () => users.filter((user) => rowMatchesSearch(user, query, ['name', 'email', 'phone', 'city', 'role'])),
+    [query, users]
+  );
+
+  const filteredWorkers = useMemo(
+    () =>
+      workers.filter((worker) =>
+        rowMatchesSearch(worker, query, ['name', 'email', 'phone', 'city', 'service', 'price'])
+      ),
+    [query, workers]
+  );
+
+  const filteredCrafts = useMemo(
+    () => crafts.filter((craft) => rowMatchesSearch(craft, query, ['name'])),
+    [crafts, query]
+  );
+
+  const visibleCountByTab = {
+    overview: stats.length,
+    requests: filteredRequests.length,
+    users: filteredUsers.length,
+    workers: filteredWorkers.length,
+    crafts: filteredCrafts.length,
+    permissions: 6,
+  };
 
   const refreshCraftStat = (change) => {
     setDashboard((currentDashboard) => ({
@@ -300,51 +564,96 @@ function AdminPage() {
     const cleanName = craftName.trim();
 
     if (!cleanName) {
-      setCraftActionError(text.craftRequired);
-      setCraftActionSuccess('');
-      return;
-    }
-
-    const headers = getAdminHeaders();
-
-    if (!headers) {
+      setCraftMessage({ type: 'error', text: text.craftRequired });
       return;
     }
 
     setAddingCraft(true);
-    setCraftActionError('');
-    setCraftActionSuccess('');
+    setCraftMessage({ type: '', text: '' });
 
     try {
-      const data = await fetchJson('/api/admin/crafts', {
+      const data = await fetchAdmin('/api/admin/crafts', {
         method: 'POST',
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: cleanName }),
       });
       const [createdCraft] = normalizeCraftRows({ items: [data?.item] });
 
       if (createdCraft) {
         setCrafts((currentCrafts) =>
-          [...currentCrafts, createdCraft].sort((first, second) =>
-            first.name.localeCompare(second.name, 'ar')
-          )
+          [...currentCrafts, createdCraft].sort((first, second) => first.name.localeCompare(second.name, 'ar'))
         );
         refreshCraftStat(1);
       }
 
       setCraftName('');
-      setCraftActionSuccess(text.craftAddSuccess);
+      setCraftMessage({ type: 'success', text: text.craftAddSuccess });
     } catch (err) {
-      if (handleAdminAuthError(err)) {
-        return;
+      if (!handleAdminAuthError(err)) {
+        setCraftMessage({
+          type: 'error',
+          text: err?.status === 409 ? text.craftDuplicate : getApiErrorMessage(err, text.craftAddError),
+        });
       }
-
-      setCraftActionError(err?.status === 409 ? text.craftDuplicate : getApiErrorMessage(err, text.craftAddError));
     } finally {
       setAddingCraft(false);
+    }
+  };
+
+  const startEditCraft = (craft) => {
+    setEditingCraftId(craft.id);
+    setEditingCraftName(craft.name);
+    setCraftMessage({ type: '', text: '' });
+  };
+
+  const cancelEditCraft = () => {
+    setEditingCraftId(null);
+    setEditingCraftName('');
+  };
+
+  const handleUpdateCraft = async (craft) => {
+    const cleanName = editingCraftName.trim();
+
+    if (!cleanName) {
+      setCraftMessage({ type: 'error', text: text.craftRequired });
+      return;
+    }
+
+    if (cleanName === craft.name) {
+      cancelEditCraft();
+      return;
+    }
+
+    setUpdatingCraftId(craft.id);
+    setCraftMessage({ type: '', text: '' });
+
+    try {
+      const data = await fetchAdmin(`/api/admin/crafts/${craft.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: cleanName }),
+      });
+      const [updatedCraft] = normalizeCraftRows({ items: [data?.item] });
+
+      if (updatedCraft) {
+        setCrafts((currentCrafts) =>
+          currentCrafts
+            .map((currentCraft) => (currentCraft.id === craft.id ? updatedCraft : currentCraft))
+            .sort((first, second) => first.name.localeCompare(second.name, 'ar'))
+        );
+      }
+
+      cancelEditCraft();
+      setCraftMessage({ type: 'success', text: text.craftUpdateSuccess });
+    } catch (err) {
+      if (!handleAdminAuthError(err)) {
+        setCraftMessage({
+          type: 'error',
+          text: err?.status === 409 ? text.craftDuplicate : getApiErrorMessage(err, text.craftUpdateError),
+        });
+      }
+    } finally {
+      setUpdatingCraftId(null);
     }
   };
 
@@ -353,35 +662,122 @@ function AdminPage() {
       return;
     }
 
-    const headers = getAdminHeaders();
-
-    if (!headers) {
-      return;
-    }
-
     setDeletingCraftId(craft.id);
-    setCraftActionError('');
-    setCraftActionSuccess('');
+    setCraftMessage({ type: '', text: '' });
 
     try {
-      await fetchJson(`/api/admin/crafts/${craft.id}`, {
+      await fetchAdmin(`/api/admin/crafts/${craft.id}`, {
         method: 'DELETE',
-        headers,
       });
 
       setCrafts((currentCrafts) => currentCrafts.filter((currentCraft) => currentCraft.id !== craft.id));
       refreshCraftStat(-1);
-      setCraftActionSuccess(text.craftDeleteSuccess);
+      setCraftMessage({ type: 'success', text: text.craftDeleteSuccess });
     } catch (err) {
-      if (handleAdminAuthError(err)) {
-        return;
+      if (!handleAdminAuthError(err)) {
+        setCraftMessage({ type: 'error', text: getApiErrorMessage(err, text.craftDeleteError) });
       }
-
-      setCraftActionError(getApiErrorMessage(err, text.craftDeleteError));
     } finally {
       setDeletingCraftId(null);
     }
   };
+
+  const handleRequestStatusChange = async (request, nextStatus) => {
+    if (!nextStatus || nextStatus === request.status) {
+      return;
+    }
+
+    setUpdatingRequestId(request.id);
+    setError('');
+
+    try {
+      const data = await fetchAdmin(`/api/admin/requests/${request.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      const [updatedRequest] = normalizeRequestRows({ items: [data?.item] });
+
+      if (updatedRequest) {
+        setRequests((currentRequests) =>
+          currentRequests.map((currentRequest) =>
+            currentRequest.id === request.id ? updatedRequest : currentRequest
+          )
+        );
+      }
+
+      loadDashboard();
+    } catch (err) {
+      if (!handleAdminAuthError(err)) {
+        setError(getApiErrorMessage(err, text.requestStatusError));
+      }
+    } finally {
+      setUpdatingRequestId(null);
+    }
+  };
+
+  const renderContactStack = (email, phone) => (
+    <div className="admin-contact-stack">
+      {email && (
+        <span>
+          <FiMail />
+          {email}
+        </span>
+      )}
+      {phone && (
+        <span>
+          <FiPhone />
+          {phone}
+        </span>
+      )}
+      {!email && !phone && <span>{text.unknown}</span>}
+    </div>
+  );
+
+  const permissions = [
+    {
+      title: 'الطلبات',
+      detail: 'عرض الطلبات وتغيير حالتها مباشرة.',
+      icon: FiClock,
+      action: 'تحديث الحالة',
+      available: true,
+    },
+    {
+      title: 'الصنعات',
+      detail: 'إضافة، تعديل، وحذف الصنعات وربطها بتقارير العمال.',
+      icon: FiTool,
+      action: 'إدارة كاملة',
+      available: true,
+    },
+    {
+      title: 'المستخدمون',
+      detail: 'عرض كل الحسابات وتتبّع بيانات التواصل والدور.',
+      icon: FiUsers,
+      action: 'عرض وبحث',
+      available: true,
+    },
+    {
+      title: 'الصنايعية',
+      detail: 'مراجعة بروفايلات العمال، التقييمات، الأسعار، والتخصصات.',
+      icon: FiBriefcase,
+      action: 'مراجعة تشغيلية',
+      available: true,
+    },
+    {
+      title: 'حالة المنصة',
+      detail: 'مراقبة اتصال الخادم وقاعدة البيانات من نفس الصفحة.',
+      icon: FiDatabase,
+      action: 'مراقبة',
+      available: true,
+    },
+    {
+      title: 'إجراءات حساسة',
+      detail: 'الحذف محصور بالصنعات فقط حتى لا تتأثر بيانات العملاء والطلبات.',
+      icon: FiAlertTriangle,
+      action: 'محمي',
+      available: true,
+    },
+  ];
 
   if (checkingAccess) {
     return (
@@ -389,7 +785,10 @@ function AdminPage() {
         <Header />
         <main className="admin-page" dir="rtl">
           <div className="admin-shell">
-            <div className="admin-loading">{text.loading}</div>
+            <div className="admin-loading">
+              <FiActivity />
+              <span>{text.loading}</span>
+            </div>
           </div>
         </main>
         <Footer />
@@ -404,168 +803,477 @@ function AdminPage() {
       <main className="admin-page" dir="rtl">
         <div className="admin-shell">
           <header className="admin-header">
-            <div>
+            <div className="admin-header__copy">
               <span className="admin-eyebrow">
-                <FaShieldAlt />
-                Admin
+                <FiShield />
+                Admin Console
               </span>
               <h1>{text.title}</h1>
               <p>{text.subtitle}</p>
+            </div>
+
+            <div className="admin-owner-actions">
+              <span className="admin-owner-email">
+                <FiMail />
+                {dashboard.platform.adminEmail || text.unknown}
+              </span>
+              <button type="button" className="admin-secondary-action" onClick={refreshAll}>
+                <FiRefreshCw className={loading.dashboard ? 'is-spinning' : ''} />
+                <span>{text.refresh}</span>
+              </button>
+              <button type="button" className="admin-logout-action" onClick={handleLogout}>
+                <FiLogOut />
+                <span>{text.logout}</span>
+              </button>
             </div>
           </header>
 
           {error && <div className="admin-error">{error}</div>}
 
           <section className="admin-stats" aria-label="Admin statistics">
-            {stats.map((item) => (
-              <article className="admin-stat-card" key={item.label}>
-                <div className="admin-stat-icon">{item.icon}</div>
-                <div>
-                  <span>{item.label}</span>
-                  <strong>{formatNumber(item.value)}</strong>
-                  <small>{item.note}</small>
-                </div>
-              </article>
-            ))}
-          </section>
+            {stats.map((item) => {
+              const Icon = item.icon;
 
-          <section className="admin-panel admin-crafts-panel" aria-labelledby="admin-crafts-title">
-            <div className="admin-panel-heading">
-              <h2 id="admin-crafts-title">{text.craftsManagement}</h2>
-              <FaTools />
-            </div>
-
-            <form className="admin-craft-form" onSubmit={handleAddCraft}>
-              <label htmlFor="admin-craft-name">{text.craftNameLabel}</label>
-              <div className="admin-craft-form-row">
-                <input
-                  id="admin-craft-name"
-                  type="text"
-                  value={craftName}
-                  onChange={(event) => setCraftName(event.target.value)}
-                  placeholder={text.craftNamePlaceholder}
-                  disabled={addingCraft}
-                />
-                <button type="submit" className="admin-primary-action admin-craft-submit" disabled={addingCraft}>
-                  <FaPlus />
-                  <span>{addingCraft ? text.addingCraft : text.addCraft}</span>
-                </button>
-              </div>
-            </form>
-
-            {craftActionError && <div className="admin-inline-message error">{craftActionError}</div>}
-            {craftActionSuccess && <div className="admin-inline-message success">{craftActionSuccess}</div>}
-
-            <div className="admin-craft-list">
-              {craftsLoading ? (
-                <div className="admin-empty">{text.craftsLoading}</div>
-              ) : crafts.length > 0 ? (
-                crafts.map((craft) => (
-                  <div className="admin-craft-item" key={craft.id}>
-                    <div>
-                      <strong>{craft.name}</strong>
-                      <span>
-                        {formatNumber(craft.workersCount)} {text.workersLinked}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      className="admin-delete-craft-button"
-                      onClick={() => handleDeleteCraft(craft)}
-                      disabled={deletingCraftId === craft.id}
-                      title={text.deleteCraft}
-                    >
-                      <FaTrash />
-                      <span>{deletingCraftId === craft.id ? text.deletingCraft : text.deleteCraft}</span>
-                    </button>
+              return (
+                <article className={`admin-stat-card admin-stat-card--${item.tone}`} key={item.label}>
+                  <div className="admin-stat-icon">
+                    <Icon />
                   </div>
-                ))
-              ) : (
-                <div className="admin-empty">{text.emptyCrafts}</div>
-              )}
-            </div>
+                  <div>
+                    <span>{item.label}</span>
+                    <strong>{formatNumber(item.value)}</strong>
+                    <small>{item.note}</small>
+                  </div>
+                </article>
+              );
+            })}
           </section>
 
-          <section className="admin-grid">
-            <div className="admin-panel">
+          <section className="admin-command-bar" aria-label="Admin controls">
+            <div className="admin-tabs" role="tablist" aria-label="أقسام لوحة الأدمن">
+              {TABS.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    className={`admin-tab ${activeTab === tab.id ? 'active' : ''}`}
+                    onClick={() => setActiveTab(tab.id)}
+                    role="tab"
+                    aria-selected={activeTab === tab.id}
+                  >
+                    <Icon />
+                    <span>{tab.label}</span>
+                    <b>{formatNumber(visibleCountByTab[tab.id] || 0)}</b>
+                  </button>
+                );
+              })}
+            </div>
+
+            {activeTab !== 'overview' && activeTab !== 'permissions' && (
+              <div className="admin-tools">
+                <label className="admin-search-control">
+                  <FiSearch />
+                  <input
+                    type="search"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder={text.searchPlaceholder}
+                  />
+                </label>
+
+                {activeTab === 'requests' && (
+                  <label className="admin-filter-control">
+                    <FiFilter />
+                    <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                      <option value="all">{text.allStatuses}</option>
+                      {STATUS_OPTIONS.map((status) => (
+                        <option key={status.value} value={status.value}>
+                          {status.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+              </div>
+            )}
+          </section>
+
+          {activeTab === 'overview' && (
+            <section className="admin-overview-grid">
+              <div className="admin-panel admin-panel--wide">
+                <div className="admin-panel-heading">
+                  <h2>{text.recentRequests}</h2>
+                  <FiClock />
+                </div>
+                <div className="admin-table-wrap">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>العميل</th>
+                        <th>الخدمة</th>
+                        <th>المدينة</th>
+                        <th>الحالة</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dashboard.recentRequests.map((request) => (
+                        <tr key={request.id}>
+                          <td>{request.customer || text.unknown}</td>
+                          <td>
+                            {request.service || text.unknown}
+                            {formatDate(request.date) && (
+                              <small className="admin-table-date">{formatDate(request.date)}</small>
+                            )}
+                          </td>
+                          <td>{request.city || text.unknown}</td>
+                          <td>
+                            <span className={`admin-status admin-status--${statusClass(request.status)}`}>
+                              {statusLabel(request.status)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {dashboard.recentRequests.length === 0 && <SectionEmpty />}
+                </div>
+              </div>
+
+              <aside className="admin-side-stack">
+                <div className="admin-panel">
+                  <div className="admin-panel-heading">
+                    <h2>{text.platformStatus}</h2>
+                    <FiDatabase />
+                  </div>
+                  <div className="admin-platform-list">
+                    <div>
+                      <span>الخادم</span>
+                      <strong>{dashboard.platform.apiStatus}</strong>
+                    </div>
+                    <div>
+                      <span>قاعدة البيانات</span>
+                      <strong>{dashboard.platform.databaseStatus}</strong>
+                    </div>
+                    <div>
+                      <span>إيميل الأدمن</span>
+                      <strong>{dashboard.platform.adminEmail || text.unknown}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="admin-panel">
+                  <div className="admin-panel-heading">
+                    <h2>{text.recentWorkers}</h2>
+                    <FiBriefcase />
+                  </div>
+                  <div className="admin-worker-list">
+                    {dashboard.recentWorkers.map((worker) => (
+                      <div className="admin-worker-item" key={worker.id}>
+                        <div>
+                          <strong>{worker.name}</strong>
+                          <span className="admin-worker-summary">
+                            <em className="admin-worker-summary__chip admin-worker-summary__chip--craft">
+                              <FiTool />
+                              {worker.service || text.unknown}
+                            </em>
+                            {worker.city && (
+                              <em className="admin-worker-summary__chip admin-worker-summary__chip--city">
+                                <FiMapPin />
+                                {worker.city}
+                              </em>
+                            )}
+                          </span>
+                        </div>
+                        <b>{worker.priceRange || text.unknown}</b>
+                      </div>
+                    ))}
+                    {dashboard.recentWorkers.length === 0 && <SectionEmpty />}
+                  </div>
+                </div>
+              </aside>
+            </section>
+          )}
+
+          {activeTab === 'requests' && (
+            <section className="admin-panel">
               <div className="admin-panel-heading">
-                <h2>{text.recentRequests}</h2>
-                <FaRegClock />
+                <h2>{text.requestsManagement}</h2>
+                <FiClock />
+              </div>
+
+              <div className="admin-request-list">
+                {loading.requests ? (
+                  <div className="admin-inline-loader">جاري تحميل الطلبات...</div>
+                ) : filteredRequests.length > 0 ? (
+                  filteredRequests.map((request) => (
+                    <article className="admin-request-card" key={request.id}>
+                      <div className="admin-request-card__main">
+                        <div className="admin-request-card__top">
+                          <div>
+                            <span className="admin-mini-label">{request.service}</span>
+                            <h3>{request.customerName}</h3>
+                          </div>
+                          <span className={`admin-status admin-status--${statusClass(request.status)}`}>
+                            {statusLabel(request.status)}
+                          </span>
+                        </div>
+
+                        <p>{request.description || 'لا توجد تفاصيل إضافية.'}</p>
+
+                        <div className="admin-meta-grid">
+                          <span>
+                            <FiMapPin />
+                            {request.city || text.unknown}
+                          </span>
+                          <span>
+                            <FiClock />
+                            {formatDate(request.date) || text.unknown}
+                          </span>
+                          <span>
+                            <FiBriefcase />
+                            {request.workerName || 'غير مرتبط بعامل'}
+                          </span>
+                          <span>
+                            <FiPhone />
+                            {request.customerPhone || text.unknown}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="admin-request-card__actions">
+                        <label>تغيير الحالة</label>
+                        <select
+                          value={STATUS_OPTIONS.some((status) => status.value === request.status) ? request.status : 'pending'}
+                          onChange={(event) => handleRequestStatusChange(request, event.target.value)}
+                          disabled={updatingRequestId === request.id}
+                        >
+                          {STATUS_OPTIONS.map((status) => (
+                            <option key={status.value} value={status.value}>
+                              {status.label}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="admin-request-contact">
+                          {renderContactStack(request.customerEmail, request.customerPhone)}
+                        </div>
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <SectionEmpty />
+                )}
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'users' && (
+            <section className="admin-panel">
+              <div className="admin-panel-heading">
+                <h2>{text.usersManagement}</h2>
+                <FiUsers />
               </div>
               <div className="admin-table-wrap">
-                <table className="admin-table">
+                <table className="admin-table admin-table--comfortable">
                   <thead>
                     <tr>
-                      <th>{text.customer}</th>
-                      <th>{text.service}</th>
-                      <th>{text.city}</th>
-                      <th>{text.status}</th>
+                      <th>المستخدم</th>
+                      <th>الدور</th>
+                      <th>التواصل</th>
+                      <th>المدينة</th>
+                      <th>تاريخ التسجيل</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {dashboard.recentRequests.map((request) => (
-                      <tr key={request.id}>
-                        <td>{request.customer}</td>
+                    {filteredUsers.map((user) => (
+                      <tr key={user.id}>
                         <td>
-                          {request.service}
-                          {formatDate(request.date) && (
-                            <small className="admin-table-date">{formatDate(request.date)}</small>
-                          )}
+                          <strong>{user.name}</strong>
+                          <small className="admin-table-date">{user.email}</small>
                         </td>
-                        <td>{request.city}</td>
                         <td>
-                          <span className="admin-status">{request.status}</span>
+                          <span className="admin-role-chip">{user.role}</span>
                         </td>
+                        <td>{renderContactStack(user.email, user.phone)}</td>
+                        <td>{user.city || text.unknown}</td>
+                        <td>{formatDate(user.createdAt) || text.unknown}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                {dashboard.recentRequests.length === 0 && (
-                  <div className="admin-empty">{text.emptyRequests}</div>
+                {loading.users ? <div className="admin-inline-loader">جاري تحميل المستخدمين...</div> : null}
+                {!loading.users && filteredUsers.length === 0 && <SectionEmpty />}
+              </div>
+            </section>
+          )}
+
+          {activeTab === 'workers' && (
+            <section className="admin-panel">
+              <div className="admin-panel-heading">
+                <h2>{text.workersManagement}</h2>
+                <FiBriefcase />
+              </div>
+              <div className="admin-worker-directory">
+                {loading.workers ? (
+                  <div className="admin-inline-loader">جاري تحميل الصنايعية...</div>
+                ) : filteredWorkers.length > 0 ? (
+                  filteredWorkers.map((worker) => (
+                    <article className="admin-directory-card" key={worker.id}>
+                      <div className="admin-directory-card__avatar">{worker.name.charAt(0)}</div>
+                      <div className="admin-directory-card__body">
+                        <h3>{worker.name}</h3>
+                        <span>{worker.service}</span>
+                        <div className="admin-directory-card__meta">
+                          <b>
+                            <FiMapPin />
+                            {worker.city || text.unknown}
+                          </b>
+                          <b>
+                            <FiCheckCircle />
+                            {worker.rating ? `${worker.rating}/5` : 'بدون تقييم'}
+                          </b>
+                          <b>{worker.price}</b>
+                        </div>
+                      </div>
+                      <div className="admin-directory-card__contact">
+                        {renderContactStack(worker.email, worker.phone)}
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <SectionEmpty />
                 )}
               </div>
-            </div>
+            </section>
+          )}
 
-            <aside className="admin-side-stack">
-              <div className="admin-panel">
-                <h2>{text.platformStatus}</h2>
-                <div className="admin-platform-list">
-                  <div>
-                    <span>الخادم</span>
-                    <strong>{dashboard.platform.apiStatus}</strong>
-                  </div>
-                  <div>
-                    <span>قاعدة البيانات</span>
-                    <strong>{dashboard.platform.databaseStatus}</strong>
-                  </div>
-                  <div>
-                    <span>إيميل الآدمن</span>
-                    <strong>{dashboard.platform.adminEmail || 'غير محدد'}</strong>
-                  </div>
-                </div>
+          {activeTab === 'crafts' && (
+            <section className="admin-panel admin-crafts-panel" aria-labelledby="admin-crafts-title">
+              <div className="admin-panel-heading">
+                <h2 id="admin-crafts-title">{text.craftsManagement}</h2>
+                <FiTool />
               </div>
 
-              <div className="admin-panel">
-                <h2>{text.recentWorkers}</h2>
-                <div className="admin-worker-list">
-                  {dashboard.recentWorkers.map((worker) => (
-                    <div className="admin-worker-item" key={worker.id}>
-                      <div>
-                        <strong>{worker.name}</strong>
-                        <span>
-                          {worker.service} - {worker.city}
-                        </span>
+              <form className="admin-craft-form" onSubmit={handleAddCraft}>
+                <label htmlFor="admin-craft-name">{text.craftNameLabel}</label>
+                <div className="admin-craft-form-row">
+                  <input
+                    id="admin-craft-name"
+                    type="text"
+                    value={craftName}
+                    onChange={(event) => setCraftName(event.target.value)}
+                    placeholder={text.craftNamePlaceholder}
+                    disabled={addingCraft}
+                  />
+                  <button type="submit" className="admin-primary-action admin-craft-submit" disabled={addingCraft}>
+                    <FiPlus />
+                    <span>{addingCraft ? text.addingCraft : text.addCraft}</span>
+                  </button>
+                </div>
+              </form>
+
+              {craftMessage.text && (
+                <div className={`admin-inline-message ${craftMessage.type}`}>{craftMessage.text}</div>
+              )}
+
+              <div className="admin-craft-list">
+                {loading.crafts ? (
+                  <div className="admin-inline-loader">جاري تحميل الصنعات...</div>
+                ) : filteredCrafts.length > 0 ? (
+                  filteredCrafts.map((craft) => {
+                    const isEditing = editingCraftId === craft.id;
+
+                    return (
+                      <div className="admin-craft-item" key={craft.id}>
+                        <div className="admin-craft-item__body">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editingCraftName}
+                              onChange={(event) => setEditingCraftName(event.target.value)}
+                              autoFocus
+                            />
+                          ) : (
+                            <>
+                              <strong>{craft.name}</strong>
+                              <span>
+                                {formatNumber(craft.workersCount)} {text.workersLinked}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                        <div className="admin-craft-item__actions">
+                          {isEditing ? (
+                            <>
+                              <button
+                                type="button"
+                                className="admin-save-craft-button"
+                                onClick={() => handleUpdateCraft(craft)}
+                                disabled={updatingCraftId === craft.id}
+                              >
+                                <FiSave />
+                                <span>{updatingCraftId === craft.id ? text.saving : text.save}</span>
+                              </button>
+                              <button type="button" className="admin-cancel-craft-button" onClick={cancelEditCraft}>
+                                <FiX />
+                                <span>{text.cancel}</span>
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button type="button" className="admin-edit-craft-button" onClick={() => startEditCraft(craft)}>
+                                <FiEdit3 />
+                                <span>تعديل</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="admin-delete-craft-button"
+                                onClick={() => handleDeleteCraft(craft)}
+                                disabled={deletingCraftId === craft.id}
+                                title={text.deleteCraft}
+                              >
+                                <FiTrash2 />
+                                <span>{deletingCraftId === craft.id ? text.deletingCraft : text.deleteCraft}</span>
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
-                      <b>{worker.priceRange || text.priceRange}</b>
-                    </div>
-                  ))}
-                  {dashboard.recentWorkers.length === 0 && (
-                    <div className="admin-empty">{text.emptyWorkers}</div>
-                  )}
-                </div>
+                    );
+                  })
+                ) : (
+                  <SectionEmpty />
+                )}
               </div>
-            </aside>
-          </section>
+            </section>
+          )}
+
+          {activeTab === 'permissions' && (
+            <section className="admin-panel">
+              <div className="admin-panel-heading">
+                <h2>{text.adminPowers}</h2>
+                <FiLock />
+              </div>
+              <div className="admin-permission-grid">
+                {permissions.map((permission) => {
+                  const Icon = permission.icon;
+
+                  return (
+                    <article className="admin-permission-card" key={permission.title}>
+                      <div className="admin-permission-card__icon">
+                        <Icon />
+                      </div>
+                      <div>
+                        <h3>{permission.title}</h3>
+                        <p>{permission.detail}</p>
+                        <span>{permission.action}</span>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          )}
         </div>
       </main>
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FiAlertTriangle, FiInbox } from 'react-icons/fi';
 import { fetchJson, getApiErrorMessage } from '../../utils/api';
 import './OrdersPage.css';
 
@@ -139,7 +140,7 @@ export default function OrdersPage() {
     return (
       <main className="orders-page" dir="rtl">
         <section className="orders-access">
-          <span className="orders-access__icon">!</span>
+          <span className="orders-access__icon"><FiAlertTriangle /></span>
           <h1>صفحة الطلبات مخصصة للعامل</h1>
           <p>سجّل دخولك كعامل حتى تتابع الطلبات التي يرسلها العملاء من صفحة بروفايلك.</p>
           <Link to="/login" className="orders-primary-link">تسجيل الدخول</Link>
@@ -189,7 +190,7 @@ export default function OrdersPage() {
         </section>
       ) : requests.length === 0 ? (
         <section className="orders-empty">
-          <span className="orders-empty__icon">📭</span>
+          <span className="orders-empty__icon"><FiInbox /></span>
           <h2>لا يوجد طلبات بعد</h2>
           <p>عندما يضغط عميل على زر طلب الخدمة في بروفايلك، سيظهر الطلب هنا مباشرة.</p>
         </section>

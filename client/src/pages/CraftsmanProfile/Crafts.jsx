@@ -4,7 +4,7 @@ import Footer from "../../components/Footer";
 import { useNavigate } from "react-router-dom";
 import { fetchJson, getApiErrorMessage } from "../../utils/api";
 import { defaultCrafts } from "./craftPresentation";
-import { FiArrowLeft } from "react-icons/fi";
+import { FiAlertTriangle, FiArrowLeft, FiSearch } from "react-icons/fi";
 
 const buildCraftRows = (rows) =>
   rows.map((craft) => ({
@@ -113,7 +113,7 @@ function Crafts() {
             <div className="cr-search-wrapper">
               <div className="cr-search-box">
                 <span className="cr-search-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35"/></svg>
+                  <FiSearch />
                 </span>
                 <input 
                   type="text" 
@@ -138,7 +138,7 @@ function Crafts() {
             </div>
           ) : error ? (
             <div className="cr-error-state">
-              <span className="cr-error-icon">⚠️</span>
+              <span className="cr-error-icon"><FiAlertTriangle /></span>
               <p>{error}</p>
               <button onClick={() => window.location.reload()} className="cr-retry-btn">إعادة المحاولة</button>
             </div>
@@ -167,7 +167,7 @@ function Crafts() {
             </div>
           ) : (
             <div className="cr-empty-state">
-              <span className="cr-empty-icon">🔍</span>
+              <span className="cr-empty-icon"><FiSearch /></span>
               <h3>لم نجد نتائج مطابقة</h3>
               <p>حاول البحث بكلمة أخرى أو تصفح القائمة كاملة.</p>
               <button onClick={() => setSearchQuery("")} className="cr-clear-btn">عرض كل الصنعات</button>

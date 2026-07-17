@@ -52,6 +52,10 @@ function buildSearchWhere(search, fields) {
   };
 }
 
+function cleanString(value) {
+  return String(value || '').trim();
+}
+
 function formatUserName(user) {
   if (!user) {
     return 'Not specified';
@@ -74,6 +78,28 @@ function sanitizeUser(user) {
     role: plainUser.role?.type || null,
     role_id: plainUser.role_id,
     createdAt: plainUser.createdAt,
+  };
+}
+
+function sanitizeAdminRequest(requestModel) {
+  const request = toPlain(requestModel) || {};
+
+  return {
+    id: request.id,
+    description: request.description || '',
+    city: request.city || '',
+    date: request.date,
+    status: request.status || 'pending',
+    craftName: request.craft_name || '',
+    clientName: request.client_name || '',
+    clientEmail: request.client_email || '',
+    clientPhone: request.client_phone || '',
+    workerId: request.worker_id || null,
+    workerProfileId: request.worker_profile_id || null,
+    createdAt: request.createdAt,
+    updatedAt: request.updatedAt,
+    customer: request.user ? sanitizeUser(request.user) : null,
+    worker: request.worker ? sanitizeUser(request.worker) : null,
   };
 }
 
@@ -342,7 +368,23 @@ async function getRequests(req, res) {
       limit,
       offset,
       order: [['createdAt', 'DESC']],
-      attributes: ['id', 'description', 'city', 'date', 'status', 'user_id', 'offers_id', 'createdAt'],
+      attributes: [
+        'id',
+        'description',
+        'city',
+        'date',
+        'status',
+        'user_id',
+        'worker_id',
+        'worker_profile_id',
+        'craft_name',
+        'client_name',
+        'client_email',
+        'client_phone',
+        'offers_id',
+        'createdAt',
+        'updatedAt',
+      ],
       include: [
         {
           model: User,
@@ -350,24 +392,87 @@ async function getRequests(req, res) {
           attributes: ['id', 'firstname', 'lastname', 'email', 'phone', 'location'],
           required: false,
         },
+        {
+          model: User,
+          as: 'worker',
+          attributes: ['id', 'firstname', 'lastname', 'email', 'phone', 'location'],
+          required: false,
+        },
       ],
     });
 
     res.status(200).json({
-      items: rows.map((request) => ({
-        id: request.id,
-        description: request.description,
-        city: request.city,
-        date: request.date,
-        status: request.status,
-        createdAt: request.createdAt,
-        customer: request.user ? sanitizeUser(request.user) : null,
-      })),
+      items: rows.map(sanitizeAdminRequest),
       pagination: buildPagination(count, page, limit),
     });
   } catch (error) {
     res.status(500).json({
       message: 'Failed to load admin requests.',
+      error: error.message,
+    });
+  }
+}
+
+async function updateRequestStatus(req, res) {
+  const requestId = Number(req.params.id);
+  const nextStatus = cleanString(req.body.status);
+  const allowedStatuses = new Set(['pending', 'in_progress', 'completed', 'cancelled']);
+
+  if (!Number.isFinite(requestId) || requestId <= 0) {
+    return res.status(400).json({ message: 'Invalid request id.' });
+  }
+
+  if (!allowedStatuses.has(nextStatus)) {
+    return res.status(400).json({ message: 'Invalid request status.' });
+  }
+
+  try {
+    const request = await Request.findByPk(requestId);
+
+    if (!request) {
+      return res.status(404).json({ message: 'Request not found.' });
+    }
+
+    await request.update({ status: nextStatus });
+
+    const updatedRequest = await Request.findByPk(requestId, {
+      attributes: [
+        'id',
+        'description',
+        'city',
+        'date',
+        'status',
+        'user_id',
+        'worker_id',
+        'worker_profile_id',
+        'craft_name',
+        'client_name',
+        'client_email',
+        'client_phone',
+        'offers_id',
+        'createdAt',
+        'updatedAt',
+      ],
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'firstname', 'lastname', 'email', 'phone', 'location'],
+          required: false,
+        },
+        {
+          model: User,
+          as: 'worker',
+          attributes: ['id', 'firstname', 'lastname', 'email', 'phone', 'location'],
+          required: false,
+        },
+      ],
+    });
+
+    return res.status(200).json({ item: sanitizeAdminRequest(updatedRequest) });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Failed to update admin request status.',
       error: error.message,
     });
   }
@@ -502,6 +607,60 @@ async function createCraft(req, res) {
   }
 }
 
+async function updateCraft(req, res) {
+  const craftId = Number(req.params.id);
+  const skillName = cleanString(req.body.skill_name || req.body.name);
+
+  if (!Number.isFinite(craftId) || craftId <= 0) {
+    return res.status(400).json({ message: 'Invalid craft id.' });
+  }
+
+  if (!skillName) {
+    return res.status(400).json({ message: 'Craft name is required.' });
+  }
+
+  try {
+    const skill = await Skill.findByPk(craftId);
+
+    if (!skill) {
+      return res.status(404).json({ message: 'Craft not found.' });
+    }
+
+    const existingSkill = await Skill.findOne({
+      where: {
+        skill_name: skillName,
+        id: { [Op.ne]: craftId },
+      },
+    });
+
+    if (existingSkill) {
+      return res.status(409).json({ message: 'Craft already exists.' });
+    }
+
+    await skill.update({ skill_name: skillName });
+
+    const workersCount = await countSafely(Worker_Skill, {
+      where: {
+        skill_id: skill.id,
+      },
+    });
+
+    return res.status(200).json({
+      item: {
+        id: skill.id,
+        name: skill.skill_name,
+        createdAt: skill.createdAt,
+        workersCount,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Failed to update admin craft.',
+      error: error.message,
+    });
+  }
+}
+
 async function deleteCraft(req, res) {
   const craftId = Number(req.params.id);
 
@@ -553,4 +712,6 @@ module.exports = {
   getStats,
   getUsers,
   getWorkers,
+  updateCraft,
+  updateRequestStatus,
 };
