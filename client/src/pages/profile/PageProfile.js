@@ -1,33 +1,37 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Alert,
   Box,
   Button,
   CircularProgress,
-  Container,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Grid,
   Snackbar,
   TextField,
-  Typography,
 } from '@mui/material';
-import EditRoundedIcon from '@mui/icons-material/EditRounded';
-import ProfileHeader from '../../components/profile/ProfileHeader';
-import ProfileSkills from '../../components/profile/ProfileSkills';
-import ProfileStats from '../../components/profile/ProfileStats';
+import {
+  FiCalendar,
+  FiDollarSign,
+  FiBriefcase,
+  FiEdit3,
+  FiImage,
+  FiMail,
+  FiMapPin,
+  FiMessageSquare,
+  FiPhone,
+  FiSend,
+  FiShield,
+  FiStar,
+  FiTool,
+  FiUserCheck,
+} from 'react-icons/fi';
 import ProfileAvailability from '../../components/profile/ProfileAvailability';
-import ProfilePortfolio from '../../components/profile/ProfilePortfolio';
-import ProfileRegions from '../../components/profile/ProfileRegions';
-import ProfileVideoStats from '../../components/profile/ProfileVideoStats';
-import ProfileReviews from '../../components/profile/ProfileReviews';
 import AddReviewForm from '../../components/profile/AddReviewForm';
 import ProfileEditDialog from '../../components/profile/ProfileEditDialog';
 import ProfileCompletionCard from '../../components/profile/ProfileCompletionCard';
-import ProfileTrustBadges from '../../components/profile/ProfileTrustBadges';
 import { ApiError, fetchJson, getApiErrorMessage } from '../../utils/api';
 import { getFirstPortfolioImage, normalizePortfolioItems } from '../../utils/workerProfile';
 import './PageProfile.css';
@@ -39,6 +43,7 @@ const normalizeProfile = (profile) => ({
     lastname: 'منصة بناء',
     location: 'فلسطين',
     phone: '',
+    email: '',
   },
   reviews: Array.isArray(profile?.reviews) ? profile.reviews : [],
   skill_ids: Array.isArray(profile?.skill_ids) ? profile.skill_ids : [],
@@ -72,40 +77,75 @@ const withAvailability = async (profile) => {
   };
 };
 
-
 function formatPriceRange(profile) {
   if (profile?.min_price && profile?.max_price) {
     return `${profile.min_price} - ${profile.max_price} شيكل`;
   }
 
-
-
   if (profile?.min_price) {
     return `ابتداءً من ${profile.min_price} شيكل`;
   }
-
-
-
 
   if (profile?.max_price) {
     return `حتى ${profile.max_price} شيكل`;
   }
 
-
-
-
   return 'حسب طبيعة المشروع';
 }
 
-const WORKER_REQUEST_TEXT = {
-  sending: 'جاري إرسال الطلب...',
-  success:
-    'تم إرسال طلب الخدمة للعامل بنجاح.',
-  error:
-    'تعذر إرسال طلب الخدمة. حاول مرة أخرى.',
-  fallbackName: 'Binaa Test Client',
-  fallbackEmail: 'client@example.com',
-};
+function formatDate(value) {
+  if (!value) return '';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  return new Intl.DateTimeFormat('ar', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(date);
+}
+
+function getReviewerName(review) {
+  const firstname = String(review?.reviewer?.firstname || '').trim();
+  const lastname = String(review?.reviewer?.lastname || '').trim();
+  const fullName = `${firstname} ${lastname}`.trim();
+
+  return fullName || 'عميل من منصة بناء';
+}
+
+function getReviewerInitial(review) {
+  return getReviewerName(review).charAt(0) || 'ع';
+}
+
+function getReviewRating(review) {
+  const rating = Number(review?.rating);
+
+  if (!Number.isFinite(rating)) return 0;
+
+  return Math.min(5, Math.max(0, rating));
+}
+
+function formatReviewRating(rating) {
+  return Number.isInteger(rating) ? String(rating) : rating.toFixed(1);
+}
+
+function renderReviewStars(rating) {
+  const activeStars = Math.round(rating);
+
+  return Array.from({ length: 5 }, (_, index) => (
+    <FiStar key={index} className={index < activeStars ? 'active' : ''} aria-hidden="true" />
+  ));
+}
+
+function getAverageRating(reviews = []) {
+  const ratings = reviews.map((review) => Number(review.rating)).filter((rating) => Number.isFinite(rating));
+
+  if (!ratings.length) return null;
+
+  const total = ratings.reduce((sum, rating) => sum + rating, 0);
+  return (total / ratings.length).toFixed(1);
+}
 
 function getStoredAuthUser() {
   if (typeof window === 'undefined') {
@@ -119,12 +159,36 @@ function getStoredAuthUser() {
   }
 }
 
+const WORKER_REQUEST_TEXT = {
+  success: 'تم إرسال طلب الخدمة للعامل بنجاح.',
+  error: 'تعذر إرسال طلب الخدمة. حاول مرة أخرى.',
+  fallbackName: 'Binaa Pal Client',
+  fallbackEmail: 'client@example.com',
+};
 
+function StatTile({ icon: Icon, label, value }) {
+  return (
+    <div className="profile-stat-tile">
+      <span className="profile-stat-tile__icon">
+        <Icon />
+      </span>
+      <div className="profile-stat-tile__content">
+        <span className="profile-stat-tile__label">{label}</span>
+        <strong className="profile-stat-tile__value">{value}</strong>
+      </div>
+    </div>
+  );
+}
 
-
-
-
-
+function EmptyBlock({ icon: Icon, title, text }) {
+  return (
+    <div className="profile-empty-block">
+      <Icon />
+      <h3>{title}</h3>
+      <p>{text}</p>
+    </div>
+  );
+}
 
 const PageProfile = () => {
   const navigate = useNavigate();
@@ -141,18 +205,9 @@ const PageProfile = () => {
   const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
   const [serviceDescription, setServiceDescription] = useState('');
 
-
-
-
   useEffect(() => {
     let isMounted = true;
     window.scrollTo(0, 0);
-
-
-
-
-
-
 
     const fetchProfile = async () => {
       try {
@@ -190,11 +245,9 @@ const PageProfile = () => {
           return;
         }
 
-        if (!isMounted) {
-          return;
+        if (isMounted) {
+          setError(getApiErrorMessage(err));
         }
-
-        setError(getApiErrorMessage(err));
       } finally {
         if (isMounted) {
           setLoading(false);
@@ -209,34 +262,92 @@ const PageProfile = () => {
     };
   }, [id, navigate]);
 
+  const authUser = getStoredAuthUser();
+
+  const derived = useMemo(() => {
+    if (!profile) return null;
+
+    const fullName = `${profile.user.firstname || ''} ${profile.user.lastname || ''}`.trim() || 'حرفي بناء بال';
+    const portfolioItems = profile.portfolio_items || [];
+    const reviewCount = profile.reviews.length;
+    const averageRating = getAverageRating(profile.reviews);
+    const displayReviews = [...profile.reviews].sort((firstReview, secondReview) => {
+      const firstDate = new Date(firstReview.createdAt || firstReview.date || 0).getTime();
+      const secondDate = new Date(secondReview.createdAt || secondReview.date || 0).getTime();
+
+      return (Number.isFinite(secondDate) ? secondDate : 0) - (Number.isFinite(firstDate) ? firstDate : 0);
+    });
+    const priceRange = formatPriceRange(profile);
+    const profileUserId = Number(profile.user_id || profile.user?.id);
+    const authUserId = Number(authUser?.id);
+    const authWorkerProfileId = Number(authUser?.worker_profile?.id);
+    const canEditProfile =
+      (Number.isInteger(authUserId) && authUserId === profileUserId) ||
+      (Number.isInteger(authWorkerProfileId) && authWorkerProfileId === Number(profile.id));
+    const profileSkills = profile.skill_names.map((skill) => String(skill || '').trim()).filter(Boolean);
+    const majorSkills = String(profile.major || '')
+      .split(/,|،/)
+      .map((skill) => skill.trim())
+      .filter(Boolean);
+    const primarySkill = majorSkills[0] || profileSkills[0] || '';
+    const skillList = [...new Set([primarySkill, ...profileSkills, ...majorSkills.slice(1)].filter(Boolean))];
+    const heroImage = profile.profile_image || getFirstPortfolioImage(portfolioItems);
+    const activeAvailability = profile.availability.filter((slot) => slot.is_available !== false);
+    const joinedYear = profile.createdAt ? new Date(profile.createdAt).getFullYear() : 'حديثًا';
+
+    return {
+      activeAvailability,
+      averageRating,
+      canEditProfile,
+      displayReviews,
+      fullName,
+      heroImage,
+      joinedYear,
+      portfolioItems,
+      priceRange,
+      reviewCount,
+      skillList,
+    };
+  }, [authUser, profile]);
+
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-        <CircularProgress sx={{ color: '#5c7c43' }} />
-      </Box>
+      <div className="profile-page profile-page--state" dir="rtl">
+        <div className="profile-state-card">
+          <CircularProgress sx={{ color: '#2563eb' }} />
+          <p>جاري تحميل بروفايل العامل...</p>
+        </div>
+      </div>
     );
   }
 
-  if (error || !profile) {
+  if (error || !profile || !derived) {
     return (
-      <Box sx={{ textAlign: 'center', py: 10 }}>
-        <Typography variant="h5" color="error">
-          {error || 'الملف المهني غير موجود.'}
-        </Typography>
-      </Box>
+      <div className="profile-page profile-page--state" dir="rtl">
+        <div className="profile-state-card profile-state-card--error">
+          <FiShield />
+          <h1>{error || 'الملف المهني غير موجود.'}</h1>
+          <button type="button" onClick={() => navigate('/craftsman')}>
+            الرجوع للصنايعية
+          </button>
+        </div>
+      </div>
     );
   }
 
-  const fullName = `${profile.user.firstname} ${profile.user.lastname}`.trim();
-  const portfolioItems = profile.portfolio_items || [];
-  const priceRange = formatPriceRange(profile);
-  const authUser = getStoredAuthUser();
-  const authUserId = Number(authUser?.id);
-  const profileUserId = Number(profile.user_id || profile.user?.id);
-  const authWorkerProfileId = Number(authUser?.worker_profile?.id);
-  const canEditProfile =
-    (Number.isInteger(authUserId) && authUserId === profileUserId) ||
-    (Number.isInteger(authWorkerProfileId) && authWorkerProfileId === Number(profile.id));
+  const {
+    activeAvailability,
+    averageRating,
+    canEditProfile,
+    displayReviews,
+    fullName,
+    heroImage,
+    joinedYear,
+    portfolioItems,
+    priceRange,
+    reviewCount,
+    skillList,
+  } = derived;
 
   const handleSaveProfile = async (payload) => {
     setSaving(true);
@@ -282,8 +393,8 @@ const PageProfile = () => {
       return;
     }
 
-    const clientName = `${authUser?.firstname || ''} ${authUser?.lastname || ''}`.trim() ||
-      WORKER_REQUEST_TEXT.fallbackName;
+    const clientName =
+      `${authUser?.firstname || ''} ${authUser?.lastname || ''}`.trim() || WORKER_REQUEST_TEXT.fallbackName;
     const payload = {
       clientName,
       clientEmail: String(authUser?.email || WORKER_REQUEST_TEXT.fallbackEmail).trim(),
@@ -327,139 +438,335 @@ const PageProfile = () => {
     }
   };
 
-  return (
-    <div className="profile-page">
-      <Container maxWidth="lg" className="profile-shell">
-        <header className="profile-banner">
-          <div className="profile-banner__content">
-            <div className="profile-banner__actions">
-              <div>
-                <span className="profile-banner__eyebrow">صفحة العامل</span>
-                <Typography className="profile-banner__title">{fullName}</Typography>
-                <Typography className="profile-banner__subtitle">
-                  {profile.major || 'عامل مهني'}{profile.user.location ? ` • ${profile.user.location}` : ''}
-                </Typography>
-              </div>
+  const trustItems = [
+    {
+      icon: FiUserCheck,
+      label: profile.user?.phone || profile.user?.location ? 'بيانات تواصل واضحة' : 'بانتظار بيانات التواصل',
+      active: Boolean(profile.user?.phone || profile.user?.location),
+    },
+    {
+      icon: FiImage,
+      label: portfolioItems.length > 0 ? `${portfolioItems.length} أعمال مضافة` : 'لم يضف أعمالًا بعد',
+      active: portfolioItems.length > 0,
+    },
+    {
+      icon: FiStar,
+      label: reviewCount > 0 ? `${reviewCount} تقييمات من العملاء` : 'بانتظار أول تقييم',
+      active: reviewCount > 0,
+    },
+    {
+      icon: FiCalendar,
+      label: activeAvailability.length > 0 ? 'أوقات العمل محددة' : 'الأوقات غير محددة',
+      active: activeAvailability.length > 0,
+    },
+  ];
 
-              {canEditProfile && (
-                <Button
-                  type="button"
-                  variant="contained"
-                  startIcon={<EditRoundedIcon />}
-                  className="profile-banner__edit"
-                  onClick={() => setEditOpen(true)}
-                >
-                  تعديل البروفايل
-                </Button>
-              )}
+  return (
+    <div className="profile-page" dir="rtl">
+      <section className="profile-hero">
+        <div className="profile-shell profile-hero__grid">
+          <div className="profile-hero__main">
+            <div className="profile-hero__eyebrow">
+              <FiShield />
+              بروفايل عامل موثوق
             </div>
 
-            <Typography className="profile-banner__text">
-              {profile.bio ||
-                'هذه الصفحة تعرض نبذة مختصرة عن العامل، المهارات المرتبطة به، وسوابق الأعمال المضافة من خلال الحساب.'}
-            </Typography>
+            <div className="profile-hero__identity">
+              <div className="profile-avatar">
+                {heroImage ? (
+                  <img src={heroImage} alt={fullName} loading="lazy" />
+                ) : (
+                  <span>{fullName.charAt(0)}</span>
+                )}
+              </div>
 
-            <div className="profile-banner__meta">
-              <div className="profile-banner__pill">
-                <span className="profile-banner__pill-label">المهارات</span>
-                <strong>{profile.skill_names.length || 0}</strong>
+              <div className="profile-hero__text">
+                <div className="profile-hero__chips">
+                  {(skillList.length ? skillList.slice(0, 2) : ['عامل مهني']).map((skill, index) => (
+                    <span className={index === 0 ? 'profile-hero__chip--primary' : 'profile-hero__chip--secondary'} key={`${skill}-${index}`}>
+                      {index === 0 ? <FiTool /> : <FiBriefcase />}
+                      <b>{index === 0 ? 'أساسية' : 'ثانية'}</b>
+                      {skill}
+                    </span>
+                  ))}
+                  <span>
+                    <FiMapPin />
+                    {profile.user.location || 'فلسطين'}
+                  </span>
+                </div>
+                <h1>{fullName}</h1>
+                <p>
+                  {profile.bio ||
+                    'عامل مهني على منصة بناء بال. يمكنك مراجعة الأعمال السابقة، التقييمات، ومعلومات التواصل قبل إرسال طلب الخدمة.'}
+                </p>
               </div>
-              <div className="profile-banner__pill">
-                <span className="profile-banner__pill-label">الأعمال</span>
-                <strong>{portfolioItems.length}</strong>
-              </div>
-              <div className="profile-banner__pill">
-                <span className="profile-banner__pill-label">التسعير</span>
-                <strong>{priceRange}</strong>
-              </div>
+            </div>
+
+            <div className="profile-hero__actions">
+              {!canEditProfile && (
+                <button type="button" className="profile-primary-btn" onClick={openServiceDialog}>
+                  <FiSend />
+                  طلب خدمة مباشرة
+                </button>
+              )}
+              {canEditProfile && (
+                <button type="button" className="profile-primary-btn" onClick={() => setEditOpen(true)}>
+                  <FiEdit3 />
+                  تعديل البروفايل
+                </button>
+              )}
+              <button type="button" className="profile-secondary-btn" onClick={handleScrollToPortfolio}>
+                <FiImage />
+                عرض الأعمال
+              </button>
             </div>
           </div>
-        </header>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <section className="profile-panel">
-              <ProfileHeader 
-                profile={profile} 
-                onRequestService={(!canEditProfile && authUser) ? openServiceDialog : null} 
-                onShowPortfolio={handleScrollToPortfolio} 
-              />
-            </section>
-          </Grid>
+          <aside className="profile-hero__summary" aria-label="ملخص العامل">
+            <div className="profile-rating-box">
+              <span>
+                <FiStar />
+                التقييم
+              </span>
+              <strong>{averageRating || 'جديد'}</strong>
+              <small>{reviewCount > 0 ? `${reviewCount} تقييم` : 'لم يحصل على تقييمات بعد'}</small>
+            </div>
 
-          <Grid item xs={12} md={8}>
-            <Box className="profile-stack">
-              <section className="profile-panel" id="portfolio-section">
-                <ProfilePortfolio portfolio={profile.portfolio_items} />
-              </section>
-              <section className="profile-panel">
-                <ProfileReviews reviews={profile.reviews} />
-                <Box sx={{ mt: 4, pt: 4, borderTop: '1px solid #e3ddd4' }}>
-                   <AddReviewForm 
-                     workerProfileId={profile.id} 
-                     onReviewAdded={(newReview) => {
-                       setProfile(prev => ({
-                         ...prev,
-                         reviews: [newReview, ...prev.reviews]
-                       }));
-                     }} 
-                   />
-                </Box>
-              </section>
-            </Box>
-          </Grid>
+            <div className="profile-summary-grid">
+              <StatTile icon={FiBriefcase} label="الأعمال" value={portfolioItems.length} />
+              <StatTile icon={FiTool} label="المهارات" value={skillList.length || 0} />
+              <StatTile icon={FiCalendar} label="الانضمام" value={joinedYear} />
+              <StatTile icon={FiDollarSign} label="التسعير" value={priceRange} />
+            </div>
+          </aside>
+        </div>
+      </section>
 
-          <Grid item xs={12} md={4}>
-            <Box className="profile-stack">
-              {canEditProfile && (
-                <div className="profile-panel">
-                  <ProfileCompletionCard profile={profile} onEdit={() => setEditOpen(true)} />
+      <main className="profile-shell profile-layout">
+        <div className="profile-main-column">
+          <section className="profile-section">
+            <div className="profile-section__header">
+              <div>
+                <span>نبذة العامل</span>
+                <h2>تفاصيل تساعدك تختار بثقة</h2>
+              </div>
+            </div>
+
+            <div className="profile-info-grid">
+              <div>
+                <FiTool />
+                <span>الصنعة الأساسية</span>
+                <strong>{skillList[0] || 'غير محددة'}</strong>
+              </div>
+              {skillList.length > 1 && (
+                <div>
+                  <FiBriefcase />
+                  <span>الصنعة الثانية</span>
+                  <strong>{skillList.slice(1).join('، ')}</strong>
                 </div>
               )}
-
-              <div className="profile-panel">
-                <ProfileTrustBadges profile={profile} />
+              <div>
+                <FiMapPin />
+                <span>منطقة العمل</span>
+                <strong>{profile.user.location || 'غير محددة'}</strong>
               </div>
-
-              <div className="profile-panel" style={{ padding: 0, background: 'transparent', border: 'none' }}>
-                <ProfileVideoStats />
+              <div>
+                <FiPhone />
+                <span>رقم التواصل</span>
+                <strong>{profile.user.phone || 'غير مضاف'}</strong>
               </div>
-
-              <div className="profile-panel">
-                <ProfileStats profile={profile} />
+              <div>
+                <FiMail />
+                <span>البريد</span>
+                <strong>{profile.user.email || 'غير مضاف'}</strong>
               </div>
+            </div>
+          </section>
 
-              <div className="profile-panel">
-                <ProfileSkills major={profile.major} skills={profile.skill_names} />
+          <section className="profile-section" id="portfolio-section">
+            <div className="profile-section__header">
+              <div>
+                <span>معرض الأعمال</span>
+                <h2>أعمال وصور من مشاريع سابقة</h2>
               </div>
+              <b>{portfolioItems.length} عناصر</b>
+            </div>
 
-              <div className="profile-panel">
-                <ProfileAvailability availability={profile.availability} />
+            {portfolioItems.length > 0 ? (
+              <div className="profile-portfolio-grid">
+                {portfolioItems.map((item, index) => (
+                  <article className="profile-project-card" key={`${item.image || item.title || 'work'}-${index}`}>
+                    <div className="profile-project-card__image">
+                      {item.image ? (
+                        <img src={item.image} alt={item.title || `عمل رقم ${index + 1}`} loading="lazy" />
+                      ) : (
+                        <FiImage />
+                      )}
+                    </div>
+                    <div className="profile-project-card__body">
+                      <span>{item.tag || 'مشروع منفذ'}</span>
+                      <h3>{item.title || `عمل رقم ${index + 1}`}</h3>
+                      <p>{item.description || 'تمت إضافة هذا العمل ضمن معرض إنجازات العامل.'}</p>
+                    </div>
+                  </article>
+                ))}
               </div>
+            ) : (
+              <EmptyBlock
+                icon={FiImage}
+                title="لا توجد أعمال مضافة بعد"
+                text="عند إضافة العامل لصوره وأعماله السابقة ستظهر هنا بشكل مرتب."
+              />
+            )}
+          </section>
 
-              <div className="profile-panel">
-                <ProfileRegions location={profile.user.location} />
+          <section className="profile-section">
+            <div className="profile-section__header">
+              <div>
+                <span>تقييمات العملاء</span>
+                <h2>تجارب العملاء مع هذا العامل</h2>
               </div>
+              <b>{reviewCount} تقييم</b>
+            </div>
 
-              <div className="profile-contact-card">
-                <div className="profile-contact-card__label">بيانات سريعة</div>
-                <div className="profile-contact-card__row">
-                  <span>الهاتف</span>
-                  <strong>{profile.user.phone || 'غير مضاف'}</strong>
-                </div>
-                <div className="profile-contact-card__row">
-                  <span>المنطقة</span>
-                  <strong>{profile.user.location || 'غير محددة'}</strong>
-                </div>
-                <div className="profile-contact-card__row">
-                  <span>نطاق السعر</span>
-                  <strong>{priceRange}</strong>
-                </div>
+            {displayReviews.length > 0 ? (
+              <div className="profile-review-list">
+                {displayReviews.map((review, index) => {
+                  const reviewerName = getReviewerName(review);
+                  const reviewerLocation = String(review.reviewer?.location || '').trim();
+                  const reviewDate = formatDate(review.createdAt || review.date) || 'تاريخ غير محدد';
+                  const reviewRating = getReviewRating(review);
+                  const reviewComment = String(review.comment || '').trim() || 'بدون رسالة مكتوبة من العميل.';
+
+                  return (
+                    <article className="profile-review-card" key={`${review.id || 'review'}-${index}`}>
+                      <div className="profile-review-card__top">
+                        <div className="profile-review-card__identity">
+                          <div className="profile-review-card__avatar">{getReviewerInitial(review)}</div>
+                          <div className="profile-review-card__person">
+                            <span className="profile-review-card__label">قيّمك</span>
+                            <h3>{reviewerName}</h3>
+                            <div className="profile-review-card__meta">
+                              {reviewerLocation && (
+                                <span>
+                                  <FiMapPin />
+                                  {reviewerLocation}
+                                </span>
+                              )}
+                              <span>
+                                <FiCalendar />
+                                {reviewDate}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="profile-review-card__rating" aria-label={`تقييم ${formatReviewRating(reviewRating)} من 5`}>
+                          <span className="profile-review-card__rating-label">التقييم</span>
+                          <div className="profile-review-card__stars">{renderReviewStars(reviewRating)}</div>
+                          <strong>{formatReviewRating(reviewRating)} من 5</strong>
+                        </div>
+                      </div>
+
+                      <div className="profile-review-card__message">
+                        <FiMessageSquare />
+                        <div>
+                          <span>رسالة العميل</span>
+                          <p>{reviewComment}</p>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
-            </Box>
-          </Grid>
-        </Grid>
-      </Container>
+            ) : (
+              <EmptyBlock
+                icon={FiStar}
+                title="لا توجد تقييمات حتى الآن"
+                text="بعد تنفيذ الخدمات، تظهر تقييمات العملاء هنا لمساعدة الآخرين في الاختيار."
+              />
+            )}
+
+            {!canEditProfile && (
+              <div className="profile-review-form-shell">
+                <AddReviewForm
+                  workerProfileId={profile.id}
+                  onReviewAdded={(newReview) => {
+                    setProfile((prev) => ({
+                      ...prev,
+                      reviews: [newReview, ...prev.reviews],
+                    }));
+                  }}
+                />
+              </div>
+            )}
+          </section>
+        </div>
+
+        <aside className="profile-side-column">
+          <section className="profile-action-card">
+            <span>جاهز للتواصل؟</span>
+            <h2>{canEditProfile ? 'إدارة بروفايلك المهني' : 'اطلب الخدمة من العامل'}</h2>
+            <p>
+              {canEditProfile
+                ? 'حدّث بياناتك وصور أعمالك حتى يظهر ملفك بشكل أقوى للعملاء.'
+                : 'اكتب تفاصيل الخدمة المطلوبة وسيصل الطلب للعامل مع بيانات التواصل.'}
+            </p>
+            <button
+              type="button"
+              className="profile-primary-btn"
+              onClick={canEditProfile ? () => setEditOpen(true) : openServiceDialog}
+            >
+              {canEditProfile ? <FiEdit3 /> : <FiSend />}
+              {canEditProfile ? 'تعديل البروفايل' : 'طلب خدمة'}
+            </button>
+          </section>
+
+          {canEditProfile && (
+            <section className="profile-side-panel profile-side-panel--completion">
+              <ProfileCompletionCard profile={profile} onEdit={() => setEditOpen(true)} />
+            </section>
+          )}
+
+          <section className="profile-side-panel">
+            <div className="profile-side-panel__title">
+              <FiShield />
+              <h3>مؤشرات الثقة</h3>
+            </div>
+            <div className="profile-trust-list">
+              {trustItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div className={`profile-trust-item ${item.active ? 'active' : ''}`} key={item.label}>
+                    <Icon />
+                    <span>{item.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="profile-side-panel">
+            <div className="profile-side-panel__title">
+              <FiTool />
+              <h3>المهارات</h3>
+            </div>
+            {skillList.length > 0 ? (
+              <div className="profile-skill-list">
+                {skillList.map((skill) => (
+                  <span key={skill}>{skill}</span>
+                ))}
+              </div>
+            ) : (
+              <p className="profile-side-empty">لم يتم تحديد مهارات بعد.</p>
+            )}
+          </section>
+
+          <section className="profile-side-panel">
+            <ProfileAvailability availability={profile.availability} />
+          </section>
+        </aside>
+      </main>
 
       <ProfileEditDialog
         open={editOpen}
@@ -475,15 +782,16 @@ const PageProfile = () => {
         onClose={requestSending ? undefined : () => setServiceDialogOpen(false)}
         fullWidth
         maxWidth="sm"
+        PaperProps={{ className: 'profile-service-dialog' }}
       >
-        <Box component="form" onSubmit={handleServiceRequestSubmit}>
-          <DialogTitle sx={{ fontWeight: 900, color: '#1f1f1f' }}>
+        <Box component="form" onSubmit={handleServiceRequestSubmit} dir="rtl">
+          <DialogTitle sx={{ fontWeight: 900, color: 'var(--pp-text)', fontFamily: 'Cairo, sans-serif' }}>
             طلب خدمة من {fullName}
           </DialogTitle>
           <DialogContent sx={{ pt: 1 }}>
-            <Typography sx={{ color: '#736d65', mb: 2, lineHeight: 1.8 }}>
-              اكتب وصفًا مختصرًا للخدمة المطلوبة، وسيصل الطلب للعامل عبر الأوتوميشن.
-            </Typography>
+            <p className="profile-dialog-copy">
+              اكتب وصفًا مختصرًا للخدمة المطلوبة، وسيصل الطلب للعامل مع بيانات التواصل الخاصة بك.
+            </p>
 
             {requestError && (
               <Alert severity="error" sx={{ mb: 2 }}>
@@ -507,7 +815,7 @@ const PageProfile = () => {
               type="button"
               onClick={() => setServiceDialogOpen(false)}
               disabled={requestSending}
-              sx={{ textTransform: 'none', fontWeight: 700 }}
+              sx={{ textTransform: 'none', fontWeight: 800, fontFamily: 'Cairo, sans-serif' }}
             >
               إلغاء
             </Button>
@@ -516,12 +824,13 @@ const PageProfile = () => {
               variant="contained"
               disabled={requestSending}
               sx={{
-                bgcolor: '#5c7c43',
-                '&:hover': { bgcolor: '#4d6a37' },
+                bgcolor: '#1a2744',
+                '&:hover': { bgcolor: '#0f172a' },
                 borderRadius: '12px',
                 boxShadow: 'none',
                 textTransform: 'none',
-                fontWeight: 800,
+                fontWeight: 900,
+                fontFamily: 'Cairo, sans-serif',
               }}
             >
               {requestSending ? 'جاري إرسال الطلب...' : 'إرسال الطلب'}

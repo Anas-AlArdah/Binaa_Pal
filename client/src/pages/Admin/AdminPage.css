@@ -575,9 +575,9 @@
 }
 
 .admin-worker-summary__chip--craft {
-  border-color: rgba(245, 158, 11, 0.34);
-  background: rgba(245, 158, 11, 0.16);
-  color: #92400e;
+  border-color: rgba(37, 99, 235, 0.28);
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
 }
 
 .admin-worker-summary__chip--city {
@@ -590,10 +590,12 @@
   min-width: 92px;
   flex: 0 0 auto;
   padding: 6px 10px;
+  border: 1px solid rgba(37, 99, 235, 0.22);
   border-radius: 999px;
-  background: var(--admin-card);
-  text-align: center;
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
   font-size: 0.82rem;
+  text-align: center;
 }
 
 .admin-request-card {
@@ -954,15 +956,21 @@
 }
 
 [data-theme="dark"] .admin-worker-summary__chip--craft {
-  border-color: rgba(245, 158, 11, 0.45);
-  background: rgba(245, 158, 11, 0.2);
-  color: #fcd34d;
+  border-color: rgba(147, 197, 253, 0.42);
+  background: rgba(37, 99, 235, 0.24);
+  color: #bfdbfe;
 }
 
 [data-theme="dark"] .admin-worker-summary__chip--city {
   border-color: rgba(147, 197, 253, 0.42);
   background: rgba(37, 99, 235, 0.24);
   color: #bfdbfe;
+}
+
+[data-theme="dark"] .admin-worker-item b {
+  border-color: rgba(147, 197, 253, 0.34);
+  background: rgba(37, 99, 235, 0.18);
+  color: #dbeafe;
 }
 
 @media (max-width: 1180px) {

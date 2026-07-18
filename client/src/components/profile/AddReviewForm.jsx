@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Box, Button, Rating, TextField, Typography, Alert, CircularProgress } from '@mui/material';
+import { Box, Button, TextField, Typography, Alert, CircularProgress } from '@mui/material';
+import { FaStar } from 'react-icons/fa';
 import { fetchJson } from '../../utils/api';
 
 const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
-  const [rating, setRating] = useState(5);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -11,6 +13,8 @@ const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
 
   // Get current user from localStorage
   const user = JSON.parse(localStorage.getItem('binaa_auth_user'));
+  const activeRating = hoverRating || rating;
+  const starValues = [5, 4, 3, 2, 1];
 
   if (!user) {
     return (
@@ -24,6 +28,12 @@ const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!rating) {
+      setError('اختر عدد النجوم قبل نشر التقييم.');
+      return;
+    }
+
     if (!comment.trim()) {
       setError('يرجى كتابة تعليق يوضح تجربتك.');
       return;
@@ -45,7 +55,7 @@ const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
 
       setSuccess(true);
       setComment('');
-      setRating(5);
+      setRating(0);
       if (onReviewAdded) onReviewAdded(newReview);
     } catch (err) {
       setError(err.message || 'حدث خطأ أثناء إضافة التقييم.');
@@ -75,15 +85,38 @@ const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
 
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
         <Typography sx={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', fontFamily: 'Cairo, sans-serif' }}>
-          تقييمك العام:
+          اختر عدد النجوم:
         </Typography>
-        <Rating
-          value={rating}
-          onChange={(event, newValue) => setRating(newValue)}
-          size="large"
-          sx={{ color: '#F59E0B' }}
-        />
+        <Box
+          className="review-rating-picker"
+          dir="ltr"
+          onMouseLeave={() => setHoverRating(0)}
+          role="radiogroup"
+          aria-label="اختر عدد النجوم"
+        >
+          {starValues.map((starValue) => (
+            <button
+              key={starValue}
+              type="button"
+              className={starValue <= activeRating ? 'active' : ''}
+              onClick={() => {
+                setRating(starValue);
+                setError('');
+              }}
+              onMouseEnter={() => setHoverRating(starValue)}
+              aria-label={`${starValue} ${starValue === 1 ? 'نجمة' : 'نجوم'}`}
+              aria-checked={rating === starValue}
+              role="radio"
+            >
+              <FaStar />
+            </button>
+          ))}
+        </Box>
       </Box>
+
+      <Typography sx={{ mt: -2, mb: 3, color: '#64748b', fontSize: '13px', fontWeight: 700, fontFamily: 'Cairo, sans-serif' }}>
+        التقييم يبدأ بدون نجوم، اختر من 1 إلى 5 حسب تجربتك.
+      </Typography>
 
       <TextField
         fullWidth
@@ -99,11 +132,20 @@ const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
             borderRadius: '16px',
             bgcolor: '#fff',
             fontFamily: 'Cairo, sans-serif',
-            transition: 'all 0.3s',
+            transition: 'border-color 0.2s, box-shadow 0.2s',
+            '& fieldset': {
+              borderColor: '#cbd5e1',
+            },
+            '&:hover fieldset': {
+              borderColor: '#94a3b8',
+            },
             '&.Mui-focused': {
-              boxShadow: '0 0 0 4px rgba(245, 158, 11, 0.1)',
-              borderColor: '#F59E0B'
-            }
+              boxShadow: 'none',
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: '#2563eb',
+              borderWidth: '2px',
+            },
           }
         }}
       />
