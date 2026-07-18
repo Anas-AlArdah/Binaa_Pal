@@ -48,6 +48,7 @@ const normalizeProfile = (profile) => ({
   reviews: Array.isArray(profile?.reviews) ? profile.reviews : [],
   skill_ids: Array.isArray(profile?.skill_ids) ? profile.skill_ids : [],
   skill_names: Array.isArray(profile?.skill_names) ? profile.skill_names : [],
+  skill_details: Array.isArray(profile?.skill_details) ? profile.skill_details : [],
   availability: Array.isArray(profile?.availability) ? profile.availability : [],
   portfolio_items: normalizePortfolioItems(profile?.portfolio_items || profile?.p_images),
   p_images: profile?.p_images ?? '',
@@ -77,20 +78,79 @@ const withAvailability = async (profile) => {
   };
 };
 
+function formatPriceValues(minPrice, maxPrice) {
+  if (minPrice && maxPrice) {
+    return `${minPrice} - ${maxPrice} شيكل`;
+  }
+
+  if (minPrice) {
+    return `ابتداءً من ${minPrice} شيكل`;
+  }
+
+  if (maxPrice) {
+    return `حتى ${maxPrice} شيكل`;
+  }
+
+  return '';
+}
+
 function formatPriceRange(profile) {
-  if (profile?.min_price && profile?.max_price) {
-    return `${profile.min_price} - ${profile.max_price} شيكل`;
+  return formatPriceValues(profile?.min_price, profile?.max_price) || 'حسب طبيعة المشروع';
+}
+
+function formatSkillPrice(skill) {
+  return formatPriceValues(skill?.min_price, skill?.max_price) || 'حسب طبيعة المشروع';
+}
+
+function mergeSubmittedSkillPrices(profile, skillPrices = []) {
+  const priceEntries = Array.isArray(skillPrices) ? skillPrices : [];
+
+  if (!priceEntries.length) {
+    return profile;
   }
 
-  if (profile?.min_price) {
-    return `ابتداءً من ${profile.min_price} شيكل`;
-  }
+  const skillDetails = Array.isArray(profile?.skill_details) ? profile.skill_details : [];
+  const skillIds = Array.isArray(profile?.skill_ids) ? profile.skill_ids : [];
+  const skillNames = Array.isArray(profile?.skill_names) ? profile.skill_names : [];
+  const detailsById = new Map(
+    skillDetails
+      .map((detail) => [Number(detail.skill_id), detail])
+      .filter(([skillId]) => Number.isInteger(skillId))
+  );
 
-  if (profile?.max_price) {
-    return `حتى ${profile.max_price} شيكل`;
-  }
+  priceEntries.forEach((entry) => {
+    const skillId = Number(entry?.skill_id);
 
-  return 'حسب طبيعة المشروع';
+    if (!Number.isInteger(skillId) || skillId <= 0) {
+      return;
+    }
+
+    const skillIndex = skillIds.map(Number).indexOf(skillId);
+    const currentDetail = detailsById.get(skillId) || {
+      skill_id: skillId,
+      skill_name: skillNames[skillIndex] || '',
+    };
+
+    detailsById.set(skillId, {
+      ...currentDetail,
+      min_price: entry.min_price ?? currentDetail.min_price ?? null,
+      max_price: entry.max_price ?? currentDetail.max_price ?? null,
+    });
+  });
+
+  const orderedSkillIds = [
+    ...new Set([
+      ...skillIds.map(Number).filter(Number.isInteger),
+      ...Array.from(detailsById.keys()),
+    ]),
+  ];
+
+  return {
+    ...profile,
+    skill_details: orderedSkillIds
+      .map((skillId) => detailsById.get(skillId))
+      .filter(Boolean),
+  };
 }
 
 function formatDate(value) {
@@ -291,6 +351,44 @@ const PageProfile = () => {
       .filter(Boolean);
     const primarySkill = majorSkills[0] || profileSkills[0] || '';
     const skillList = [...new Set([primarySkill, ...profileSkills, ...majorSkills.slice(1)].filter(Boolean))];
+    const skillDetails = Array.isArray(profile.skill_details) ? profile.skill_details : [];
+    const primarySkillKey = primarySkill.trim().toLowerCase();
+    const additionalCraftDetails = skillDetails
+      .filter((detail) => {
+        const name = String(detail.skill_name || '').trim();
+        return name && name.toLowerCase() !== primarySkillKey;
+      })
+      .map((detail, index) => ({
+        id: detail.skill_id || `${detail.skill_name}-${index}`,
+        label: index === 0 ? 'الصنعة الثانية' : `صنعة إضافية ${index + 2}`,
+        name: detail.skill_name,
+        price: formatSkillPrice(detail),
+      }));
+    const additionalCraftNames = new Set(
+      additionalCraftDetails.map((detail) => detail.name.trim().toLowerCase())
+    );
+    const fallbackAdditionalCrafts = skillList.slice(1)
+      .filter((skill) => !additionalCraftNames.has(String(skill).trim().toLowerCase()))
+      .map((skill, index) => ({
+        id: `fallback-${skill}-${index}`,
+        label: additionalCraftDetails.length + index === 0
+          ? 'الصنعة الثانية'
+          : `صنعة إضافية ${additionalCraftDetails.length + index + 2}`,
+        name: skill,
+        price: 'حسب طبيعة المشروع',
+      }));
+    const craftDetails = [
+      {
+        id: 'primary',
+        label: 'الصنعة الأساسية',
+        name: primarySkill || profile.major || 'غير محددة',
+        price: priceRange,
+      },
+      ...additionalCraftDetails,
+      ...fallbackAdditionalCrafts,
+    ].filter((craft) => craft.name);
+    const primaryCraftName = craftDetails[0]?.name || primarySkill || '';
+    const hasAdditionalCrafts = craftDetails.length > 1;
     const heroImage = profile.profile_image || getFirstPortfolioImage(portfolioItems);
     const activeAvailability = profile.availability.filter((slot) => slot.is_available !== false);
     const joinedYear = profile.createdAt ? new Date(profile.createdAt).getFullYear() : 'حديثًا';
@@ -299,11 +397,14 @@ const PageProfile = () => {
       activeAvailability,
       averageRating,
       canEditProfile,
+      craftDetails,
       displayReviews,
       fullName,
       heroImage,
+      hasAdditionalCrafts,
       joinedYear,
       portfolioItems,
+      primaryCraftName,
       priceRange,
       reviewCount,
       skillList,
@@ -339,12 +440,15 @@ const PageProfile = () => {
     activeAvailability,
     averageRating,
     canEditProfile,
+    craftDetails,
     displayReviews,
     fullName,
     heroImage,
+    hasAdditionalCrafts,
     joinedYear,
     portfolioItems,
     priceRange,
+    primaryCraftName,
     reviewCount,
     skillList,
   } = derived;
@@ -361,7 +465,8 @@ const PageProfile = () => {
         body: JSON.stringify(payload),
       });
 
-      const updatedProfileWithAvailability = await withAvailability(updatedProfile);
+      const updatedProfileWithSubmittedPrices = mergeSubmittedSkillPrices(updatedProfile, payload.skill_prices);
+      const updatedProfileWithAvailability = await withAvailability(updatedProfileWithSubmittedPrices);
 
       setProfile(normalizeProfile(updatedProfileWithAvailability));
       setEditOpen(false);
@@ -438,6 +543,13 @@ const PageProfile = () => {
     }
   };
 
+  const handleScrollToCraftDetails = () => {
+    const element = document.getElementById('craft-details-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const trustItems = [
     {
       icon: FiUserCheck,
@@ -482,13 +594,21 @@ const PageProfile = () => {
 
               <div className="profile-hero__text">
                 <div className="profile-hero__chips">
-                  {(skillList.length ? skillList.slice(0, 2) : ['عامل مهني']).map((skill, index) => (
-                    <span className={index === 0 ? 'profile-hero__chip--primary' : 'profile-hero__chip--secondary'} key={`${skill}-${index}`}>
-                      {index === 0 ? <FiTool /> : <FiBriefcase />}
-                      <b>{index === 0 ? 'أساسية' : 'ثانية'}</b>
-                      {skill}
-                    </span>
-                  ))}
+                  <span className="profile-hero__chip--primary">
+                    <FiTool />
+                    <b>أساسية</b>
+                    {primaryCraftName || 'عامل مهني'}
+                  </span>
+                  {hasAdditionalCrafts && (
+                    <button
+                      type="button"
+                      className="profile-hero__chip-link"
+                      onClick={handleScrollToCraftDetails}
+                    >
+                      <FiBriefcase />
+                      الصنعات الثانوية
+                    </button>
+                  )}
                   <span>
                     <FiMapPin />
                     {profile.user.location || 'فلسطين'}
@@ -728,7 +848,7 @@ const PageProfile = () => {
             </section>
           )}
 
-          <section className="profile-side-panel">
+          <section className="profile-side-panel" id="craft-details-section">
             <div className="profile-side-panel__title">
               <FiShield />
               <h3>مؤشرات الثقة</h3>
@@ -749,16 +869,25 @@ const PageProfile = () => {
           <section className="profile-side-panel">
             <div className="profile-side-panel__title">
               <FiTool />
-              <h3>المهارات</h3>
+              <h3>تفاصيل الصنعات والأسعار</h3>
             </div>
-            {skillList.length > 0 ? (
-              <div className="profile-skill-list">
-                {skillList.map((skill) => (
-                  <span key={skill}>{skill}</span>
+            {craftDetails.length > 0 ? (
+              <div className="profile-craft-detail-list">
+                {craftDetails.map((craft) => (
+                  <article className="profile-craft-detail-card" key={craft.id}>
+                    <div>
+                      <span>{craft.label}</span>
+                      <strong>{craft.name}</strong>
+                    </div>
+                    <b>
+                      <FiDollarSign />
+                      {craft.price}
+                    </b>
+                  </article>
                 ))}
               </div>
             ) : (
-              <p className="profile-side-empty">لم يتم تحديد مهارات بعد.</p>
+              <p className="profile-side-empty">لم يتم تحديد صنعات بعد.</p>
             )}
           </section>
 

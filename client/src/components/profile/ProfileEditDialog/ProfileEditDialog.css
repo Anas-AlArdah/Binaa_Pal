@@ -127,6 +127,15 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
+.profile-edit-section--personal,
+.profile-edit-section--personal .profile-edit-fields-panel {
+  overflow: visible;
+}
+
+.profile-edit-section--personal {
+  z-index: 3;
+}
+
 .profile-edit-section__header {
   display: flex;
   align-items: flex-start;
@@ -259,6 +268,134 @@
 .profile-edit-subhead svg {
   width: 16px;
   height: 16px;
+}
+
+.profile-edit-primary-craft-field .MuiInputBase-root {
+  border-color: rgba(96, 165, 250, 0.3);
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(15, 23, 42, 0.72)) !important;
+}
+
+.profile-edit-field-block {
+  display: grid;
+  gap: 8px;
+}
+
+.profile-edit-field-block > label {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  padding-inline: 2px;
+  color: #bfdbfe;
+  font-size: 0.82rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.profile-edit-secondary-craft-block .MuiFormLabel-root,
+.profile-edit-secondary-craft-block legend {
+  display: none !important;
+}
+
+.profile-edit-secondary-craft-block .MuiOutlinedInput-notchedOutline {
+  top: 0 !important;
+}
+
+.profile-edit-primary-price-card {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(96, 165, 250, 0.18);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.13), transparent 55%),
+    rgba(15, 23, 42, 0.46);
+}
+
+.profile-edit-primary-price-card__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-edit-primary-price-card__title > svg {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  padding: 9px;
+  border: 1px solid rgba(96, 165, 250, 0.28);
+  border-radius: 13px;
+  background: rgba(37, 99, 235, 0.18);
+  color: #bfdbfe;
+}
+
+.profile-edit-primary-price-card__title div {
+  min-width: 0;
+}
+
+.profile-edit-primary-price-card__title strong,
+.profile-edit-primary-price-card__title span {
+  display: block;
+}
+
+.profile-edit-primary-price-card__title strong {
+  color: #f8fafc;
+  font-size: 0.96rem;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.profile-edit-primary-price-card__title span {
+  margin-top: 3px;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.profile-edit-skill-prices {
+  display: grid;
+  gap: 12px;
+}
+
+.profile-edit-skill-price-list {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-edit-skill-price-card {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.8fr) minmax(120px, 1fr) minmax(120px, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid rgba(96, 165, 250, 0.18);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.12), transparent 58%),
+    rgba(15, 23, 42, 0.46);
+}
+
+.profile-edit-skill-price-card__name {
+  min-width: 0;
+}
+
+.profile-edit-skill-price-card__name strong,
+.profile-edit-skill-price-card__name span {
+  display: block;
+}
+
+.profile-edit-skill-price-card__name strong {
+  color: #f8fafc;
+  font-size: 0.95rem;
+  font-weight: 950;
+  overflow-wrap: anywhere;
+}
+
+.profile-edit-skill-price-card__name span {
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 0.76rem;
+  font-weight: 850;
 }
 
 .profile-edit-three-grid,
@@ -467,25 +604,49 @@
   color: #93c5fd !important;
 }
 
-.profile-edit-dialog .MuiAutocomplete-endAdornment {
-  right: auto !important;
-  left: 9px !important;
-  inset-inline-end: auto !important;
-  inset-inline-start: 9px !important;
+.profile-edit-dialog .profile-edit-autocomplete .MuiAutocomplete-endAdornment {
+  right: 12px !important;
+  left: auto !important;
+  inset-inline-start: auto !important;
+  inset-inline-end: 12px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 
-.profile-edit-dialog .MuiAutocomplete-inputRoot {
-  padding-inline-start: 42px !important;
+.profile-edit-dialog .profile-edit-autocomplete .MuiAutocomplete-popupIndicator {
+  width: 30px;
+  height: 30px;
+  margin: 0 !important;
+  padding: 4px !important;
+  color: #93c5fd !important;
+}
+
+.profile-edit-dialog .profile-edit-autocomplete .MuiAutocomplete-clearIndicator {
+  display: none !important;
+}
+
+.profile-edit-dialog .profile-edit-autocomplete .MuiAutocomplete-inputRoot {
+  padding-right: 54px !important;
+  padding-left: 12px !important;
+  padding-inline-start: 54px !important;
   padding-inline-end: 12px !important;
+}
+
+.profile-edit-dialog .profile-edit-autocomplete .MuiAutocomplete-tag {
+  margin-inline-start: 0;
+  margin-inline-end: 8px;
 }
 
 .profile-edit-autocomplete-popper {
   z-index: 1500;
   direction: rtl;
+  max-height: 210px;
 }
 
 .profile-edit-autocomplete-paper {
   overflow: hidden;
+  max-height: 194px;
   margin-top: 8px;
   border: 1px solid rgba(96, 165, 250, 0.28);
   border-radius: 16px !important;
@@ -498,8 +659,27 @@
 }
 
 .profile-edit-autocomplete-listbox {
-  max-height: 236px;
+  max-height: 176px !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
   padding: 8px !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(96, 165, 250, 0.72) rgba(15, 23, 42, 0.85);
+}
+
+.profile-edit-autocomplete-listbox::-webkit-scrollbar {
+  width: 8px;
+}
+
+.profile-edit-autocomplete-listbox::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.85);
+}
+
+.profile-edit-autocomplete-listbox::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(15, 23, 42, 0.85);
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.72);
 }
 
 .profile-edit-autocomplete-listbox .MuiAutocomplete-option {
@@ -652,7 +832,8 @@
 
   .profile-edit-personal-grid,
   .profile-edit-portfolio-grid,
-  .profile-edit-three-grid {
+  .profile-edit-three-grid,
+  .profile-edit-skill-price-card {
     grid-template-columns: 1fr;
   }
 

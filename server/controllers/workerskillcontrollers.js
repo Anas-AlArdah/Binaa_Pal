@@ -33,6 +33,22 @@ function normalizeExperienceYears(value) {
   return numericValue;
 }
 
+function normalizePrice(value, fieldName) {
+  const normalizedValue = typeof value === 'string' ? value.trim() : value;
+
+  if (normalizedValue === undefined || normalizedValue === null || normalizedValue === '') {
+    return null;
+  }
+
+  const numericValue = Number(normalizedValue);
+
+  if (!Number.isFinite(numericValue) || numericValue < 0) {
+    throw buildClientError(`${fieldName} must be a positive number.`);
+  }
+
+  return numericValue;
+}
+
 function sendControllerError(res, err, fallbackMessage) {
   return res.status(err.statusCode || 500).json({
     message: fallbackMessage,
@@ -45,6 +61,12 @@ async function addWorkerSkill(req, res) {
     const workerId = normalizePositiveInteger(req.body.worker_id, 'worker_id');
     const skillId = normalizePositiveInteger(req.body.skill_id, 'skill_id');
     const experienceYears = normalizeExperienceYears(req.body.experience_years);
+    const minPrice = normalizePrice(req.body.min_price, 'min_price');
+    const maxPrice = normalizePrice(req.body.max_price, 'max_price');
+
+    if (minPrice !== null && maxPrice !== null && minPrice > maxPrice) {
+      throw buildClientError('min_price cannot be greater than max_price.');
+    }
 
     const [workerSkill, created] = await Worker_Skill.findOrCreate({
       where: {
@@ -55,11 +77,17 @@ async function addWorkerSkill(req, res) {
         worker_id: workerId,
         skill_id: skillId,
         experience_years: experienceYears,
+        min_price: minPrice,
+        max_price: maxPrice,
       },
     });
 
     if (!created) {
-      await workerSkill.update({ experience_years: experienceYears });
+      await workerSkill.update({
+        experience_years: experienceYears,
+        min_price: minPrice,
+        max_price: maxPrice,
+      });
     }
 
     return res.status(created ? 201 : 200).json(workerSkill);

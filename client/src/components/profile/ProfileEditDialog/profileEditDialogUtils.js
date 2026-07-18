@@ -66,6 +66,7 @@ export const buildInitialForm = () => ({
     max_price: '',
     profile_image: '',
     skill_ids: [],
+    skill_prices: {},
     current_password: '',
     new_password: '',
     confirm_password: '',
@@ -87,4 +88,16 @@ export const buildProfileFormPatch = (profile) => ({
     skill_ids: Array.isArray(profile?.skill_ids)
         ? profile.skill_ids
         : profile?.skills?.map((skill) => skill.id) || [],
+    skill_prices: (Array.isArray(profile?.skill_details) ? profile.skill_details : [])
+        .reduce((prices, skill) => {
+            if (!skill?.skill_id) return prices;
+
+            return {
+                ...prices,
+                [skill.skill_id]: {
+                    min_price: skill.min_price ?? '',
+                    max_price: skill.max_price ?? '',
+                },
+            };
+        }, {}),
 });

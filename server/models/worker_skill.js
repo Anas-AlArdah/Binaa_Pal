@@ -40,6 +40,20 @@ module.exports = (sequelize, DataTypes) => {
             min: 0,
             max: 60,
           },
+      },
+      min_price: {
+          type: DataTypes.DECIMAL(10, 2),
+          allowNull: true,
+          validate: {
+            min: 0,
+          },
+      },
+      max_price: {
+          type: DataTypes.DECIMAL(10, 2),
+          allowNull: true,
+          validate: {
+            min: 0,
+          },
       }
   }, {
     sequelize,

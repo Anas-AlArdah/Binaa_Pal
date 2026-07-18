@@ -62,6 +62,53 @@ function normalizeSkillIds(skillIds) {
   )];
 }
 
+function normalizeSkillPrices(skillPrices) {
+  const result = new Map();
+
+  if (skillPrices === undefined) {
+    return result;
+  }
+
+  const entries = Array.isArray(skillPrices)
+    ? skillPrices
+    : Object.entries(skillPrices || {}).map(([skillId, prices]) => ({
+      skill_id: skillId,
+      ...(prices || {}),
+    }));
+
+  for (const item of entries) {
+    if (!item || typeof item !== 'object') continue;
+
+    const skillId = Number(item.skill_id || item.id);
+
+    if (!Number.isInteger(skillId) || skillId <= 0) {
+      continue;
+    }
+
+    const minPrice = normalizePrice(item.min_price, `skill_prices.${skillId}.min_price`);
+    const maxPrice = normalizePrice(item.max_price, `skill_prices.${skillId}.max_price`);
+
+    if (
+      minPrice !== undefined &&
+      maxPrice !== undefined &&
+      minPrice !== null &&
+      maxPrice !== null &&
+      minPrice > maxPrice
+    ) {
+      const error = new Error(`skill_prices.${skillId}.min_price cannot be greater than max_price`);
+      error.statusCode = 400;
+      throw error;
+    }
+
+    result.set(skillId, {
+      min_price: minPrice === undefined ? null : minPrice,
+      max_price: maxPrice === undefined ? null : maxPrice,
+    });
+  }
+
+  return result;
+}
+
 function formatWorkerProfile(profileModel) {
   const profile = toPlain(profileModel);
   const workerSkills = Array.isArray(profile.worker_skills) ? profile.worker_skills : [];
@@ -78,6 +125,15 @@ function formatWorkerProfile(profileModel) {
       experience_years: link.experience_years ?? null,
     }))
     .filter((link) => Number.isInteger(link.skill_id));
+  const skill_details = workerSkills
+    .map((link) => ({
+      skill_id: Number(link.skill?.id || link.skill_id),
+      skill_name: link.skill?.skill_name || '',
+      experience_years: link.experience_years ?? null,
+      min_price: link.min_price ?? null,
+      max_price: link.max_price ?? null,
+    }))
+    .filter((link) => Number.isInteger(link.skill_id));
   const portfolio_items = normalizePortfolioItems(profile.p_images);
 
   return {
@@ -87,6 +143,7 @@ function formatWorkerProfile(profileModel) {
     skill_ids: [...new Set(skill_ids)],
     skill_names: [...new Set(skill_names)],
     skill_experiences,
+    skill_details,
     availability: Array.isArray(profile.user?.availability) ? profile.user.availability : [],
   };
 }
@@ -144,7 +201,7 @@ async function loadProfileByUserId(userId) {
   });
 }
 
-async function syncWorkerSkills(userId, skillIds, transaction) {
+async function syncWorkerSkills(userId, skillIds, skillPrices, transaction) {
   const validSkillIds = normalizeSkillIds(skillIds);
 
   if (validSkillIds === undefined) {
@@ -173,6 +230,15 @@ async function syncWorkerSkills(userId, skillIds, transaction) {
     throw error;
   }
 
+  const skillPriceMap = normalizeSkillPrices(skillPrices);
+  const currentLinks = await Worker_Skill.findAll({
+    where: { worker_id: userId },
+    transaction,
+  });
+  const currentLinkMap = new Map(
+    currentLinks.map((link) => [Number(link.skill_id), toPlain(link)])
+  );
+
   await Worker_Skill.destroy({
     where: { worker_id: userId },
     transaction,
@@ -180,10 +246,18 @@ async function syncWorkerSkills(userId, skillIds, transaction) {
 
   if (existingSkillIds.length > 0) {
     await Worker_Skill.bulkCreate(
-      existingSkillIds.map((skillId) => ({
-        worker_id: userId,
-        skill_id: skillId,
-      })),
+      existingSkillIds.map((skillId) => {
+        const currentLink = currentLinkMap.get(Number(skillId)) || {};
+        const price = skillPriceMap.get(Number(skillId)) || {};
+
+        return {
+          worker_id: userId,
+          skill_id: skillId,
+          experience_years: currentLink.experience_years ?? null,
+          min_price: price.min_price !== undefined ? price.min_price : currentLink.min_price ?? null,
+          max_price: price.max_price !== undefined ? price.max_price : currentLink.max_price ?? null,
+        };
+      }),
       { transaction }
     );
   }
@@ -340,7 +414,7 @@ async function persistWorkerProfile(req, res, { create = false } = {}) {
     await profile.update(profileUpdates, { transaction });
 
     if (req.body.skill_ids !== undefined) {
-      await syncWorkerSkills(nextUserId, req.body.skill_ids, transaction);
+      await syncWorkerSkills(nextUserId, req.body.skill_ids, req.body.skill_prices, transaction);
     }
 
     if (req.body.availability !== undefined) {

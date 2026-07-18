@@ -128,6 +128,7 @@
 .profile-hero__eyebrow,
 .profile-hero__chips,
 .profile-hero__chips span,
+.profile-hero__chips button,
 .profile-hero__actions,
 .profile-primary-btn,
 .profile-secondary-btn,
@@ -199,7 +200,8 @@
   margin-bottom: 12px;
 }
 
-.profile-hero__chips span {
+.profile-hero__chips span,
+.profile-hero__chips button {
   gap: 7px;
   min-height: 34px;
   max-width: 100%;
@@ -208,9 +210,19 @@
   border-radius: 999px;
   background: rgba(37, 99, 235, 0.16);
   color: #bfdbfe;
+  font-family: inherit;
   font-size: 0.84rem;
   font-weight: 900;
   overflow-wrap: anywhere;
+}
+
+.profile-hero__chips button {
+  cursor: pointer;
+}
+
+.profile-hero__chips button:hover {
+  border-color: rgba(147, 197, 253, 0.46);
+  background: rgba(37, 99, 235, 0.24);
 }
 
 .profile-hero__chips span b {
@@ -224,6 +236,12 @@
 }
 
 .profile-hero__chip--secondary {
+  border-color: rgba(16, 185, 129, 0.28) !important;
+  background: rgba(16, 185, 129, 0.14) !important;
+  color: #bbf7d0 !important;
+}
+
+.profile-hero__chip-link {
   border-color: rgba(16, 185, 129, 0.28) !important;
   background: rgba(16, 185, 129, 0.14) !important;
   color: #bbf7d0 !important;
@@ -915,6 +933,111 @@
   font-weight: 950;
 }
 
+.profile-craft-detail-list {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-craft-detail-card {
+  display: grid;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.1), transparent 55%),
+    rgba(148, 163, 184, 0.05);
+}
+
+.profile-craft-detail-card div,
+.profile-craft-detail-card b {
+  min-width: 0;
+}
+
+.profile-craft-detail-card span,
+.profile-craft-detail-card strong {
+  display: block;
+}
+
+.profile-craft-detail-card span {
+  color: var(--pp-blue);
+  font-size: 0.75rem;
+  font-weight: 950;
+}
+
+.profile-craft-detail-card strong {
+  margin-top: 4px;
+  color: var(--pp-text);
+  font-size: 0.98rem;
+  font-weight: 950;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.profile-craft-detail-card b {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--pp-blue);
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.profile-craft-detail-card b svg {
+  width: 15px;
+  height: 15px;
+}
+
+.profile-availability-block {
+  display: grid;
+  gap: 12px;
+}
+
+.profile-availability-list {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-availability-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--pp-border);
+  border-radius: 14px;
+  background: rgba(148, 163, 184, 0.05);
+}
+
+.profile-availability-card strong {
+  color: var(--pp-text);
+  font-size: 0.9rem;
+  font-weight: 950;
+}
+
+.profile-availability-card span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  font-size: 0.78rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.profile-availability-card svg {
+  width: 14px;
+  height: 14px;
+}
+
 .profile-side-panel--completion .MuiTypography-root {
   color: var(--pp-text) !important;
   font-family: "Cairo", sans-serif !important;
@@ -1000,8 +1123,14 @@
 [data-theme="dark"] .profile-info-grid div,
 [data-theme="dark"] .profile-review-card,
 [data-theme="dark"] .profile-empty-block,
-[data-theme="dark"] .profile-trust-item {
+[data-theme="dark"] .profile-trust-item,
+[data-theme="dark"] .profile-craft-detail-card,
+[data-theme="dark"] .profile-availability-card {
   background: rgba(15, 23, 42, 0.28);
+}
+
+[data-theme="dark"] .profile-availability-card span {
+  color: #86efac;
 }
 
 @media (max-width: 1080px) {

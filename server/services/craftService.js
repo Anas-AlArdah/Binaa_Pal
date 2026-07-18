@@ -122,9 +122,21 @@ function formatPrice(profile) {
   return min && max ? `${min} - ${max}` : min || max || 'غير محدد';
 }
 
+function formatSkillLinkPrice(skillLink) {
+  const min = formatNumber(skillLink?.min_price);
+  const max = formatNumber(skillLink?.max_price);
+
+  return min && max ? `${min} - ${max}` : min || max || '';
+}
+
 function getPriceSort(profile) {
   const prices = [Number(profile?.max_price), Number(profile?.min_price)];
   return prices.find(Number.isFinite) ?? Number.MAX_SAFE_INTEGER;
+}
+
+function getSkillLinkPriceSort(skillLink) {
+  const prices = [Number(skillLink?.max_price), Number(skillLink?.min_price)];
+  return prices.find(Number.isFinite) ?? null;
 }
 
 function formatExperienceYears(value) {
@@ -215,8 +227,8 @@ function buildWorker(user, craft) {
     punctualityRating: stats.punctualityRating,
     punctualityCount: stats.punctualityCount,
     experience: craftExperience || getExperience(profile),
-    price: formatPrice(profile),
-    priceSort: getPriceSort(profile),
+    price: formatSkillLinkPrice(craftSkillLink) || formatPrice(profile),
+    priceSort: getSkillLinkPriceSort(craftSkillLink) || getPriceSort(profile),
     imageUrl: getProfileImage(profile),
   };
 }
@@ -253,7 +265,7 @@ async function getCraftWorkers(slugOrId) {
       {
         model: Worker_Skill,
         as: 'worker_skills',
-        attributes: ['skill_id', 'experience_years'],
+        attributes: ['skill_id', 'experience_years', 'min_price', 'max_price'],
         required: false,
         include: [{ model: Skill, as: 'skill', attributes: ['id', 'skill_name'] }],
       },

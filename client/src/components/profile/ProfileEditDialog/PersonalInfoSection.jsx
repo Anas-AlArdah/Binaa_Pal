@@ -24,6 +24,16 @@ const PersonalInfoSection = ({
     selectedSkills,
     updateField,
 }) => {
+    const updateSkillPrice = (skillId, field, value) => {
+        updateField('skill_prices', {
+            ...(form.skill_prices || {}),
+            [skillId]: {
+                ...(form.skill_prices?.[skillId] || {}),
+                [field]: value,
+            },
+        });
+    };
+
     return (
     <Box
         className="profile-edit-section profile-edit-section--personal"
@@ -116,10 +126,11 @@ const PersonalInfoSection = ({
                     fullWidth
                 />
                 <TextField
-                    label="الصنعة"
+                    label="الصنعة الأساسية"
                     value={form.major}
                     onChange={(event) => updateField('major', event.target.value)}
                     fullWidth
+                    className="profile-edit-primary-craft-field"
                 />
             </Box>
 
@@ -132,51 +143,113 @@ const PersonalInfoSection = ({
                 fullWidth
             />
 
-            <Autocomplete
-                multiple
-                className="profile-edit-autocomplete"
-                disablePortal
-                options={availableSkills}
-                value={selectedSkills}
-                onChange={(_, values) => updateField('skill_ids', values.map((value) => value.id))}
-                getOptionLabel={(option) => option.skill_name}
-                ListboxProps={{ className: 'profile-edit-autocomplete-listbox' }}
-                slotProps={{
-                    paper: { className: 'profile-edit-autocomplete-paper' },
-                    popper: { className: 'profile-edit-autocomplete-popper' },
-                }}
-                renderTags={(value, getTagProps) =>
-                    value.map((option, index) => (
-                        <Chip
-                            {...getTagProps({ index })}
-                            key={option.id}
-                            label={option.skill_name}
+                <Box className="profile-edit-primary-price-card">
+                    <div className="profile-edit-primary-price-card__title">
+                        <FiDollarSign />
+                        <div>
+                            <strong>نطاق سعر الصنعة الأساسية</strong>
+                            <span>{form.major || 'الصنعة الأساسية'}</span>
+                        </div>
+                    </div>
+                    <Box sx={twoColumnGrid}>
+                        <TextField
+                            label="أقل سعر"
+                            type="number"
+                            value={form.min_price}
+                            onChange={(event) => updateField('min_price', event.target.value)}
+                            fullWidth
                         />
-                    ))
-                }
-                renderInput={(params) => <TextField {...params} label="الصنعة الثانوية" />}
-            />
-
-                <Box className="profile-edit-subhead">
-                    <FiDollarSign />
-                    <span>نطاق السعر</span>
+                        <TextField
+                            label="أعلى سعر"
+                            type="number"
+                            value={form.max_price}
+                            onChange={(event) => updateField('max_price', event.target.value)}
+                            fullWidth
+                        />
+                    </Box>
                 </Box>
-            <Box sx={twoColumnGrid}>
-                <TextField
-                    label="أقل سعر"
-                    type="number"
-                    value={form.min_price}
-                    onChange={(event) => updateField('min_price', event.target.value)}
-                    fullWidth
-                />
-                <TextField
-                    label="أعلى سعر"
-                    type="number"
-                    value={form.max_price}
-                    onChange={(event) => updateField('max_price', event.target.value)}
-                    fullWidth
-                />
-            </Box>
+
+                <Box className="profile-edit-field-block profile-edit-secondary-craft-block">
+                    <label>الصنعة الثانوية</label>
+                    <Autocomplete
+                        multiple
+                        className="profile-edit-autocomplete"
+                        disablePortal
+                        disableClearable
+                        options={availableSkills}
+                        value={selectedSkills}
+                        onChange={(_, values) => updateField('skill_ids', values.map((value) => value.id))}
+                        getOptionLabel={(option) => option.skill_name}
+                        ListboxProps={{
+                            className: 'profile-edit-autocomplete-listbox',
+                            style: { maxHeight: 176, overflowY: 'auto' },
+                        }}
+                        slotProps={{
+                            paper: {
+                                className: 'profile-edit-autocomplete-paper',
+                                style: { maxHeight: 194, overflow: 'hidden' },
+                            },
+                            popper: { className: 'profile-edit-autocomplete-popper' },
+                            listbox: {
+                                className: 'profile-edit-autocomplete-listbox',
+                                style: { maxHeight: 176, overflowY: 'auto' },
+                            },
+                        }}
+                        renderTags={(value, getTagProps) =>
+                            value.map((option, index) => (
+                                <Chip
+                                    {...getTagProps({ index })}
+                                    key={option.id}
+                                    label={option.skill_name}
+                                />
+                            ))
+                        }
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label=""
+                                placeholder={selectedSkills.length ? '' : 'اختر صنعة إضافية'}
+                            />
+                        )}
+                    />
+                </Box>
+
+                {selectedSkills.length > 0 && (
+                    <Box className="profile-edit-skill-prices">
+                        <Box className="profile-edit-subhead">
+                            <FiDollarSign />
+                            <span>تسعيرة الصنعات الإضافية</span>
+                        </Box>
+                        <div className="profile-edit-skill-price-list">
+                            {selectedSkills.map((skill) => {
+                                const prices = form.skill_prices?.[skill.id] || {};
+
+                                return (
+                                    <div className="profile-edit-skill-price-card" key={skill.id}>
+                                        <div className="profile-edit-skill-price-card__name">
+                                            <strong>{skill.skill_name}</strong>
+                                            <span>سعر هذه الصنعة</span>
+                                        </div>
+                                        <TextField
+                                            label="أقل سعر"
+                                            type="number"
+                                            value={prices.min_price ?? ''}
+                                            onChange={(event) => updateSkillPrice(skill.id, 'min_price', event.target.value)}
+                                            fullWidth
+                                        />
+                                        <TextField
+                                            label="أعلى سعر"
+                                            type="number"
+                                            value={prices.max_price ?? ''}
+                                            onChange={(event) => updateSkillPrice(skill.id, 'max_price', event.target.value)}
+                                            fullWidth
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </Box>
+                )}
             </Stack>
         </Box>
     </Box>

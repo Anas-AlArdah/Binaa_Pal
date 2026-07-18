@@ -52,8 +52,16 @@ const mapProjectsToPortfolioItems = (projects) =>
         : [createEmptyPortfolioItem()];
 
 const buildProfileSavePayload = (form) => {
-    const { availability, current_password, new_password, confirm_password, ...payload } = form;
-    return payload;
+    const { availability, current_password, new_password, confirm_password, skill_prices, ...payload } = form;
+
+    return {
+        ...payload,
+        skill_prices: Object.entries(skill_prices || {}).map(([skillId, prices]) => ({
+            skill_id: Number(skillId),
+            min_price: prices?.min_price ?? '',
+            max_price: prices?.max_price ?? '',
+        })),
+    };
 };
 
 const ProfileEditDialog = ({
