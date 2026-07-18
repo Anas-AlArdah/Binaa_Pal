@@ -301,6 +301,25 @@
   top: 0 !important;
 }
 
+.profile-edit-dialog .MuiFormLabel-root.Mui-error {
+  color: #fecaca !important;
+}
+
+.profile-edit-dialog .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(248, 113, 113, 0.88) !important;
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.18);
+}
+
+.profile-edit-dialog .MuiFormHelperText-root.Mui-error {
+  color: #fecaca !important;
+  font-family: inherit !important;
+  font-size: 0.76rem !important;
+  font-weight: 850 !important;
+  line-height: 1.5 !important;
+  margin-inline: 0 !important;
+  text-align: right;
+}
+
 .profile-edit-primary-price-card {
   display: grid;
   gap: 14px;

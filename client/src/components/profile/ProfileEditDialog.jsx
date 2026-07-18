@@ -64,6 +64,37 @@ const buildProfileSavePayload = (form) => {
     };
 };
 
+const hasPriceValue = (value) =>
+    value !== undefined && value !== null && String(value).trim() !== '';
+
+const hasInvalidPriceRange = (minPrice, maxPrice) => {
+    if (!hasPriceValue(minPrice) || !hasPriceValue(maxPrice)) return false;
+
+    const min = Number(minPrice);
+    const max = Number(maxPrice);
+
+    return Number.isFinite(min) && Number.isFinite(max) && min >= max;
+};
+
+const getInvalidSkillPriceName = (form, availableSkills = []) => {
+    const selectedSkillIds = new Set((form.skill_ids || []).map((skillId) => Number(skillId)));
+    const skillNamesById = new Map(
+        availableSkills.map((skill) => [Number(skill.id), skill.skill_name])
+    );
+
+    for (const [skillId, prices] of Object.entries(form.skill_prices || {})) {
+        const numericSkillId = Number(skillId);
+
+        if (!selectedSkillIds.has(numericSkillId)) continue;
+
+        if (hasInvalidPriceRange(prices?.min_price, prices?.max_price)) {
+            return skillNamesById.get(numericSkillId) || 'إحدى الصنعات الثانوية';
+        }
+    }
+
+    return '';
+};
+
 const ProfileEditDialog = ({
     open,
     profile,
@@ -300,6 +331,18 @@ const ProfileEditDialog = ({
 
         if (form.new_password && form.new_password !== form.confirm_password) {
             setSubmitError('كلمتا المرور غير متطابقتين');
+            return;
+        }
+
+        if (hasInvalidPriceRange(form.min_price, form.max_price)) {
+            setSubmitError('أعلى سعر للصنعة الأساسية لازم يكون أكبر من أقل سعر.');
+            return;
+        }
+
+        const invalidSkillName = getInvalidSkillPriceName(form, availableSkills);
+
+        if (invalidSkillName) {
+            setSubmitError(`أعلى سعر في ${invalidSkillName} لازم يكون أكبر من أقل سعر.`);
             return;
         }
 

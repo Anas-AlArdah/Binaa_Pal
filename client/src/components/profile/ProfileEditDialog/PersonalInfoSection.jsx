@@ -10,12 +10,24 @@ import {
     Typography,
 } from '@mui/material';
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
-import { FiDollarSign, FiUser } from 'react-icons/fi';
+import { FiTag, FiUser } from 'react-icons/fi';
 
 const twoColumnGrid = {
     display: 'grid',
     gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
     gap: 2,
+};
+
+const hasPriceValue = (value) =>
+    value !== undefined && value !== null && String(value).trim() !== '';
+
+const hasInvalidPriceRange = (minPrice, maxPrice) => {
+    if (!hasPriceValue(minPrice) || !hasPriceValue(maxPrice)) return false;
+
+    const min = Number(minPrice);
+    const max = Number(maxPrice);
+
+    return Number.isFinite(min) && Number.isFinite(max) && min >= max;
 };
 
 const PersonalInfoSection = ({
@@ -24,6 +36,8 @@ const PersonalInfoSection = ({
     selectedSkills,
     updateField,
 }) => {
+    const primaryPriceInvalid = hasInvalidPriceRange(form.min_price, form.max_price);
+
     const updateSkillPrice = (skillId, field, value) => {
         updateField('skill_prices', {
             ...(form.skill_prices || {}),
@@ -145,7 +159,7 @@ const PersonalInfoSection = ({
 
                 <Box className="profile-edit-primary-price-card">
                     <div className="profile-edit-primary-price-card__title">
-                        <FiDollarSign />
+                        <FiTag />
                         <div>
                             <strong>نطاق سعر الصنعة الأساسية</strong>
                             <span>{form.major || 'الصنعة الأساسية'}</span>
@@ -157,6 +171,7 @@ const PersonalInfoSection = ({
                             type="number"
                             value={form.min_price}
                             onChange={(event) => updateField('min_price', event.target.value)}
+                            error={primaryPriceInvalid}
                             fullWidth
                         />
                         <TextField
@@ -164,6 +179,8 @@ const PersonalInfoSection = ({
                             type="number"
                             value={form.max_price}
                             onChange={(event) => updateField('max_price', event.target.value)}
+                            error={primaryPriceInvalid}
+                            helperText={primaryPriceInvalid ? 'أعلى سعر لازم يكون أكبر من أقل سعر.' : ''}
                             fullWidth
                         />
                     </Box>
@@ -217,12 +234,16 @@ const PersonalInfoSection = ({
                 {selectedSkills.length > 0 && (
                     <Box className="profile-edit-skill-prices">
                         <Box className="profile-edit-subhead">
-                            <FiDollarSign />
+                            <FiTag />
                             <span>تسعيرة الصنعات الإضافية</span>
                         </Box>
                         <div className="profile-edit-skill-price-list">
                             {selectedSkills.map((skill) => {
                                 const prices = form.skill_prices?.[skill.id] || {};
+                                const skillPriceInvalid = hasInvalidPriceRange(
+                                    prices.min_price,
+                                    prices.max_price
+                                );
 
                                 return (
                                     <div className="profile-edit-skill-price-card" key={skill.id}>
@@ -235,6 +256,7 @@ const PersonalInfoSection = ({
                                             type="number"
                                             value={prices.min_price ?? ''}
                                             onChange={(event) => updateSkillPrice(skill.id, 'min_price', event.target.value)}
+                                            error={skillPriceInvalid}
                                             fullWidth
                                         />
                                         <TextField
@@ -242,6 +264,8 @@ const PersonalInfoSection = ({
                                             type="number"
                                             value={prices.max_price ?? ''}
                                             onChange={(event) => updateSkillPrice(skill.id, 'max_price', event.target.value)}
+                                            error={skillPriceInvalid}
+                                            helperText={skillPriceInvalid ? 'أعلى سعر لازم يكون أكبر من أقل سعر.' : ''}
                                             fullWidth
                                         />
                                     </div>

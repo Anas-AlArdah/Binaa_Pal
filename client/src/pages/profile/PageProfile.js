@@ -14,7 +14,6 @@ import {
 } from '@mui/material';
 import {
   FiCalendar,
-  FiDollarSign,
   FiBriefcase,
   FiEdit3,
   FiImage,
@@ -25,6 +24,7 @@ import {
   FiSend,
   FiShield,
   FiStar,
+  FiTag,
   FiTool,
   FiUserCheck,
 } from 'react-icons/fi';
@@ -656,7 +656,7 @@ const PageProfile = () => {
               <StatTile icon={FiBriefcase} label="الأعمال" value={portfolioItems.length} />
               <StatTile icon={FiTool} label="المهارات" value={skillList.length || 0} />
               <StatTile icon={FiCalendar} label="الانضمام" value={joinedYear} />
-              <StatTile icon={FiDollarSign} label="التسعير" value={priceRange} />
+              <StatTile icon={FiTag} label="التسعير" value={priceRange} />
             </div>
           </aside>
         </div>
@@ -879,10 +879,7 @@ const PageProfile = () => {
                       <span>{craft.label}</span>
                       <strong>{craft.name}</strong>
                     </div>
-                    <b>
-                      <FiDollarSign />
-                      {craft.price}
-                    </b>
+                    <b>{craft.price}</b>
                   </article>
                 ))}
               </div>
