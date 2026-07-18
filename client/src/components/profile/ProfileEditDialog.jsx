@@ -7,8 +7,6 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
-    Divider,
-    Stack,
 } from '@mui/material';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import { fetchJson } from '../../utils/api';
@@ -26,6 +24,7 @@ import {
     getProfileUserId,
     parseProjectMeta,
 } from './ProfileEditDialog/profileEditDialogUtils';
+import './ProfileEditDialog/ProfileEditDialog.css';
 
 const mapProjectsToPortfolioItems = (projects) =>
     Array.isArray(projects) && projects.length > 0
@@ -327,26 +326,26 @@ const ProfileEditDialog = ({
             maxWidth="lg"
             PaperProps={{
                 dir: 'rtl',
-                sx: { borderRadius: '24px' }
+                className: 'profile-edit-dialog',
+                sx: {
+                    borderRadius: { xs: '20px', md: '28px' },
+                    width: 'min(1180px, calc(100% - 22px))',
+                    maxHeight: 'calc(100dvh - 28px)',
+                },
             }}
         >
             <ProfileEditDialogTitle disabled={isLoading} onClose={onClose} />
 
-            <DialogContent dividers sx={{ px: { xs: 2, md: 3 }, py: 2.5 }}>
+            <DialogContent dividers className="profile-edit-dialog__content">
                 {loadingData ? (
                     <Box
-                        sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            minHeight: 200,
-                        }}
+                        className="profile-edit-dialog__loading"
                     >
-                        <CircularProgress sx={{ color: '#F59E0B' }} />
+                        <CircularProgress />
                     </Box>
                 ) : (
                     <Box component="form" onSubmit={handleSubmit}>
-                        <Stack spacing={3}>
+                        <Box className="profile-edit-dialog__body">
                             {submitError && <Alert severity="error">{submitError}</Alert>}
 
                             <PersonalInfoSection
@@ -356,19 +355,13 @@ const ProfileEditDialog = ({
                                 updateField={updateField}
                             />
 
-                            <Divider />
-
                             <PasswordSection form={form} updateField={updateField} />
-
-                            <Divider />
 
                             <AvailabilitySection
                                 availability={form.availability}
                                 removeAvailabilityDay={removeAvailabilityDay}
                                 updateAvailabilityField={updateAvailabilityField}
                             />
-
-                            <Divider />
 
                             <PortfolioSection
                                 items={form.portfolio_items}
@@ -377,16 +370,16 @@ const ProfileEditDialog = ({
                                 updatePortfolioItem={updatePortfolioItem}
                                 onError={setSubmitError}
                             />
-                        </Stack>
+                        </Box>
                     </Box>
                 )}
             </DialogContent>
 
-            <DialogActions sx={{ px: 3, py: 2 }}>
+            <DialogActions className="profile-edit-dialog__actions">
                 <Button
                     onClick={onClose}
                     disabled={isLoading}
-                    sx={{ textTransform: 'none', fontWeight: 700 }}
+                    className="profile-edit-cancel-btn"
                 >
                     إلغاء
                 </Button>
@@ -400,14 +393,7 @@ const ProfileEditDialog = ({
                             ? <CircularProgress size={18} color="inherit" />
                             : <SaveRoundedIcon />
                     }
-                    sx={{
-                        bgcolor: '#1a2744',
-                        '&:hover': { bgcolor: '#0f172a' },
-                        textTransform: 'none',
-                        fontWeight: 800,
-                        borderRadius: '14px',
-                        px: 3,
-                    }}
+                    className="profile-edit-save-btn"
                 >
                     {isLoading ? 'جاري الحفظ...' : 'حفظ التعديلات'}
                 </Button>

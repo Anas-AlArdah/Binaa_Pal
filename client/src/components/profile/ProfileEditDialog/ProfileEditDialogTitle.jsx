@@ -1,26 +1,25 @@
 import React from 'react';
 import { Box, DialogTitle, IconButton, Typography } from '@mui/material';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import ManageAccountsRoundedIcon from '@mui/icons-material/ManageAccountsRounded';
 
 const ProfileEditDialogTitle = ({ disabled, onClose }) => (
     <DialogTitle
-        sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 2,
-            pb: 1.5,
-        }}
+        className="profile-edit-dialog__title"
     >
-        <Box>
-            <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a', fontFamily: 'Cairo, sans-serif' }}>
+        <Box className="profile-edit-dialog__title-copy">
+            <span className="profile-edit-dialog__eyebrow">
+                <ManageAccountsRoundedIcon />
+                إدارة الملف المهني
+            </span>
+            <Typography variant="h5">
                 تعديل بروفايل العامل
             </Typography>
-            <Typography sx={{ color: '#64748b', fontSize: '14px', mt: 0.5, fontFamily: 'Cairo, sans-serif' }}>
-                حدّث الصورة، النبذة، المهارات، ومعرض الأعمال من مكان واحد.
+            <Typography>
+                حدّث الصورة، النبذة، المهارات، الأسعار، وأوقات العمل من مكان واحد.
             </Typography>
         </Box>
-        <IconButton onClick={onClose} disabled={disabled}>
+        <IconButton className="profile-edit-dialog__close" onClick={onClose} disabled={disabled} aria-label="إغلاق نافذة تعديل البروفايل">
             <CloseRoundedIcon />
         </IconButton>
     </DialogTitle>

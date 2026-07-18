@@ -10,6 +10,7 @@ import {
     Typography,
 } from '@mui/material';
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
+import { FiDollarSign, FiUser } from 'react-icons/fi';
 
 const twoColumnGrid = {
     display: 'grid',
@@ -25,36 +26,39 @@ const PersonalInfoSection = ({
 }) => {
     return (
     <Box
-        sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '220px 1fr' },
-            gap: 3,
-            alignItems: 'start',
-        }}
+        className="profile-edit-section profile-edit-section--personal"
     >
+        <Box className="profile-edit-section__header">
+            <span>
+                <FiUser />
+            </span>
+            <div>
+                <h3>المعلومات الأساسية</h3>
+                <p>رتّب بياناتك، صورتك، وصنعتك حتى يظهر البروفايل بثقة للعميل.</p>
+            </div>
+        </Box>
+
         <Box
-            sx={{
-                p: 2.5,
-                borderRadius: '22px',
-                border: '1px solid rgba(26, 39, 68, 0.1)',
-                background: 'linear-gradient(145deg, #f8fafc, #ffffff)',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
-            }}
+            className="profile-edit-personal-grid"
         >
+            <Box className="profile-edit-avatar-card">
             <Stack spacing={2} alignItems="center">
                 <Avatar
+                    className="profile-edit-avatar"
                     src={form.profile_image}
-                    sx={{ width: 136, height: 136, borderRadius: '28px' }}
                 />
-                <Typography sx={{ fontWeight: 700, color: '#2d2a26' }}>
+                <Typography className="profile-edit-avatar-card__title">
                     صورة البروفايل
+                </Typography>
+                <Typography className="profile-edit-avatar-card__hint">
+                    صورة واضحة تساعد العميل يتعرف عليك بسرعة.
                 </Typography>
                 <Button
                     component="label"
                     variant="outlined"
                     fullWidth
                     startIcon={<AddPhotoAlternateRoundedIcon />}
-                    sx={{ borderRadius: '14px', textTransform: 'none', fontWeight: 700 }}
+                    className="profile-edit-upload-button"
                 >
                     رفع صورة
                     <input
@@ -68,9 +72,13 @@ const PersonalInfoSection = ({
                     />
                 </Button>
             </Stack>
-        </Box>
+            </Box>
 
-        <Stack spacing={2.2}>
+            <Stack className="profile-edit-fields-panel" spacing={2.2}>
+                <Box className="profile-edit-subhead">
+                    <FiUser />
+                    <span>بيانات التواصل</span>
+                </Box>
             <Box sx={twoColumnGrid}>
                 <TextField
                     label="الاسم الأول"
@@ -126,10 +134,17 @@ const PersonalInfoSection = ({
 
             <Autocomplete
                 multiple
+                className="profile-edit-autocomplete"
+                disablePortal
                 options={availableSkills}
                 value={selectedSkills}
                 onChange={(_, values) => updateField('skill_ids', values.map((value) => value.id))}
                 getOptionLabel={(option) => option.skill_name}
+                ListboxProps={{ className: 'profile-edit-autocomplete-listbox' }}
+                slotProps={{
+                    paper: { className: 'profile-edit-autocomplete-paper' },
+                    popper: { className: 'profile-edit-autocomplete-popper' },
+                }}
                 renderTags={(value, getTagProps) =>
                     value.map((option, index) => (
                         <Chip
@@ -142,6 +157,10 @@ const PersonalInfoSection = ({
                 renderInput={(params) => <TextField {...params} label="الصنعة الثانوية" />}
             />
 
+                <Box className="profile-edit-subhead">
+                    <FiDollarSign />
+                    <span>نطاق السعر</span>
+                </Box>
             <Box sx={twoColumnGrid}>
                 <TextField
                     label="أقل سعر"
@@ -158,7 +177,8 @@ const PersonalInfoSection = ({
                     fullWidth
                 />
             </Box>
-        </Stack>
+            </Stack>
+        </Box>
     </Box>
     );
 };

@@ -4,6 +4,7 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
 import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import { FiBriefcase } from 'react-icons/fi';
 import { prepareImageFile } from '../../../utils/workerProfile';
 
 const PortfolioSection = ({
@@ -33,52 +34,37 @@ const PortfolioSection = ({
     };
 
     return (
-    <Stack spacing={2}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ fontWeight: 900, color: '#2d2a26' }}>
-                معرض الأعمال
-            </Typography>
+    <Stack className="profile-edit-section" spacing={2}>
+        <Box className="profile-edit-section__header profile-edit-section__header--action">
+            <span>
+                <FiBriefcase />
+            </span>
+            <div>
+                <h3>معرض الأعمال</h3>
+                <p>أضف أفضل الأعمال السابقة حتى يرى العميل جودة شغلك قبل التواصل.</p>
+            </div>
             <Button
                 onClick={addPortfolioItem}
                 startIcon={<AddRoundedIcon />}
                 variant="outlined"
-                sx={{ borderRadius: '14px', textTransform: 'none', fontWeight: 700, borderColor: '#1a2744', color: '#1a2744' }}
+                className="profile-edit-add-btn"
             >
                 إضافة عمل
             </Button>
         </Box>
 
-        <Stack spacing={2}>
+        <Stack className="profile-edit-portfolio-list" spacing={2}>
             {items.map((item, index) => (
                 <Box
                     key={item.pro_id ?? `new-${index}`}
-                    sx={{
-                        border: '1px solid rgba(26, 39, 68, 0.1)',
-                        borderRadius: '22px',
-                        p: 2.25,
-                        background: '#f8fafc',
-                    }}
+                    className="profile-edit-portfolio-card"
                 >
                     <Box
-                        sx={{
-                            display: 'grid',
-                            gridTemplateColumns: { xs: '1fr', md: '220px 1fr' },
-                            gap: 2,
-                        }}
+                        className="profile-edit-portfolio-grid"
                     >
-                        <Box>
+                        <Box className="profile-edit-portfolio-media">
                             <Box
-                                sx={{
-                                    width: '100%',
-                                    height: 180,
-                                    borderRadius: '18px',
-                                    bgcolor: '#f1f5f9',
-                                    border: '1px dashed rgba(26, 39, 68, 0.2)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    overflow: 'hidden',
-                                }}
+                                className="profile-edit-portfolio-preview"
                             >
                                 {item.image ? (
                                     <img
@@ -99,11 +85,12 @@ const PortfolioSection = ({
                                 )}
                             </Box>
 
-                            <Stack spacing={1} sx={{ mt: 1.5 }}>
+                            <Stack className="profile-edit-portfolio-actions" spacing={1}>
                                 <Button
                                     component="label"
                                     variant="outlined"
                                     startIcon={<AddPhotoAlternateRoundedIcon />}
+                                    className="profile-edit-upload-button"
                                 >
                                     رفع صورة
                                     <input
@@ -117,7 +104,7 @@ const PortfolioSection = ({
                                 <Button
                                     component="label"
                                     variant="outlined"
-                                    sx={{ borderColor: '#F59E0B', color: '#F59E0B' }}
+                                    className="profile-edit-secondary-upload"
                                 >
                                     رفع فيديو
                                     <input
@@ -141,13 +128,14 @@ const PortfolioSection = ({
                                     color="inherit"
                                     onClick={() => removePortfolioItem(index)}
                                     startIcon={<DeleteOutlineRoundedIcon />}
+                                    className="profile-edit-delete-btn"
                                 >
                                     حذف العمل
                                 </Button>
                             </Stack>
                         </Box>
 
-                        <Stack spacing={1.6}>
+                        <Stack className="profile-edit-portfolio-fields" spacing={1.6}>
                             <TextField
                                 label="عنوان العمل"
                                 value={item.title}

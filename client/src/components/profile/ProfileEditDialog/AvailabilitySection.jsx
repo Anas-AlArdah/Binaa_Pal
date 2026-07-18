@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Stack, Switch, TextField, Typography } from '@mui/material';
+import { FiCalendar } from 'react-icons/fi';
 import { DAYS_AR } from './profileEditDialogUtils';
 
 const AvailabilitySection = ({
@@ -7,11 +8,18 @@ const AvailabilitySection = ({
     removeAvailabilityDay,
     updateAvailabilityField,
 }) => (
-    <Stack spacing={2}>
-        <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a' }}>
-            جدول التوفر
-        </Typography>
+    <Stack className="profile-edit-section" spacing={2}>
+        <Box className="profile-edit-section__header">
+            <span>
+                <FiCalendar />
+            </span>
+            <div>
+                <h3>أوقات العمل</h3>
+                <p>حدد الأيام والساعات التي يمكن للعميل إرسال طلبات خلالها.</p>
+            </div>
+        </Box>
 
+        <Box className="profile-edit-availability-list">
         {DAYS_AR.map((day) => {
             const dayData = availability[day] || {};
             const hasData = dayData.start_time || dayData.end_time;
@@ -19,20 +27,12 @@ const AvailabilitySection = ({
             return (
                 <Box
                     key={day}
-                    sx={{
-                        border: '1px solid rgba(26, 39, 68, 0.1)',
-                        borderRadius: '16px',
-                        p: 2,
-                        bgcolor: '#f8fafc',
-                        display: 'grid',
-                        gridTemplateColumns: { xs: '1fr', md: '160px auto 1fr 1fr' },
-                        gap: 2,
-                        alignItems: 'center',
-                    }}
+                    className={`profile-edit-availability-row${hasData ? ' is-active' : ''}`}
                 >
-                    <Typography sx={{ fontWeight: 800, color: '#0f172a' }}>
-                        {day}
-                    </Typography>
+                    <Box className="profile-edit-availability-day">
+                        <Typography>{day}</Typography>
+                        <small>{hasData ? 'متاح للعمل' : 'غير مفعّل'}</small>
+                    </Box>
 
                     <Switch
                         checked={!!hasData}
@@ -44,12 +44,6 @@ const AvailabilitySection = ({
 
                             updateAvailabilityField(day, 'start_time', '08:00');
                             updateAvailabilityField(day, 'end_time', '17:00');
-                        }}
-                        sx={{
-                            '& .MuiSwitch-thumb': { bgcolor: '#1a2744' },
-                            '& .Mui-checked + .MuiSwitch-track': {
-                                bgcolor: 'rgba(26, 39, 68, 0.4)',
-                            },
                         }}
                     />
 
@@ -79,6 +73,7 @@ const AvailabilitySection = ({
                 </Box>
             );
         })}
+        </Box>
     </Stack>
 );
 

@@ -1,17 +1,21 @@
 import React from 'react';
-import { Box, Stack, TextField, Typography } from '@mui/material';
+import { Box, Stack, TextField } from '@mui/material';
+import { FiLock } from 'react-icons/fi';
 
 const PasswordSection = ({ form, updateField }) => (
-    <Stack spacing={2}>
-        <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a' }}>
-            تغيير كلمة المرور
-        </Typography>
+    <Stack className="profile-edit-section" spacing={2}>
+        <Box className="profile-edit-section__header">
+            <span>
+                <FiLock />
+            </span>
+            <div>
+                <h3>تغيير كلمة المرور</h3>
+                <p>اتركها فارغة إذا لا تريد تعديل كلمة المرور الآن.</p>
+            </div>
+            <b>اختياري</b>
+        </Box>
         <Box
-            sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' },
-                gap: 2,
-            }}
+            className="profile-edit-three-grid"
         >
             <TextField
                 label="كلمة المرور الحالية"
