@@ -22,6 +22,7 @@
   color: var(--pp-text);
   direction: rtl;
   font-family: "Cairo", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-rendering: optimizeLegibility;
 }
 
 .profile-shell {
@@ -61,6 +62,21 @@
   color: var(--pp-danger);
 }
 
+.profile-state-spinner {
+  width: 42px;
+  height: 42px;
+  border: 4px solid rgba(37, 99, 235, 0.18);
+  border-top-color: var(--pp-blue);
+  border-radius: 999px;
+  animation: profile-spin 0.85s linear infinite;
+}
+
+@keyframes profile-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .profile-state-card button {
   min-height: 44px;
   padding: 0 18px;
@@ -70,6 +86,38 @@
   color: #fff;
   font-family: inherit;
   font-weight: 900;
+  cursor: pointer;
+}
+
+.profile-toast {
+  position: fixed;
+  left: 18px;
+  bottom: 18px;
+  z-index: 1400;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(420px, calc(100vw - 36px));
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #16a34a;
+  color: #fff;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.22);
+  font-size: 0.92rem;
+  font-weight: 900;
+}
+
+.profile-toast button {
+  width: 26px;
+  height: 26px;
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font: inherit;
+  line-height: 1;
   cursor: pointer;
 }
 
@@ -113,12 +161,17 @@
   box-shadow: var(--pp-shadow-soft);
 }
 
+.profile-main-column > .profile-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 520px;
+}
+
 .profile-hero__main,
 .profile-hero__summary {
   border-color: rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.16);
 }
 
 .profile-hero__main {
@@ -352,18 +405,18 @@
 
 .profile-summary-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
 .profile-stat-tile {
   min-width: 0;
-  min-height: 118px;
+  min-height: 112px;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 11px;
-  padding: 16px 12px;
+  padding: 15px 10px;
   border: 1px solid rgba(147, 197, 253, 0.18);
   border-radius: 16px;
   background:
@@ -382,9 +435,9 @@
 }
 
 .profile-stat-tile__icon {
-  width: 46px;
-  height: 46px;
-  flex: 0 0 46px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -407,7 +460,7 @@
   display: block;
   width: 100%;
   color: #cbd5e1;
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 800;
   text-align: center;
 }
@@ -416,7 +469,7 @@
   display: block;
   width: 100%;
   color: #fff;
-  font-size: 0.96rem;
+  font-size: 0.94rem;
   font-weight: 950;
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -439,8 +492,7 @@
 }
 
 .profile-side-column {
-  position: sticky;
-  top: 88px;
+  position: static;
 }
 
 .profile-section,
@@ -561,6 +613,7 @@
 
 .profile-project-card:hover img {
   transform: scale(1.04);
+  will-change: transform;
 }
 
 .profile-project-card__body {
@@ -995,7 +1048,128 @@
 
 .profile-availability-block {
   display: grid;
-  gap: 12px;
+  gap: 16px;
+}
+
+.profile-section--availability,
+.profile-side-panel--availability {
+  overflow: hidden;
+  contain: layout paint;
+  content-visibility: visible;
+}
+
+.profile-section--availability .profile-side-panel__title {
+  margin-bottom: 18px;
+}
+
+.profile-section--availability .profile-side-panel__title h3 {
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+}
+
+.profile-availability-tabs {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.08), transparent 62%),
+    rgba(15, 23, 42, 0.12);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(96, 165, 250, 0.58) rgba(148, 163, 184, 0.12);
+}
+
+.profile-availability-tabs::-webkit-scrollbar {
+  height: 7px;
+}
+
+.profile-availability-tabs::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.profile-availability-tabs::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.58);
+}
+
+.profile-availability-tab {
+  min-width: 174px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 15px;
+  padding: 11px 13px;
+  background: rgba(15, 23, 42, 0.18);
+  color: var(--pp-muted);
+  font: inherit;
+  text-align: right;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.profile-availability-tab:hover {
+  transform: translateY(-1px);
+  border-color: rgba(96, 165, 250, 0.36);
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.profile-availability-tab:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, 0.78);
+  outline-offset: 3px;
+}
+
+.profile-availability-tab.is-active {
+  border-color: rgba(96, 165, 250, 0.55);
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.28), rgba(20, 184, 166, 0.16)),
+    rgba(30, 41, 59, 0.42);
+  color: var(--pp-text);
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.13);
+}
+
+.profile-availability-tab span,
+.profile-availability-tab strong,
+.profile-availability-tab small {
+  display: block;
+}
+
+.profile-availability-tab span {
+  color: var(--pp-blue);
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
+.profile-availability-tab strong {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: row-reverse;
+  gap: 7px;
+  margin-top: 5px;
+  color: var(--pp-text);
+  font-size: 0.96rem;
+  font-weight: 950;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.profile-availability-tab strong svg {
+  width: 15px;
+  height: 15px;
+  color: #93c5fd;
+  flex: 0 0 auto;
+}
+
+.profile-availability-tab small {
+  margin-top: 6px;
+  color: var(--pp-muted);
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.profile-availability-panel {
+  display: block;
 }
 
 .profile-availability-list {
@@ -1003,15 +1177,81 @@
   gap: 10px;
 }
 
+.profile-availability-groups {
+  display: grid;
+  gap: 12px;
+  max-height: min(460px, calc(100dvh - 190px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-inline-start: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 99, 235, 0.58) rgba(148, 163, 184, 0.12);
+}
+
+.profile-section--availability .profile-availability-groups {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  align-items: start;
+  max-height: none;
+  overflow: visible;
+  padding-inline-start: 0;
+}
+
+.profile-availability-groups::-webkit-scrollbar {
+  width: 8px;
+}
+
+.profile-availability-groups::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.profile-availability-groups::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.58);
+  background-clip: padding-box;
+}
+
+.profile-availability-group {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.1), transparent 58%),
+    rgba(148, 163, 184, 0.045);
+}
+
+.profile-availability-group__title span,
+.profile-availability-group__title strong {
+  display: block;
+}
+
+.profile-availability-group__title span {
+  color: var(--pp-blue);
+  font-size: 0.74rem;
+  font-weight: 950;
+}
+
+.profile-availability-group__title strong {
+  margin-top: 4px;
+  color: var(--pp-text);
+  font-size: 0.98rem;
+  font-weight: 950;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
 .profile-availability-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px;
+  padding: 13px 14px;
   border: 1px solid var(--pp-border);
   border-radius: 14px;
-  background: rgba(148, 163, 184, 0.05);
+  background: rgba(15, 23, 42, 0.1);
 }
 
 .profile-availability-card strong {
@@ -1024,10 +1264,10 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 9px;
+  padding: 7px 10px;
   border-radius: 999px;
-  background: rgba(16, 185, 129, 0.1);
-  color: #047857;
+  background: rgba(20, 184, 166, 0.12);
+  color: #0f766e;
   font-size: 0.78rem;
   font-weight: 950;
   white-space: nowrap;
@@ -1125,8 +1365,17 @@
 [data-theme="dark"] .profile-empty-block,
 [data-theme="dark"] .profile-trust-item,
 [data-theme="dark"] .profile-craft-detail-card,
+[data-theme="dark"] .profile-availability-tabs,
+[data-theme="dark"] .profile-availability-tab,
+[data-theme="dark"] .profile-availability-group,
 [data-theme="dark"] .profile-availability-card {
   background: rgba(15, 23, 42, 0.28);
+}
+
+[data-theme="dark"] .profile-availability-tab.is-active {
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.34), rgba(20, 184, 166, 0.18)),
+    rgba(30, 41, 59, 0.48);
 }
 
 [data-theme="dark"] .profile-availability-card span {
@@ -1142,6 +1391,23 @@
   .profile-side-column {
     position: static;
   }
+
+  .profile-availability-groups {
+    max-height: none;
+    overflow: visible;
+    padding-inline-start: 0;
+  }
+
+  .profile-availability-tabs {
+    margin-inline: -2px;
+  }
+}
+
+@media (min-width: 1081px) and (min-height: 900px) {
+  .profile-side-column {
+    position: sticky;
+    top: 88px;
+  }
 }
 
 @media (max-width: 760px) {
@@ -1151,6 +1417,15 @@
 
   .profile-hero {
     padding: 88px 0 32px;
+  }
+
+  .profile-hero::before {
+    background-size: 72px 72px;
+  }
+
+  .profile-hero__main,
+  .profile-hero__summary {
+    backdrop-filter: none;
   }
 
   .profile-hero__identity {
@@ -1171,10 +1446,13 @@
     width: 100%;
   }
 
-  .profile-summary-grid,
   .profile-info-grid,
   .profile-portfolio-grid {
     grid-template-columns: 1fr;
+  }
+
+  .profile-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .profile-section,
@@ -1187,6 +1465,21 @@
   .profile-section__header {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profile-page *,
+  .profile-page *::before,
+  .profile-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .profile-project-card__image img {
+    will-change: auto;
   }
 }
 
@@ -1215,6 +1508,8 @@
 
   .profile-stat-tile {
     align-items: center;
+    min-height: 104px;
+    padding: 13px 8px;
   }
 
   .profile-review-card__top {
@@ -1230,5 +1525,28 @@
   .profile-review-card__rating {
     justify-items: start;
     min-width: 0;
+  }
+
+  .profile-availability-tabs {
+    padding: 8px;
+    border-radius: 16px;
+  }
+
+  .profile-availability-tab {
+    min-width: 150px;
+    padding: 10px 11px;
+  }
+
+  .profile-availability-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .profile-availability-card span {
+    white-space: normal;
+  }
+
+  .profile-summary-grid {
+    grid-template-columns: 1fr;
   }
 }

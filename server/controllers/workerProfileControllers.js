@@ -44,6 +44,22 @@ function normalizePrice(value, fieldName) {
   return numericValue;
 }
 
+function normalizeOptionalSkillId(value, fieldName) {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+
+  const skillId = Number(value);
+
+  if (!Number.isInteger(skillId) || skillId <= 0) {
+    const error = new Error(`Invalid value for ${fieldName}`);
+    error.statusCode = 400;
+    throw error;
+  }
+
+  return skillId;
+}
+
 function normalizeSkillIds(skillIds) {
   if (skillIds === undefined) {
     return undefined;
@@ -93,9 +109,9 @@ function normalizeSkillPrices(skillPrices) {
       maxPrice !== undefined &&
       minPrice !== null &&
       maxPrice !== null &&
-      minPrice > maxPrice
+      minPrice >= maxPrice
     ) {
-      const error = new Error(`skill_prices.${skillId}.min_price cannot be greater than max_price`);
+      const error = new Error(`skill_prices.${skillId}.max_price must be greater than min_price`);
       error.statusCode = 400;
       throw error;
     }
@@ -159,6 +175,13 @@ function buildProfileInclude() {
           model: Availability,
           as: 'availability',
           required: false,
+          include: [
+            {
+              model: Skill,
+              as: 'skill',
+              attributes: ['id', 'skill_name'],
+            },
+          ],
         },
       ],
     },
@@ -283,6 +306,7 @@ async function syncAvailability(userId, availability, transaction) {
       .filter((item) => item.day_of_week && item.start_time && item.end_time)
       .map((item) => ({
         user_id: userId,
+        skill_id: normalizeOptionalSkillId(item.skill_id, 'availability.skill_id'),
         day_of_week: item.day_of_week,
         start_time: item.start_time,
         end_time: item.end_time,
@@ -358,10 +382,10 @@ async function persistWorkerProfile(req, res, { create = false } = {}) {
       maxPrice !== undefined &&
       minPrice !== null &&
       maxPrice !== null &&
-      minPrice > maxPrice
+      minPrice >= maxPrice
     ) {
       await transaction.rollback();
-      return res.status(400).json({ message: 'min_price cannot be greater than max_price' });
+      return res.status(400).json({ message: 'max_price must be greater than min_price' });
     }
 
     const profileUpdates = {};

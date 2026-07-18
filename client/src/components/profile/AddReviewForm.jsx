@@ -119,6 +119,7 @@ const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
       </Typography>
 
       <TextField
+        className="profile-review-comment-field"
         fullWidth
         multiline
         rows={4}
@@ -133,6 +134,7 @@ const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
             bgcolor: '#fff',
             fontFamily: 'Cairo, sans-serif',
             transition: 'border-color 0.2s, box-shadow 0.2s',
+            boxShadow: 'none !important',
             '& fieldset': {
               borderColor: '#cbd5e1',
             },
@@ -140,13 +142,17 @@ const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
               borderColor: '#94a3b8',
             },
             '&.Mui-focused': {
-              boxShadow: 'none',
+              boxShadow: 'none !important',
             },
             '&.Mui-focused fieldset': {
               borderColor: '#2563eb',
               borderWidth: '2px',
             },
-          }
+          },
+          '& textarea, & textarea:focus, & textarea:focus-visible': {
+            outline: 'none !important',
+            boxShadow: 'none !important',
+          },
         }}
       />
 
@@ -174,4 +180,4 @@ const AddReviewForm = ({ workerProfileId, onReviewAdded }) => {
   );
 };
 
-export default AddReviewForm;
+export default React.memo(AddReviewForm);

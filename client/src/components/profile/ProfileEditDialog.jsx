@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Alert,
     Box,
@@ -16,12 +16,14 @@ import PersonalInfoSection from './ProfileEditDialog/PersonalInfoSection';
 import PortfolioSection from './ProfileEditDialog/PortfolioSection';
 import ProfileEditDialogTitle from './ProfileEditDialog/ProfileEditDialogTitle';
 import {
-    DAY_MAP,
     buildAvailabilityForm,
+    buildAvailabilityPayload,
     buildInitialForm,
     buildProfileFormPatch,
     createEmptyPortfolioItem,
     getProfileUserId,
+    getSkillIdFromCraftKey,
+    PRIMARY_AVAILABILITY_KEY,
     parseProjectMeta,
 } from './ProfileEditDialog/profileEditDialogUtils';
 import './ProfileEditDialog/ProfileEditDialog.css';
@@ -51,11 +53,51 @@ const mapProjectsToPortfolioItems = (projects) =>
         })
         : [createEmptyPortfolioItem()];
 
-const buildProfileSavePayload = (form) => {
+const getAvailabilityRecordKey = (record) => {
+    const skillId = record?.skill_id ?? record?.skill?.id ?? record?.Skill?.id;
+    const numericSkillId = Number(skillId);
+    const craftKey = Number.isInteger(numericSkillId) && numericSkillId > 0
+        ? `skill-${numericSkillId}`
+        : PRIMARY_AVAILABILITY_KEY;
+
+    return `${craftKey}:${record?.day_of_week || ''}`;
+};
+
+const mergeAvailabilityRecords = (...recordLists) => {
+    const recordsByKey = new Map();
+
+    recordLists.forEach((records) => {
+        (Array.isArray(records) ? records : []).forEach((record) => {
+            const key = getAvailabilityRecordKey(record);
+
+            if (!key.endsWith(':')) {
+                recordsByKey.set(key, {
+                    ...(recordsByKey.get(key) || {}),
+                    ...record,
+                    skill: record.skill || record.Skill || recordsByKey.get(key)?.skill,
+                });
+            }
+        });
+    });
+
+    return Array.from(recordsByKey.values());
+};
+
+const buildAvailabilityBody = (userId, availability) => ({
+    user_id: userId,
+    skill_id: availability.skill_id ?? null,
+    day_of_week: availability.day_of_week,
+    start_time: availability.start_time,
+    end_time: availability.end_time,
+    is_available: availability.is_available,
+});
+
+const buildProfileSavePayload = (form, availabilityCrafts = []) => {
     const { availability, current_password, new_password, confirm_password, skill_prices, ...payload } = form;
 
     return {
         ...payload,
+        availability: buildAvailabilityPayload(availability, availabilityCrafts),
         skill_prices: Object.entries(skill_prices || {}).map(([skillId, prices]) => ({
             skill_id: Number(skillId),
             min_price: prices?.min_price ?? '',
@@ -107,8 +149,43 @@ const ProfileEditDialog = ({
     const [isSaving, setIsSaving] = useState(false);
     const [loadingData, setLoadingData] = useState(false);
     const [removedProjectIds, setRemovedProjectIds] = useState([]);
-    const [removedAvailabilityIds, setRemovedAvailabilityIds] = useState([]);
+    const [activeAvailabilityCraftKey, setActiveAvailabilityCraftKey] = useState(PRIMARY_AVAILABILITY_KEY);
     const [form, setForm] = useState(buildInitialForm);
+
+    useEffect(() => {
+        if (!open || typeof window === 'undefined') return undefined;
+
+        const scrollY = window.scrollY;
+        const { body, documentElement } = document;
+        const previousBodyStyles = {
+            overflow: body.style.overflow,
+            position: body.style.position,
+            top: body.style.top,
+            left: body.style.left,
+            right: body.style.right,
+            width: body.style.width,
+        };
+        const previousHtmlOverflow = documentElement.style.overflow;
+
+        documentElement.style.overflow = 'hidden';
+        body.style.overflow = 'hidden';
+        body.style.position = 'fixed';
+        body.style.top = `-${scrollY}px`;
+        body.style.left = '0';
+        body.style.right = '0';
+        body.style.width = '100%';
+
+        return () => {
+            documentElement.style.overflow = previousHtmlOverflow;
+            body.style.overflow = previousBodyStyles.overflow;
+            body.style.position = previousBodyStyles.position;
+            body.style.top = previousBodyStyles.top;
+            body.style.left = previousBodyStyles.left;
+            body.style.right = previousBodyStyles.right;
+            body.style.width = previousBodyStyles.width;
+            window.scrollTo(0, scrollY);
+        };
+    }, [open]);
 
     useEffect(() => {
         if (!open || !profile) return;
@@ -117,7 +194,7 @@ const ProfileEditDialog = ({
 
         setSubmitError('');
         setRemovedProjectIds([]);
-        setRemovedAvailabilityIds([]);
+        setActiveAvailabilityCraftKey(PRIMARY_AVAILABILITY_KEY);
         setForm((current) => ({
             ...current,
             ...buildProfileFormPatch(profile),
@@ -130,13 +207,19 @@ const ProfileEditDialog = ({
             try {
                 const [projects, availability] = await Promise.all([
                     fetchJson(`/api/projects/user/${userId}`),
-                    fetchJson(`/api/availability/user/${userId}`),
+                    fetchJson(`/api/availability/user/${userId}`, {
+                        cache: 'no-store',
+                    }).catch(() => profile.availability || []),
                 ]);
+                const mergedAvailability = mergeAvailabilityRecords(
+                    profile.availability,
+                    availability
+                );
 
                 setForm((current) => ({
                     ...current,
                     portfolio_items: mapProjectsToPortfolioItems(projects),
-                    availability: buildAvailabilityForm(availability),
+                    availability: buildAvailabilityForm(mergedAvailability),
                 }));
             } catch (error) {
                 console.error('تعذر تحميل البيانات:', error);
@@ -157,42 +240,119 @@ const ProfileEditDialog = ({
         );
     }, [availableSkills, form.major]);
 
-    const selectedSkills = useMemo(
-        () => filteredAvailableSkills.filter((skill) => form.skill_ids.includes(skill.id)),
-        [filteredAvailableSkills, form.skill_ids]
-    );
+    const selectedSkills = useMemo(() => {
+        const selectedSkillIds = new Set((form.skill_ids || []).map((skillId) => Number(skillId)));
+        return filteredAvailableSkills.filter((skill) => selectedSkillIds.has(Number(skill.id)));
+    }, [filteredAvailableSkills, form.skill_ids]);
 
-    const updateField = (field, value) => {
-        setForm((current) => ({ ...current, [field]: value }));
-    };
+    const availabilityCrafts = useMemo(() => [
+        {
+            key: PRIMARY_AVAILABILITY_KEY,
+            skill_id: null,
+            label: form.major || 'الصنعة الأساسية',
+            type: 'primary',
+        },
+        ...selectedSkills.map((skill) => ({
+            key: `skill-${skill.id}`,
+            skill_id: skill.id,
+            label: skill.skill_name,
+            type: 'secondary',
+        })),
+    ], [form.major, selectedSkills]);
 
-    const updatePortfolioItem = (index, field, value) => {
-        setForm((current) => ({
-            ...current,
-            portfolio_items: current.portfolio_items.map((item, itemIndex) =>
-                itemIndex === index ? { ...item, [field]: value } : item
-            ),
-        }));
-    };
+    useEffect(() => {
+        if (!availabilityCrafts.some((craft) => craft.key === activeAvailabilityCraftKey)) {
+            setActiveAvailabilityCraftKey(PRIMARY_AVAILABILITY_KEY);
+        }
+    }, [activeAvailabilityCraftKey, availabilityCrafts]);
 
-    const updateAvailabilityField = (day, field, value) => {
-        setForm((current) => ({
-            ...current,
-            availability: {
-                ...current.availability,
-                [day]: { ...(current.availability[day] || {}), [field]: value },
-            },
-        }));
-    };
+    const updateField = useCallback((field, value) => {
+        setForm((current) => (
+            current[field] === value ? current : { ...current, [field]: value }
+        ));
+    }, []);
 
-    const addPortfolioItem = () => {
+    const updatePortfolioItem = useCallback((index, field, value) => {
+        setForm((current) => {
+            if (current.portfolio_items[index]?.[field] === value) {
+                return current;
+            }
+
+            return {
+                ...current,
+                portfolio_items: current.portfolio_items.map((item, itemIndex) =>
+                    itemIndex === index ? { ...item, [field]: value } : item
+                ),
+            };
+        });
+    }, []);
+
+    const getAvailabilityCraftMeta = useCallback((craftKey) => {
+        const craft = availabilityCrafts.find((item) => item.key === craftKey);
+
+        return {
+            skill_id: craft?.skill_id ?? getSkillIdFromCraftKey(craftKey),
+            skill_name: craft?.label || '',
+        };
+    }, [availabilityCrafts]);
+
+    const updateAvailabilityField = useCallback((craftKey, day, field, value) => {
+        setForm((current) => {
+            if (current.availability[craftKey]?.[day]?.[field] === value) {
+                return current;
+            }
+
+            const craftMeta = getAvailabilityCraftMeta(craftKey);
+
+            return {
+                ...current,
+                availability: {
+                    ...current.availability,
+                    [craftKey]: {
+                        ...(current.availability[craftKey] || {}),
+                        [day]: {
+                            ...(current.availability[craftKey]?.[day] || {}),
+                            ...craftMeta,
+                            [field]: value,
+                        },
+                    },
+                },
+            };
+        });
+    }, [getAvailabilityCraftMeta]);
+
+    const activateAvailabilityDay = useCallback((craftKey, day) => {
+        const craftMeta = getAvailabilityCraftMeta(craftKey);
+
+        setForm((current) => {
+            const currentDay = current.availability[craftKey]?.[day] || {};
+
+            return {
+                ...current,
+                availability: {
+                    ...current.availability,
+                    [craftKey]: {
+                        ...(current.availability[craftKey] || {}),
+                        [day]: {
+                            ...currentDay,
+                            ...craftMeta,
+                            start_time: currentDay.start_time || '08:00',
+                            end_time: currentDay.end_time || '17:00',
+                        },
+                    },
+                },
+            };
+        });
+    }, [getAvailabilityCraftMeta]);
+
+    const addPortfolioItem = useCallback(() => {
         setForm((current) => ({
             ...current,
             portfolio_items: [...current.portfolio_items, createEmptyPortfolioItem()],
         }));
-    };
+    }, []);
 
-    const removePortfolioItem = (index) => {
+    const removePortfolioItem = useCallback((index) => {
         setForm((current) => {
             const item = current.portfolio_items[index];
 
@@ -207,24 +367,28 @@ const ProfileEditDialog = ({
                 portfolio_items: current.portfolio_items.filter((_, itemIndex) => itemIndex !== index),
             };
         });
-    };
+    }, []);
 
-    const removeAvailabilityDay = (day) => {
+    const removeAvailabilityDay = useCallback((craftKey, day) => {
         setForm((current) => {
             const availability = { ...current.availability };
+            const craftAvailability = { ...(availability[craftKey] || {}) };
 
-            if (availability[day]?.av_id) {
-                setRemovedAvailabilityIds((ids) =>
-                    ids.includes(availability[day].av_id)
-                        ? ids
-                        : [...ids, availability[day].av_id]
-                );
+            if (!craftAvailability[day]) {
+                return current;
             }
 
-            delete availability[day];
+            delete craftAvailability[day];
+
+            if (Object.keys(craftAvailability).length > 0) {
+                availability[craftKey] = craftAvailability;
+            } else {
+                delete availability[craftKey];
+            }
+
             return { ...current, availability };
         });
-    };
+    }, []);
 
     const savePortfolio = async (userId) => {
         for (const proId of removedProjectIds) {
@@ -287,39 +451,42 @@ const ProfileEditDialog = ({
     };
 
     const saveAvailability = async (userId) => {
-        for (const avId of removedAvailabilityIds) {
-            await fetchJson(`/api/availability/${avId}`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-            });
+        const desiredRecords = buildAvailabilityPayload(form.availability, availabilityCrafts);
+        const desiredKeys = new Set(desiredRecords.map(getAvailabilityRecordKey));
+        const currentRecords = await fetchJson(`/api/availability/user/${userId}`, {
+            cache: 'no-store',
+        }).catch(() => profile.availability || []);
+        const currentRecordsByKey = new Map(
+            (Array.isArray(currentRecords) ? currentRecords : [])
+                .map((record) => [getAvailabilityRecordKey(record), record])
+        );
+
+        for (const record of Array.isArray(currentRecords) ? currentRecords : []) {
+            const recordKey = getAvailabilityRecordKey(record);
+
+            if (record.av_id && !desiredKeys.has(recordKey)) {
+                await fetchJson(`/api/availability/${record.av_id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+            }
         }
 
-        for (const [arabicDay, times] of Object.entries(form.availability)) {
-            const englishDay = DAY_MAP[arabicDay];
+        for (const availability of desiredRecords) {
+            const existingRecord = currentRecordsByKey.get(getAvailabilityRecordKey(availability));
+            const requestBody = buildAvailabilityBody(userId, availability);
 
-            if (!englishDay || !times.start_time || !times.end_time) continue;
-
-            if (times.av_id) {
-                await fetchJson(`/api/availability/${times.av_id}`, {
+            if (existingRecord?.av_id) {
+                await fetchJson(`/api/availability/${existingRecord.av_id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        start_time: times.start_time,
-                        end_time: times.end_time,
-                        is_available: true,
-                    }),
+                    body: JSON.stringify(requestBody),
                 });
             } else {
                 await fetchJson('/api/availability', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: userId,
-                        day_of_week: englishDay,
-                        start_time: times.start_time,
-                        end_time: times.end_time,
-                        is_available: true,
-                    }),
+                    body: JSON.stringify(requestBody),
                 });
             }
         }
@@ -355,9 +522,11 @@ const ProfileEditDialog = ({
 
         setIsSaving(true);
         try {
+            const profilePayload = buildProfileSavePayload(form, availabilityCrafts);
+
             await savePortfolio(userId);
             await saveAvailability(userId);
-            if (onSave) await onSave(buildProfileSavePayload(form));
+            if (onSave) await onSave(profilePayload);
             onClose();
         } catch (error) {
             console.error('خطأ أثناء الحفظ:', error);
@@ -387,7 +556,12 @@ const ProfileEditDialog = ({
         >
             <ProfileEditDialogTitle disabled={isLoading} onClose={onClose} />
 
-            <DialogContent dividers className="profile-edit-dialog__content">
+            <DialogContent
+                dividers
+                className="profile-edit-dialog__content"
+                onWheel={(event) => event.stopPropagation()}
+                onTouchMove={(event) => event.stopPropagation()}
+            >
                 {loadingData ? (
                     <Box
                         className="profile-edit-dialog__loading"
@@ -395,7 +569,7 @@ const ProfileEditDialog = ({
                         <CircularProgress />
                     </Box>
                 ) : (
-                    <Box component="form" onSubmit={handleSubmit}>
+                    <Box component="form" onSubmit={handleSubmit} autoComplete="off">
                         <Box className="profile-edit-dialog__body">
                             {submitError && <Alert severity="error">{submitError}</Alert>}
 
@@ -406,11 +580,20 @@ const ProfileEditDialog = ({
                                 updateField={updateField}
                             />
 
-                            <PasswordSection form={form} updateField={updateField} />
+                            <PasswordSection
+                                confirmPassword={form.confirm_password}
+                                currentPassword={form.current_password}
+                                newPassword={form.new_password}
+                                updateField={updateField}
+                            />
 
                             <AvailabilitySection
                                 availability={form.availability}
+                                activateAvailabilityDay={activateAvailabilityDay}
+                                activeCraftKey={activeAvailabilityCraftKey}
+                                crafts={availabilityCrafts}
                                 removeAvailabilityDay={removeAvailabilityDay}
+                                setActiveCraftKey={setActiveAvailabilityCraftKey}
                                 updateAvailabilityField={updateAvailabilityField}
                             />
 

@@ -64,8 +64,8 @@ async function addWorkerSkill(req, res) {
     const minPrice = normalizePrice(req.body.min_price, 'min_price');
     const maxPrice = normalizePrice(req.body.max_price, 'max_price');
 
-    if (minPrice !== null && maxPrice !== null && minPrice > maxPrice) {
-      throw buildClientError('min_price cannot be greater than max_price.');
+    if (minPrice !== null && maxPrice !== null && minPrice >= maxPrice) {
+      throw buildClientError('max_price must be greater than min_price.');
     }
 
     const [workerSkill, created] = await Worker_Skill.findOrCreate({

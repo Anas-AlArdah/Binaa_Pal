@@ -10,6 +10,12 @@ module.exports = (sequelize) => {
                 targetKey: 'id',
                 as: 'user',
             });
+
+            Availability.belongsTo(models.Skill, {
+                foreignKey: 'skill_id',
+                targetKey: 'id',
+                as: 'skill',
+            });
         }
     }
 
@@ -25,6 +31,11 @@ module.exports = (sequelize) => {
             user_id: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
+            },
+
+            skill_id: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
             },
 
             day_of_week: {

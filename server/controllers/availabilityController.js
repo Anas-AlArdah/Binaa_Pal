@@ -1,4 +1,38 @@
-const { Availability, User } = require('../models');
+const { Availability, Skill, User } = require('../models');
+
+const VALID_DAYS = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+];
+
+const normalizeSkillId = (value) => {
+    if (value === undefined || value === null || value === '') {
+        return null;
+    }
+
+    const skillId = Number(value);
+    return Number.isInteger(skillId) && skillId > 0 ? skillId : null;
+};
+
+const buildSkillInclude = () => ({
+    model: Skill,
+    as: 'skill',
+    attributes: ['id', 'skill_name'],
+});
+
+const ensureSkillExists = async (skillId) => {
+    if (!skillId) {
+        return true;
+    }
+
+    const skill = await Skill.findByPk(skillId, { attributes: ['id'] });
+    return Boolean(skill);
+};
 
 // GET all availability records
 const getAllAvailability = async (req, res) => {
@@ -10,8 +44,9 @@ const getAllAvailability = async (req, res) => {
                     as: 'user',
                     attributes: ['id', 'firstname', 'lastname', 'email'],
                 },
+                buildSkillInclude(),
             ],
-            order: [['day_of_week', 'ASC'], ['start_time', 'ASC']],
+            order: [['skill_id', 'ASC'], ['day_of_week', 'ASC'], ['start_time', 'ASC']],
         });
 
         return res.status(200).json(records);
@@ -40,6 +75,7 @@ const getAvailabilityById = async (req, res) => {
                     as: 'user',
                     attributes: ['id', 'firstname', 'lastname', 'email'],
                 },
+                buildSkillInclude(),
             ],
         });
 
@@ -68,20 +104,23 @@ const getAvailabilityByUser = async (req, res) => {
 
         const records = await Availability.findAll({
             where: { user_id: userId },
-            order: [['day_of_week', 'ASC'], ['updatedAt', 'DESC'], ['av_id', 'DESC']],
+            include: [buildSkillInclude()],
+            order: [['skill_id', 'ASC'], ['day_of_week', 'ASC'], ['updatedAt', 'DESC'], ['av_id', 'DESC']],
         });
 
-        const seenDays = new Set();
-        const latestRecordsByDay = records.filter((record) => {
-            if (seenDays.has(record.day_of_week)) {
+        const seenSlots = new Set();
+        const latestRecordsByCraftDay = records.filter((record) => {
+            const slotKey = `${record.skill_id || 'primary'}:${record.day_of_week}`;
+
+            if (seenSlots.has(slotKey)) {
                 return false;
             }
 
-            seenDays.add(record.day_of_week);
+            seenSlots.add(slotKey);
             return true;
         });
 
-        return res.status(200).json(latestRecordsByDay);
+        return res.status(200).json(latestRecordsByCraftDay);
 
     } catch (error) {
         console.error('getAvailabilityByUser error:', error);
@@ -101,6 +140,7 @@ const createAvailability = async (req, res) => {
             day_of_week,
             start_time,
             end_time,
+            skill_id,
             is_available
         } = req.body;
 
@@ -110,24 +150,22 @@ const createAvailability = async (req, res) => {
             });
         }
 
-        const validDays = [
-            'Sunday',
-            'Monday',
-            'Tuesday',
-            'Wednesday',
-            'Thursday',
-            'Friday',
-            'Saturday',
-        ];
-
-        if (!validDays.includes(day_of_week)) {
+        if (!VALID_DAYS.includes(day_of_week)) {
             return res.status(400).json({
-                message: `day_of_week must be one of: ${validDays.join(', ')}`,
+                message: `day_of_week must be one of: ${VALID_DAYS.join(', ')}`,
+            });
+        }
+
+        const normalizedSkillId = normalizeSkillId(skill_id);
+
+        if (!(await ensureSkillExists(normalizedSkillId))) {
+            return res.status(400).json({
+                message: 'Selected skill does not exist',
             });
         }
 
         const existingRecord = await Availability.findOne({
-            where: { user_id, day_of_week },
+            where: { user_id, day_of_week, skill_id: normalizedSkillId },
             order: [['updatedAt', 'DESC'], ['av_id', 'DESC']],
         });
 
@@ -135,10 +173,12 @@ const createAvailability = async (req, res) => {
             ? await existingRecord.update({
                 start_time,
                 end_time,
+                skill_id: normalizedSkillId,
                 is_available: is_available ?? true
             })
             : await Availability.create({
                 user_id,
+                skill_id: normalizedSkillId,
                 day_of_week,
                 start_time,
                 end_time,
@@ -171,6 +211,7 @@ const updateAvailability = async (req, res) => {
             day_of_week,
             start_time,
             end_time,
+            skill_id,
             is_available
         } = req.body;
 
@@ -185,29 +226,31 @@ const updateAvailability = async (req, res) => {
         }
 
         if (day_of_week) {
-            const validDays = [
-                'Sunday',
-                'Monday',
-                'Tuesday',
-                'Wednesday',
-                'Thursday',
-                'Friday',
-                'Saturday',
-            ];
-
-            if (!validDays.includes(day_of_week)) {
+            if (!VALID_DAYS.includes(day_of_week)) {
                 return res.status(400).json({
-                    message: `day_of_week must be one of: ${validDays.join(', ')}`,
+                    message: `day_of_week must be one of: ${VALID_DAYS.join(', ')}`,
                 });
             }
         }
 
-        await record.update({
+        const updates = {
             day_of_week,
             start_time,
             end_time,
             is_available
-        });
+        };
+
+        if (skill_id !== undefined) {
+            updates.skill_id = normalizeSkillId(skill_id);
+
+            if (!(await ensureSkillExists(updates.skill_id))) {
+                return res.status(400).json({
+                    message: 'Selected skill does not exist',
+                });
+            }
+        }
+
+        await record.update(updates);
 
         return res.status(200).json({
             message: 'Availability updated successfully',

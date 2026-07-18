@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Box, Button, Stack, TextField, Typography } from '@mui/material';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
@@ -14,6 +14,13 @@ const PortfolioSection = ({
     updatePortfolioItem,
     onError,
 }) => {
+    const temporaryVideoUrlsRef = useRef(new Set());
+
+    useEffect(() => () => {
+        temporaryVideoUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+        temporaryVideoUrlsRef.current.clear();
+    }, []);
+
     const handleImageUpload = async (event, index) => {
         const file = event.target.files?.[0];
         event.target.value = '';
@@ -31,6 +38,22 @@ const PortfolioSection = ({
             console.error('Project image upload error:', error);
             onError?.('تعذر تجهيز صورة المشروع للحفظ');
         }
+    };
+
+    const handleVideoUpload = (event, index, previousVideo) => {
+        const file = event.target.files?.[0];
+        event.target.value = '';
+
+        if (!file) return;
+
+        if (String(previousVideo || '').startsWith('blob:')) {
+            URL.revokeObjectURL(previousVideo);
+            temporaryVideoUrlsRef.current.delete(previousVideo);
+        }
+
+        const videoUrl = URL.createObjectURL(file);
+        temporaryVideoUrlsRef.current.add(videoUrl);
+        updatePortfolioItem(index, 'video', videoUrl);
     };
 
     return (
@@ -70,6 +93,7 @@ const PortfolioSection = ({
                                     <img
                                         src={item.image}
                                         alt=""
+                                        decoding="async"
                                         style={{
                                             width: '100%',
                                             height: '100%',
@@ -111,16 +135,7 @@ const PortfolioSection = ({
                                         type="file"
                                         accept="video/*"
                                         hidden
-                                        onChange={(event) => {
-                                            const file = event.target.files?.[0];
-                                            if (file) {
-                                                updatePortfolioItem(
-                                                    index,
-                                                    'video',
-                                                    URL.createObjectURL(file)
-                                                );
-                                            }
-                                        }}
+                                        onChange={(event) => handleVideoUpload(event, index, item.video)}
                                     />
                                 </Button>
 
@@ -187,4 +202,4 @@ const PortfolioSection = ({
     );
 };
 
-export default PortfolioSection;
+export default React.memo(PortfolioSection);

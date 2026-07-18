@@ -1,17 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Snackbar,
-  TextField,
-} from '@mui/material';
 import {
   FiCalendar,
   FiBriefcase,
@@ -24,17 +12,18 @@ import {
   FiSend,
   FiShield,
   FiStar,
-  FiTag,
   FiTool,
   FiUserCheck,
 } from 'react-icons/fi';
 import ProfileAvailability from '../../components/profile/ProfileAvailability';
-import AddReviewForm from '../../components/profile/AddReviewForm';
-import ProfileEditDialog from '../../components/profile/ProfileEditDialog';
-import ProfileCompletionCard from '../../components/profile/ProfileCompletionCard';
 import { ApiError, fetchJson, getApiErrorMessage } from '../../utils/api';
 import { getFirstPortfolioImage, normalizePortfolioItems } from '../../utils/workerProfile';
 import './PageProfile.css';
+
+const AddReviewForm = lazy(() => import('../../components/profile/AddReviewForm'));
+const ProfileCompletionCard = lazy(() => import('../../components/profile/ProfileCompletionCard'));
+const ProfileEditDialog = lazy(() => import('../../components/profile/ProfileEditDialog'));
+const ServiceRequestDialog = lazy(() => import('../../components/profile/ServiceRequestDialog'));
 
 const normalizeProfile = (profile) => ({
   ...profile,
@@ -64,17 +53,53 @@ const getProfileUserId = (profile) => {
   return Number.isInteger(userId) && userId > 0 ? userId : null;
 };
 
+const getAvailabilityRecordKey = (record) => {
+  const skillId = record?.skill_id ?? record?.skill?.id ?? record?.Skill?.id;
+  const numericSkillId = Number(skillId);
+  const craftKey = Number.isInteger(numericSkillId) && numericSkillId > 0
+    ? `skill-${numericSkillId}`
+    : 'primary';
+
+  return `${craftKey}:${record?.day_of_week || ''}`;
+};
+
+const mergeAvailabilityRecords = (...recordLists) => {
+  const recordsByKey = new Map();
+
+  recordLists.forEach((records) => {
+    (Array.isArray(records) ? records : []).forEach((record) => {
+      const key = getAvailabilityRecordKey(record);
+
+      if (!key.endsWith(':')) {
+        recordsByKey.set(key, {
+          ...(recordsByKey.get(key) || {}),
+          ...record,
+          skill: record.skill || record.Skill || recordsByKey.get(key)?.skill,
+        });
+      }
+    });
+  });
+
+  return Array.from(recordsByKey.values());
+};
+
 const withAvailability = async (profile) => {
   const userId = getProfileUserId(profile);
+  const fallbackAvailability = Array.isArray(profile?.availability) ? profile.availability : [];
 
   if (!userId) {
-    return profile;
+    return {
+      ...profile,
+      availability: fallbackAvailability,
+    };
   }
 
-  const availability = await fetchJson(`/api/availability/user/${userId}`).catch(() => []);
+  const availability = await fetchJson(`/api/availability/user/${userId}`, {
+    cache: 'no-store',
+  }).catch(() => fallbackAvailability);
   return {
     ...profile,
-    availability: Array.isArray(availability) ? availability : [],
+    availability: mergeAvailabilityRecords(fallbackAvailability, availability),
   };
 };
 
@@ -226,7 +251,7 @@ const WORKER_REQUEST_TEXT = {
   fallbackEmail: 'client@example.com',
 };
 
-function StatTile({ icon: Icon, label, value }) {
+const StatTile = React.memo(function StatTile({ icon: Icon, label, value }) {
   return (
     <div className="profile-stat-tile">
       <span className="profile-stat-tile__icon">
@@ -238,9 +263,9 @@ function StatTile({ icon: Icon, label, value }) {
       </div>
     </div>
   );
-}
+});
 
-function EmptyBlock({ icon: Icon, title, text }) {
+const EmptyBlock = React.memo(function EmptyBlock({ icon: Icon, title, text }) {
   return (
     <div className="profile-empty-block">
       <Icon />
@@ -248,7 +273,7 @@ function EmptyBlock({ icon: Icon, title, text }) {
       <p>{text}</p>
     </div>
   );
-}
+});
 
 const PageProfile = () => {
   const navigate = useNavigate();
@@ -263,7 +288,17 @@ const PageProfile = () => {
   const [requestSending, setRequestSending] = useState(false);
   const [requestError, setRequestError] = useState('');
   const [serviceDialogOpen, setServiceDialogOpen] = useState(false);
-  const [serviceDescription, setServiceDescription] = useState('');
+  const authUser = useMemo(() => getStoredAuthUser(), []);
+
+  const openEditDialog = useCallback(() => setEditOpen(true), []);
+  const closeEditDialog = useCallback(() => setEditOpen(false), []);
+  const closeServiceDialog = useCallback(() => setServiceDialogOpen(false), []);
+  const handleReviewAdded = useCallback((newReview) => {
+    setProfile((prev) => ({
+      ...prev,
+      reviews: [newReview, ...prev.reviews],
+    }));
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -272,7 +307,9 @@ const PageProfile = () => {
     const fetchProfile = async () => {
       try {
         const [data, skillRows] = await Promise.all([
-          fetchJson(`/api/worker-profiles/${id}`),
+          fetchJson(`/api/worker-profiles/${id}`, {
+            cache: 'no-store',
+          }),
           fetchJson('/api/skills').catch(() => []),
         ]);
 
@@ -322,7 +359,12 @@ const PageProfile = () => {
     };
   }, [id, navigate]);
 
-  const authUser = getStoredAuthUser();
+  useEffect(() => {
+    if (!successMessage) return undefined;
+
+    const timer = window.setTimeout(() => setSuccessMessage(''), 3500);
+    return () => window.clearTimeout(timer);
+  }, [successMessage]);
 
   const derived = useMemo(() => {
     if (!profile) return null;
@@ -392,9 +434,30 @@ const PageProfile = () => {
     const heroImage = profile.profile_image || getFirstPortfolioImage(portfolioItems);
     const activeAvailability = profile.availability.filter((slot) => slot.is_available !== false);
     const joinedYear = profile.createdAt ? new Date(profile.createdAt).getFullYear() : 'حديثًا';
+    const trustItems = [
+      {
+        icon: FiUserCheck,
+        label: profile.user?.phone || profile.user?.location ? 'بيانات تواصل واضحة' : 'بانتظار بيانات التواصل',
+        active: Boolean(profile.user?.phone || profile.user?.location),
+      },
+      {
+        icon: FiImage,
+        label: portfolioItems.length > 0 ? `${portfolioItems.length} أعمال مضافة` : 'لم يضف أعمالًا بعد',
+        active: portfolioItems.length > 0,
+      },
+      {
+        icon: FiStar,
+        label: reviewCount > 0 ? `${reviewCount} تقييمات من العملاء` : 'بانتظار أول تقييم',
+        active: reviewCount > 0,
+      },
+      {
+        icon: FiCalendar,
+        label: activeAvailability.length > 0 ? 'أوقات العمل محددة' : 'الأوقات غير محددة',
+        active: activeAvailability.length > 0,
+      },
+    ];
 
     return {
-      activeAvailability,
       averageRating,
       canEditProfile,
       craftDetails,
@@ -405,9 +468,9 @@ const PageProfile = () => {
       joinedYear,
       portfolioItems,
       primaryCraftName,
-      priceRange,
       reviewCount,
       skillList,
+      trustItems,
     };
   }, [authUser, profile]);
 
@@ -415,7 +478,7 @@ const PageProfile = () => {
     return (
       <div className="profile-page profile-page--state" dir="rtl">
         <div className="profile-state-card">
-          <CircularProgress sx={{ color: '#2563eb' }} />
+          <span className="profile-state-spinner" aria-hidden="true" />
           <p>جاري تحميل بروفايل العامل...</p>
         </div>
       </div>
@@ -437,7 +500,6 @@ const PageProfile = () => {
   }
 
   const {
-    activeAvailability,
     averageRating,
     canEditProfile,
     craftDetails,
@@ -447,10 +509,10 @@ const PageProfile = () => {
     hasAdditionalCrafts,
     joinedYear,
     portfolioItems,
-    priceRange,
     primaryCraftName,
     reviewCount,
     skillList,
+    trustItems,
   } = derived;
 
   const handleSaveProfile = async (payload) => {
@@ -465,13 +527,16 @@ const PageProfile = () => {
         body: JSON.stringify(payload),
       });
 
-      const updatedProfileWithSubmittedPrices = mergeSubmittedSkillPrices(updatedProfile, payload.skill_prices);
+      const refreshedProfile = await fetchJson(`/api/worker-profiles/${id}`, {
+        cache: 'no-store',
+      }).catch(() => updatedProfile);
+      const updatedProfileWithSubmittedPrices = mergeSubmittedSkillPrices(refreshedProfile, payload.skill_prices);
       const updatedProfileWithAvailability = await withAvailability(updatedProfileWithSubmittedPrices);
 
       setProfile(normalizeProfile(updatedProfileWithAvailability));
       setEditOpen(false);
       setSuccessMessage('تم تحديث البروفايل بنجاح.');
-      return updatedProfile;
+      return refreshedProfile;
     } finally {
       setSaving(false);
     }
@@ -483,15 +548,12 @@ const PageProfile = () => {
       return;
     }
 
-    setServiceDescription('');
     setRequestError('');
     setServiceDialogOpen(true);
   };
 
-  const handleServiceRequestSubmit = async (event) => {
-    event.preventDefault();
-
-    const cleanedDescription = serviceDescription.trim();
+  const handleServiceRequestSubmit = async (description) => {
+    const cleanedDescription = String(description || '').trim();
 
     if (!cleanedDescription) {
       setRequestError('اكتب وصفًا قصيرًا للخدمة المطلوبة.');
@@ -527,7 +589,6 @@ const PageProfile = () => {
       });
 
       setServiceDialogOpen(false);
-      setServiceDescription('');
       setSuccessMessage(WORKER_REQUEST_TEXT.success);
     } catch (err) {
       setRequestError(getApiErrorMessage(err, WORKER_REQUEST_TEXT.error));
@@ -550,29 +611,6 @@ const PageProfile = () => {
     }
   };
 
-  const trustItems = [
-    {
-      icon: FiUserCheck,
-      label: profile.user?.phone || profile.user?.location ? 'بيانات تواصل واضحة' : 'بانتظار بيانات التواصل',
-      active: Boolean(profile.user?.phone || profile.user?.location),
-    },
-    {
-      icon: FiImage,
-      label: portfolioItems.length > 0 ? `${portfolioItems.length} أعمال مضافة` : 'لم يضف أعمالًا بعد',
-      active: portfolioItems.length > 0,
-    },
-    {
-      icon: FiStar,
-      label: reviewCount > 0 ? `${reviewCount} تقييمات من العملاء` : 'بانتظار أول تقييم',
-      active: reviewCount > 0,
-    },
-    {
-      icon: FiCalendar,
-      label: activeAvailability.length > 0 ? 'أوقات العمل محددة' : 'الأوقات غير محددة',
-      active: activeAvailability.length > 0,
-    },
-  ];
-
   return (
     <div className="profile-page" dir="rtl">
       <section className="profile-hero">
@@ -586,7 +624,7 @@ const PageProfile = () => {
             <div className="profile-hero__identity">
               <div className="profile-avatar">
                 {heroImage ? (
-                  <img src={heroImage} alt={fullName} loading="lazy" />
+                  <img src={heroImage} alt={fullName} decoding="async" fetchPriority="high" />
                 ) : (
                   <span>{fullName.charAt(0)}</span>
                 )}
@@ -630,7 +668,7 @@ const PageProfile = () => {
                 </button>
               )}
               {canEditProfile && (
-                <button type="button" className="profile-primary-btn" onClick={() => setEditOpen(true)}>
+                <button type="button" className="profile-primary-btn" onClick={openEditDialog}>
                   <FiEdit3 />
                   تعديل البروفايل
                 </button>
@@ -653,10 +691,9 @@ const PageProfile = () => {
             </div>
 
             <div className="profile-summary-grid">
-              <StatTile icon={FiBriefcase} label="الأعمال" value={portfolioItems.length} />
+              <StatTile icon={FiBriefcase} label="أعمال المعرض" value={portfolioItems.length} />
               <StatTile icon={FiTool} label="المهارات" value={skillList.length || 0} />
               <StatTile icon={FiCalendar} label="الانضمام" value={joinedYear} />
-              <StatTile icon={FiTag} label="التسعير" value={priceRange} />
             </div>
           </aside>
         </div>
@@ -703,6 +740,10 @@ const PageProfile = () => {
             </div>
           </section>
 
+          <section className="profile-section profile-section--availability">
+            <ProfileAvailability availability={profile.availability} craftDetails={craftDetails} />
+          </section>
+
           <section className="profile-section" id="portfolio-section">
             <div className="profile-section__header">
               <div>
@@ -718,7 +759,7 @@ const PageProfile = () => {
                   <article className="profile-project-card" key={`${item.image || item.title || 'work'}-${index}`}>
                     <div className="profile-project-card__image">
                       {item.image ? (
-                        <img src={item.image} alt={item.title || `عمل رقم ${index + 1}`} loading="lazy" />
+                        <img src={item.image} alt={item.title || `عمل رقم ${index + 1}`} loading="lazy" decoding="async" />
                       ) : (
                         <FiImage />
                       )}
@@ -809,15 +850,12 @@ const PageProfile = () => {
 
             {!canEditProfile && (
               <div className="profile-review-form-shell">
-                <AddReviewForm
-                  workerProfileId={profile.id}
-                  onReviewAdded={(newReview) => {
-                    setProfile((prev) => ({
-                      ...prev,
-                      reviews: [newReview, ...prev.reviews],
-                    }));
-                  }}
-                />
+                <Suspense fallback={null}>
+                  <AddReviewForm
+                    workerProfileId={profile.id}
+                    onReviewAdded={handleReviewAdded}
+                  />
+                </Suspense>
               </div>
             )}
           </section>
@@ -835,7 +873,7 @@ const PageProfile = () => {
             <button
               type="button"
               className="profile-primary-btn"
-              onClick={canEditProfile ? () => setEditOpen(true) : openServiceDialog}
+              onClick={canEditProfile ? openEditDialog : openServiceDialog}
             >
               {canEditProfile ? <FiEdit3 /> : <FiSend />}
               {canEditProfile ? 'تعديل البروفايل' : 'طلب خدمة'}
@@ -844,7 +882,9 @@ const PageProfile = () => {
 
           {canEditProfile && (
             <section className="profile-side-panel profile-side-panel--completion">
-              <ProfileCompletionCard profile={profile} onEdit={() => setEditOpen(true)} />
+              <Suspense fallback={null}>
+                <ProfileCompletionCard profile={profile} onEdit={openEditDialog} />
+              </Suspense>
             </section>
           )}
 
@@ -888,93 +928,43 @@ const PageProfile = () => {
             )}
           </section>
 
-          <section className="profile-side-panel">
-            <ProfileAvailability availability={profile.availability} />
-          </section>
         </aside>
       </main>
 
-      <ProfileEditDialog
-        open={editOpen}
-        profile={profile}
-        availableSkills={skills}
-        saving={saving}
-        onClose={() => setEditOpen(false)}
-        onSave={handleSaveProfile}
-      />
+      {editOpen && (
+        <Suspense fallback={null}>
+          <ProfileEditDialog
+            open={editOpen}
+            profile={profile}
+            availableSkills={skills}
+            saving={saving}
+            onClose={closeEditDialog}
+            onSave={handleSaveProfile}
+          />
+        </Suspense>
+      )}
 
-      <Dialog
-        open={serviceDialogOpen}
-        onClose={requestSending ? undefined : () => setServiceDialogOpen(false)}
-        fullWidth
-        maxWidth="sm"
-        PaperProps={{ className: 'profile-service-dialog' }}
-      >
-        <Box component="form" onSubmit={handleServiceRequestSubmit} dir="rtl">
-          <DialogTitle sx={{ fontWeight: 900, color: 'var(--pp-text)', fontFamily: 'Cairo, sans-serif' }}>
-            طلب خدمة من {fullName}
-          </DialogTitle>
-          <DialogContent sx={{ pt: 1 }}>
-            <p className="profile-dialog-copy">
-              اكتب وصفًا مختصرًا للخدمة المطلوبة، وسيصل الطلب للعامل مع بيانات التواصل الخاصة بك.
-            </p>
+      {serviceDialogOpen && (
+        <Suspense fallback={null}>
+          <ServiceRequestDialog
+            fullName={fullName}
+            onClose={closeServiceDialog}
+            onSubmit={handleServiceRequestSubmit}
+            open={serviceDialogOpen}
+            requestError={requestError}
+            requestSending={requestSending}
+          />
+        </Suspense>
+      )}
 
-            {requestError && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {requestError}
-              </Alert>
-            )}
-
-            <TextField
-              autoFocus
-              label="وصف الخدمة"
-              value={serviceDescription}
-              onChange={(event) => setServiceDescription(event.target.value)}
-              multiline
-              minRows={4}
-              fullWidth
-              required
-            />
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2 }}>
-            <Button
-              type="button"
-              onClick={() => setServiceDialogOpen(false)}
-              disabled={requestSending}
-              sx={{ textTransform: 'none', fontWeight: 800, fontFamily: 'Cairo, sans-serif' }}
-            >
-              إلغاء
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              disabled={requestSending}
-              sx={{
-                bgcolor: '#1a2744',
-                '&:hover': { bgcolor: '#0f172a' },
-                borderRadius: '12px',
-                boxShadow: 'none',
-                textTransform: 'none',
-                fontWeight: 900,
-                fontFamily: 'Cairo, sans-serif',
-              }}
-            >
-              {requestSending ? 'جاري إرسال الطلب...' : 'إرسال الطلب'}
-            </Button>
-          </DialogActions>
-        </Box>
-      </Dialog>
-
-      <Snackbar
-        open={Boolean(successMessage)}
-        autoHideDuration={3500}
-        onClose={() => setSuccessMessage('')}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      >
-        <Alert onClose={() => setSuccessMessage('')} severity="success" variant="filled">
-          {successMessage}
-        </Alert>
-      </Snackbar>
+      {successMessage && (
+        <div className="profile-toast" role="status">
+          <span>{successMessage}</span>
+          <button type="button" onClick={() => setSuccessMessage('')} aria-label="إغلاق الرسالة">
+            ×
+          </button>
+        </div>
+      )}
     </div>
   );
 };

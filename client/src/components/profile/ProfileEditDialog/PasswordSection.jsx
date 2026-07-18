@@ -2,7 +2,12 @@ import React from 'react';
 import { Box, Stack, TextField } from '@mui/material';
 import { FiLock } from 'react-icons/fi';
 
-const PasswordSection = ({ form, updateField }) => (
+const PasswordSection = ({
+    confirmPassword,
+    currentPassword,
+    newPassword,
+    updateField,
+}) => (
     <Stack className="profile-edit-section" spacing={2}>
         <Box className="profile-edit-section__header">
             <span>
@@ -20,21 +25,21 @@ const PasswordSection = ({ form, updateField }) => (
             <TextField
                 label="كلمة المرور الحالية"
                 type="password"
-                value={form.current_password}
+                value={currentPassword}
                 onChange={(event) => updateField('current_password', event.target.value)}
                 fullWidth
             />
             <TextField
                 label="كلمة المرور الجديدة"
                 type="password"
-                value={form.new_password}
+                value={newPassword}
                 onChange={(event) => updateField('new_password', event.target.value)}
                 fullWidth
             />
             <TextField
                 label="تأكيد كلمة المرور"
                 type="password"
-                value={form.confirm_password}
+                value={confirmPassword}
                 onChange={(event) => updateField('confirm_password', event.target.value)}
                 fullWidth
             />
@@ -42,4 +47,4 @@ const PasswordSection = ({ form, updateField }) => (
     </Stack>
 );
 
-export default PasswordSection;
+export default React.memo(PasswordSection);

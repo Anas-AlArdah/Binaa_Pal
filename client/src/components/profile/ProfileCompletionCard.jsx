@@ -128,4 +128,4 @@ const ProfileCompletionCard = ({ profile, onEdit }) => {
   );
 };
 
-export default ProfileCompletionCard;
+export default React.memo(ProfileCompletionCard);

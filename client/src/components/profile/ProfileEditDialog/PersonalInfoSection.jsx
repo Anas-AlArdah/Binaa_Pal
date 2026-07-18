@@ -11,11 +11,18 @@ import {
 } from '@mui/material';
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
 import { FiTag, FiUser } from 'react-icons/fi';
+import { prepareImageFile } from '../../../utils/workerProfile';
 
 const twoColumnGrid = {
     display: 'grid',
     gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
     gap: 2,
+};
+
+const priceInputProps = {
+    autoComplete: 'off',
+    inputMode: 'decimal',
+    min: 0,
 };
 
 const hasPriceValue = (value) =>
@@ -30,6 +37,21 @@ const hasInvalidPriceRange = (minPrice, maxPrice) => {
     return Number.isFinite(min) && Number.isFinite(max) && min >= max;
 };
 
+const PERSONAL_INFO_FIELDS = [
+    'profile_image',
+    'firstname',
+    'lastname',
+    'email',
+    'phone',
+    'location',
+    'major',
+    'bio',
+    'min_price',
+    'max_price',
+    'skill_ids',
+    'skill_prices',
+];
+
 const PersonalInfoSection = ({
     availableSkills,
     form,
@@ -37,6 +59,24 @@ const PersonalInfoSection = ({
     updateField,
 }) => {
     const primaryPriceInvalid = hasInvalidPriceRange(form.min_price, form.max_price);
+
+    const handleProfileImageUpload = async (event) => {
+        const file = event.target.files?.[0];
+        event.target.value = '';
+
+        if (!file) return;
+
+        try {
+            const imageDataUrl = await prepareImageFile(file, {
+                maxWidth: 900,
+                maxHeight: 900,
+                quality: 0.78,
+            });
+            updateField('profile_image', imageDataUrl);
+        } catch (error) {
+            console.error('Profile image upload error:', error);
+        }
+    };
 
     const updateSkillPrice = (skillId, field, value) => {
         updateField('skill_prices', {
@@ -89,10 +129,7 @@ const PersonalInfoSection = ({
                         type="file"
                         hidden
                         accept="image/*"
-                        onChange={(event) => {
-                            const file = event.target.files?.[0];
-                            if (file) updateField('profile_image', URL.createObjectURL(file));
-                        }}
+                        onChange={handleProfileImageUpload}
                     />
                 </Button>
             </Stack>
@@ -168,17 +205,23 @@ const PersonalInfoSection = ({
                     <Box sx={twoColumnGrid}>
                         <TextField
                             label="أقل سعر"
+                            name="primary_min_price"
                             type="number"
+                            autoComplete="off"
                             value={form.min_price}
                             onChange={(event) => updateField('min_price', event.target.value)}
+                            inputProps={priceInputProps}
                             error={primaryPriceInvalid}
                             fullWidth
                         />
                         <TextField
                             label="أعلى سعر"
+                            name="primary_max_price"
                             type="number"
+                            autoComplete="off"
                             value={form.max_price}
                             onChange={(event) => updateField('max_price', event.target.value)}
+                            inputProps={priceInputProps}
                             error={primaryPriceInvalid}
                             helperText={primaryPriceInvalid ? 'أعلى سعر لازم يكون أكبر من أقل سعر.' : ''}
                             fullWidth
@@ -253,17 +296,23 @@ const PersonalInfoSection = ({
                                         </div>
                                         <TextField
                                             label="أقل سعر"
+                                            name={`skill_${skill.id}_min_price`}
                                             type="number"
+                                            autoComplete="off"
                                             value={prices.min_price ?? ''}
                                             onChange={(event) => updateSkillPrice(skill.id, 'min_price', event.target.value)}
+                                            inputProps={priceInputProps}
                                             error={skillPriceInvalid}
                                             fullWidth
                                         />
                                         <TextField
                                             label="أعلى سعر"
+                                            name={`skill_${skill.id}_max_price`}
                                             type="number"
+                                            autoComplete="off"
                                             value={prices.max_price ?? ''}
                                             onChange={(event) => updateSkillPrice(skill.id, 'max_price', event.target.value)}
+                                            inputProps={priceInputProps}
                                             error={skillPriceInvalid}
                                             helperText={skillPriceInvalid ? 'أعلى سعر لازم يكون أكبر من أقل سعر.' : ''}
                                             fullWidth
@@ -280,4 +329,18 @@ const PersonalInfoSection = ({
     );
 };
 
-export default PersonalInfoSection;
+const arePersonalInfoPropsEqual = (previousProps, nextProps) => {
+    if (
+        previousProps.availableSkills !== nextProps.availableSkills ||
+        previousProps.selectedSkills !== nextProps.selectedSkills ||
+        previousProps.updateField !== nextProps.updateField
+    ) {
+        return false;
+    }
+
+    return PERSONAL_INFO_FIELDS.every(
+        (field) => previousProps.form?.[field] === nextProps.form?.[field]
+    );
+};
+
+export default React.memo(PersonalInfoSection, arePersonalInfoPropsEqual);
