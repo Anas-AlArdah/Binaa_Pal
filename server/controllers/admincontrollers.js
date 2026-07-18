@@ -56,6 +56,42 @@ function cleanString(value) {
   return String(value || '').trim();
 }
 
+function makeSlug(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\p{L}\p{N}]+/gu, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function buildCraftPayload(body) {
+  const skillName = cleanString(body.skill_name || body.name);
+  const slug = cleanString(body.slug) || makeSlug(skillName);
+
+  return {
+    skill_name: skillName,
+    slug: slug || null,
+    description: cleanString(body.description) || null,
+    icon_key: cleanString(body.icon_key || body.iconKey) || null,
+  };
+}
+
+function formatCraftItem(skill, workersCount = 0) {
+  return {
+    id: skill.id,
+    name: skill.skill_name,
+    skill_name: skill.skill_name,
+    slug: skill.slug,
+    description: skill.description || '',
+    iconKey: skill.icon_key || '',
+    icon_key: skill.icon_key || '',
+    createdAt: skill.createdAt,
+    workersCount,
+  };
+}
+
 function formatUserName(user) {
   if (!user) {
     return 'Not specified';
@@ -545,20 +581,17 @@ async function getCrafts(req, res) {
       limit,
       offset,
       order: [['skill_name', 'ASC']],
-      attributes: ['id', 'skill_name', 'createdAt'],
+      attributes: ['id', 'skill_name', 'slug', 'description', 'icon_key', 'createdAt'],
     });
 
     const items = await Promise.all(
-      rows.map(async (skill) => ({
-        id: skill.id,
-        name: skill.skill_name,
-        createdAt: skill.createdAt,
-        workersCount: await countSafely(Worker_Skill, {
+      rows.map(async (skill) => (
+        formatCraftItem(skill, await countSafely(Worker_Skill, {
           where: {
             skill_id: skill.id,
           },
-        }),
-      }))
+        }))
+      ))
     );
 
     res.status(200).json({
@@ -575,29 +608,31 @@ async function getCrafts(req, res) {
 
 async function createCraft(req, res) {
   try {
-    const skillName = String(req.body.skill_name || req.body.name || '').trim();
+    const payload = buildCraftPayload(req.body);
 
-    if (!skillName) {
+    if (!payload.skill_name) {
       return res.status(400).json({ message: 'Craft name is required.' });
     }
 
     const existingSkill = await Skill.findOne({
-      where: { skill_name: skillName },
+      where: { skill_name: payload.skill_name },
     });
 
     if (existingSkill) {
       return res.status(409).json({ message: 'Craft already exists.' });
     }
 
-    const skill = await Skill.create({ skill_name: skillName });
+    const skill = await Skill.create(payload);
+
+    if (!skill.slug) {
+      await skill.update({
+        slug: `skill-${skill.id}`,
+        icon_key: skill.icon_key || `skill-${skill.id}`,
+      });
+    }
 
     res.status(201).json({
-      item: {
-        id: skill.id,
-        name: skill.skill_name,
-        createdAt: skill.createdAt,
-        workersCount: 0,
-      },
+      item: formatCraftItem(skill, 0),
     });
   } catch (error) {
     res.status(500).json({
@@ -609,13 +644,13 @@ async function createCraft(req, res) {
 
 async function updateCraft(req, res) {
   const craftId = Number(req.params.id);
-  const skillName = cleanString(req.body.skill_name || req.body.name);
+  const payload = buildCraftPayload(req.body);
 
   if (!Number.isFinite(craftId) || craftId <= 0) {
     return res.status(400).json({ message: 'Invalid craft id.' });
   }
 
-  if (!skillName) {
+  if (!payload.skill_name) {
     return res.status(400).json({ message: 'Craft name is required.' });
   }
 
@@ -628,7 +663,7 @@ async function updateCraft(req, res) {
 
     const existingSkill = await Skill.findOne({
       where: {
-        skill_name: skillName,
+        skill_name: payload.skill_name,
         id: { [Op.ne]: craftId },
       },
     });
@@ -637,7 +672,7 @@ async function updateCraft(req, res) {
       return res.status(409).json({ message: 'Craft already exists.' });
     }
 
-    await skill.update({ skill_name: skillName });
+    await skill.update(payload);
 
     const workersCount = await countSafely(Worker_Skill, {
       where: {
@@ -646,12 +681,7 @@ async function updateCraft(req, res) {
     });
 
     return res.status(200).json({
-      item: {
-        id: skill.id,
-        name: skill.skill_name,
-        createdAt: skill.createdAt,
-        workersCount,
-      },
+      item: formatCraftItem(skill, workersCount),
     });
   } catch (error) {
     return res.status(500).json({

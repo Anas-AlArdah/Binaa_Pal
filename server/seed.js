@@ -6,14 +6,14 @@ const { Role, Skill, User, WorkerProfile, Worker_Skill, sequelize } = require('.
 const PASSWORD = process.env.SEED_WORKER_PASSWORD || 'password123';
 
 const skills = [
-  { slug: 'tiling', name: 'التبليط', description: 'تبليط الأرضيات والجدران للحمامات والمطابخ والمساحات الخارجية' },
-  { slug: 'painting', name: 'الدهان', description: 'دهان داخلي وخارجي وتشطيبات وديكورات' },
-  { slug: 'electrical', name: 'الكهرباء', description: 'تمديدات كهربائية، إنارة، لوحات، وتركيبات كهربائية' },
-  { slug: 'plumbing', name: 'السباكة', description: 'تمديدات مياه، صرف صحي، سخانات، وتركيب الأدوات الصحية' },
-  { slug: 'gypsum', name: 'الجبس والأسقف', description: 'أسقف مستعارة، جبس بورد، وديكورات جبسية' },
-  { slug: 'carpentry', name: 'النجارة', description: 'أثاث مخصص، أبواب، مطابخ، وأعمال خشبية' },
-  { slug: 'aluminum', name: 'الألمنيوم والحديد', description: 'شبابيك، أبواب، درابزين، وأعمال معدنية' },
-  { slug: 'masonry', name: 'البناء والحجر', description: 'أعمال حجر، بناء بلوك، خرسانة، وجدران إنشائية' },
+  { slug: 'tiling', icon_key: 'tiling', name: 'التبليط', description: 'تبليط الأرضيات والجدران للحمامات والمطابخ والمساحات الخارجية' },
+  { slug: 'painting', icon_key: 'painting', name: 'الدهان', description: 'دهان داخلي وخارجي وتشطيبات وديكورات' },
+  { slug: 'electrical', icon_key: 'electrical', name: 'الكهرباء', description: 'تمديدات كهربائية، إنارة، لوحات، وتركيبات كهربائية' },
+  { slug: 'plumbing', icon_key: 'plumbing', name: 'السباكة', description: 'تمديدات مياه، صرف صحي، سخانات، وتركيب الأدوات الصحية' },
+  { slug: 'gypsum', icon_key: 'gypsum', name: 'الجبس والأسقف', description: 'أسقف مستعارة، جبس بورد، وديكورات جبسية' },
+  { slug: 'carpentry', icon_key: 'carpentry', name: 'النجارة', description: 'أثاث مخصص، أبواب، مطابخ، وأعمال خشبية' },
+  { slug: 'aluminum', icon_key: 'aluminum', name: 'الألمنيوم والحديد', description: 'شبابيك، أبواب، درابزين، وأعمال معدنية' },
+  { slug: 'masonry', icon_key: 'masonry', name: 'البناء والحجر', description: 'أعمال حجر، بناء بلوك، خرسانة، وجدران إنشائية' },
 ];
 
 const workerSamples = [
@@ -35,7 +35,18 @@ async function upsertRole(type) {
 async function upsertSkill(skill) {
   const [record] = await Skill.findOrCreate({
     where: { skill_name: skill.name },
-    defaults: { skill_name: skill.name },
+    defaults: {
+      skill_name: skill.name,
+      slug: skill.slug,
+      description: skill.description,
+      icon_key: skill.icon_key,
+    },
+  });
+
+  await record.update({
+    slug: skill.slug,
+    description: skill.description,
+    icon_key: skill.icon_key,
   });
 
   return record;

@@ -38,6 +38,19 @@ module.exports = (sequelize, DataTypes) => {
     validate: {
           notEmpty: true
     }
+    },
+    slug: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    icon_key: {
+      type: DataTypes.STRING,
+      allowNull: true,
     }
   }, {
     sequelize,

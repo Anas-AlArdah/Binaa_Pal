@@ -2,23 +2,6 @@ const { Op, fn, col } = require('sequelize');
 const { Skill, Worker_Skill, User, WorkerProfile, Review } = require('../models');
 const { getProfileImage } = require('../utils/workerProfileData');
 
-const CRAFT_METADATA = [
-  ['tiling', 'tiling', 'التبليط', 'تبليط الأرضيات والجدران', ['tiling', 'tile', 'ceramic', 'تبليط', 'بلاط']],
-  ['painting', 'painting', 'الدهان', 'دهان داخلي وخارجي وتشطيبات', ['painting', 'paint', 'دهان', 'دهن']],
-  ['electrical', 'electrical', 'الكهرباء', 'تمديدات كهربائية وإنارة وصيانة', ['electrical', 'electric', 'كهرب']],
-  ['plumbing', 'plumbing', 'السباكة', 'تمديدات مياه وصرف صحي وسخانات', ['plumbing', 'plumber', 'سباك', 'مياه']],
-  ['gypsum', 'gypsum', 'الجبس والأسقف', 'أسقف مستعارة وجبس بورد وديكورات', ['gypsum', 'drywall', 'جبس', 'أسقف', 'اسقف']],
-  ['carpentry', 'carpentry', 'النجارة', 'أثاث مخصص وأبواب ومطابخ وأعمال خشبية', ['carpentry', 'carpenter', 'نجار']],
-  ['aluminum', 'aluminum', 'الألمنيوم والحديد', 'شبابيك وأبواب وأعمال معدنية', ['aluminum', 'aluminium', 'metal', 'ألمنيوم', 'المنيوم', 'حديد']],
-  ['masonry', 'masonry', 'البناء والحجر', 'أعمال حجر وبناء وجدران إنشائية', ['masonry', 'building', 'stone', 'بناء', 'حجر', 'بلوك']],
-].map(([slug, iconKey, name, description, keywords]) => ({
-  slug,
-  iconKey,
-  name,
-  description,
-  keywords,
-}));
-
 const USER_ATTRIBUTES = ['id', 'firstname', 'lastname', 'phone', 'location'];
 const PROFILE_ATTRIBUTES = ['id', 'user_id', 'profile_image', 'p_images', 'min_price', 'max_price', 'createdAt'];
 
@@ -28,29 +11,14 @@ const average = (values) => (
   values.length ? Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1)) : 0
 );
 
-function normalizeText(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u064b-\u065f\u0670]/g, '');
-}
-
 function makeSlug(value) {
   return String(value || '')
     .trim()
     .toLowerCase()
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/[^\p{L}\p{N}]+/gu, '-')
     .replace(/^-+|-+$/g, '');
-}
-
-function findMetadata(skillName) {
-  const normalizedName = normalizeText(skillName);
-  return CRAFT_METADATA.find((meta) =>
-    meta.keywords.some((keyword) => normalizedName.includes(normalizeText(keyword)))
-  );
 }
 
 async function getWorkerCountBySkillId() {
@@ -67,22 +35,26 @@ async function getWorkerCountBySkillId() {
 }
 
 function buildCraft(skill, countBySkillId) {
-  const meta = findMetadata(skill.skill_name) || {};
+  const slug = skill.slug || makeSlug(skill.skill_name) || `skill-${skill.id}`;
 
   return {
     id: skill.id,
     skill_name: skill.skill_name,
-    name: skill.skill_name || meta.name || 'Craft',
-    slug: meta.slug || makeSlug(skill.skill_name) || `skill-${skill.id}`,
-    description: meta.description || '',
-    iconKey: meta.iconKey || 'default',
+    name: skill.skill_name || 'Craft',
+    slug,
+    description: skill.description || '',
+    iconKey: skill.icon_key || slug || 'default',
     workers: countBySkillId.get(Number(skill.id)) || 0,
   };
 }
 
 async function getCrafts() {
   const [skills, countBySkillId] = await Promise.all([
-    Skill.findAll({ attributes: ['id', 'skill_name'], order: [['id', 'ASC']], raw: true }),
+    Skill.findAll({
+      attributes: ['id', 'skill_name', 'slug', 'description', 'icon_key'],
+      order: [['id', 'ASC']],
+      raw: true,
+    }),
     getWorkerCountBySkillId(),
   ]);
 
