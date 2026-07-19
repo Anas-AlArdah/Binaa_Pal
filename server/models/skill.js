@@ -31,17 +31,17 @@ module.exports = (sequelize, DataTypes) => {
 
   }
   Skill.init({
-    skill_name:{
-
-      type:  DataTypes.STRING,
-    allowNull: false,
-    validate: {
-          notEmpty: true
-    }
+    skill_name: {
+      type: DataTypes.STRING(120),
+      allowNull: false,
+      unique: true,
+      validate: {
+        notEmpty: true,
+      },
     },
     slug: {
-      type: DataTypes.STRING,
-      allowNull: true,
+      type: DataTypes.STRING(120),
+      allowNull: false,
       unique: true,
     },
     description: {
@@ -49,7 +49,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
     },
     icon_key: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(80),
       allowNull: true,
     }
   }, {

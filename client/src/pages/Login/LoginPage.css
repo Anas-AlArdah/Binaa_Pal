@@ -452,18 +452,99 @@ select.form-input-custom {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 14px;
+    width: 100%;
+    margin: 8px 0 0;
+    padding-top: 4px;
+}
+
+.google-registration-status {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    align-items: center;
     gap: 12px;
-    margin-top: 4px;
+    width: 100%;
+    margin: 0 0 22px;
+    padding: 14px;
+    border: 1px solid rgba(16, 185, 129, 0.28);
+    border-radius: 12px;
+    background: rgba(236, 253, 245, 0.88);
+    color: #065f46;
+}
+
+.google-registration-status__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #d1fae5;
+    color: #047857;
+    font-size: 1.35rem;
+}
+
+.google-registration-status__content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.5;
+}
+
+.google-registration-status__content strong {
+    font-size: 0.92rem;
+}
+
+.google-registration-status__content span {
+    overflow: hidden;
+    color: #0f172a;
+    font-size: 0.84rem;
+    font-weight: 800;
+    direction: ltr;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.google-registration-status__content small {
+    color: #047857;
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.google-registration-status__change {
+    min-height: 36px;
+    padding: 7px 11px;
+    border: 1px solid rgba(4, 120, 87, 0.22);
+    border-radius: 8px;
+    background: transparent;
+    color: #047857;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.google-registration-status__change:hover:not(:disabled) {
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.form-input-custom.google-verified-input:disabled {
+    border-color: rgba(16, 185, 129, 0.24);
+    background: rgba(236, 253, 245, 0.7);
+    color: #047857;
+    font-weight: 800;
+    opacity: 1;
 }
 
 .google-divider {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
     color: var(--login-muted);
-    font-size: 0.84rem;
+    font-size: 0.82rem;
     font-weight: 800;
 }
 
@@ -471,16 +552,35 @@ select.form-input-custom {
 .google-divider::after {
     content: '';
     height: 1px;
-    background: rgba(15, 23, 42, 0.08);
+    background: rgba(15, 23, 42, 0.1);
 }
 
 .google-button-slot {
     display: flex;
     justify-content: center;
+    align-items: center;
     width: 100%;
-    min-height: 44px;
+    max-width: 420px;
+    min-height: 46px;
+    padding: 2px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.74);
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.06);
     opacity: 0;
     transition: opacity 0.2s;
+}
+
+.google-button-slot > div,
+.google-button-slot iframe {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 999px !important;
+}
+
+.google-inline-status {
+    color: var(--login-muted);
+    font-size: 0.84rem;
+    font-weight: 700;
 }
 
 .google-button-slot.is-ready {
@@ -599,6 +699,37 @@ select.form-input-custom {
     background: rgba(255, 255, 255, 0.08);
 }
 
+[data-theme="dark"] .google-button-slot {
+    background: rgba(15, 23, 42, 0.42);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .google-registration-status {
+    border-color: rgba(52, 211, 153, 0.24);
+    background: rgba(6, 78, 59, 0.24);
+    color: #a7f3d0;
+}
+
+[data-theme="dark"] .google-registration-status__icon {
+    background: rgba(16, 185, 129, 0.18);
+    color: #6ee7b7;
+}
+
+[data-theme="dark"] .google-registration-status__content span {
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .google-registration-status__content small,
+[data-theme="dark"] .google-registration-status__change {
+    color: #6ee7b7;
+}
+
+[data-theme="dark"] .form-input-custom.google-verified-input:disabled {
+    border-color: rgba(52, 211, 153, 0.24);
+    background: rgba(6, 78, 59, 0.2);
+    color: #a7f3d0;
+}
+
 [data-theme="dark"] .form-input-custom {
     border-color: rgba(255, 255, 255, 0.08);
 }
@@ -675,6 +806,15 @@ select.form-input-custom {
     .experience-field .form-input-custom {
         text-align: right;
         padding: 12px 42px 12px 40px;
+    }
+
+    .google-registration-status {
+        grid-template-columns: 40px minmax(0, 1fr);
+    }
+
+    .google-registration-status__change {
+        grid-column: 1 / -1;
+        width: 100%;
     }
 }
 

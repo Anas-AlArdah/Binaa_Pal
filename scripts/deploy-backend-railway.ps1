@@ -11,17 +11,21 @@ if (-not $env:RAILWAY_TOKEN -and -not $env:RAILWAY_API_TOKEN) {
   throw "Set RAILWAY_TOKEN or RAILWAY_API_TOKEN before running this script."
 }
 
+if (-not $env:SUPABASE_DATABASE_URL) {
+  throw "Set SUPABASE_DATABASE_URL to the Supabase Session pooler connection string."
+}
+
 function Invoke-Railway {
   & npx --yes @railway/cli @args
 }
 
 Invoke-Railway init --name $ProjectName --json
-Invoke-Railway add --database mysql --json
 Invoke-Railway add --service $ServiceName --json
 
 Invoke-Railway variable set NODE_ENV=production --service $ServiceName --environment $EnvironmentName --skip-deploys
 Invoke-Railway variable set CLIENT_ORIGIN=$ClientOrigin --service $ServiceName --environment $EnvironmentName --skip-deploys
 Invoke-Railway variable set JWT_EXPIRES_IN=7d --service $ServiceName --environment $EnvironmentName --skip-deploys
+Invoke-Railway variable set SUPABASE_DATABASE_URL=$env:SUPABASE_DATABASE_URL --service $ServiceName --environment $EnvironmentName --skip-deploys
 
 if (-not $env:JWT_SECRET) {
   $env:JWT_SECRET = [guid]::NewGuid().ToString("N") + [guid]::NewGuid().ToString("N")

@@ -43,29 +43,45 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   User.init({
-    firstname: DataTypes.STRING,
-    lastname: DataTypes.STRING,
+    firstname: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+    },
+    lastname: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+    },
     email: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(320),
+      allowNull: false,
       unique: true,
     },
-    password: DataTypes.STRING,
+    password: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     phone: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(32),
+      allowNull: true,
       unique: true,
     },
-    location: DataTypes.STRING,
-    role_id: DataTypes.INTEGER,
+    location: DataTypes.STRING(160),
+    role_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     google_sub: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(255),
       unique: true,
     },
     auth_provider: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(24),
+      allowNull: false,
       defaultValue: 'password',
     },
     email_verified: {
       type: DataTypes.BOOLEAN,
+      allowNull: false,
       defaultValue: false,
     },
   }, {

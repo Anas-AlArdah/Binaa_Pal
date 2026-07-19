@@ -8,25 +8,10 @@ require('dotenv').config({ quiet: true });
 
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const baseConfig = require(__dirname + '/../config/database')[env];
-const envOrDefault = (key, fallback) =>
-  Object.prototype.hasOwnProperty.call(process.env, key) ? process.env[key] : fallback;
-const config = {
-  ...baseConfig,
-  username: envOrDefault('DB_USERNAME', baseConfig.username),
-  password: envOrDefault('DB_PASSWORD', baseConfig.password),
-  database: envOrDefault('DB_NAME', envOrDefault('DB_DATABASE', baseConfig.database)),
-  host: envOrDefault('DB_HOST', baseConfig.host),
-  port: Number(envOrDefault('DB_PORT', baseConfig.port || 3306)),
-};
+const config = require(__dirname + '/../config/database')[env];
 const db = {};
 
-let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
-}
+const sequelize = new Sequelize(process.env[config.use_env_variable], config);
 
 fs
   .readdirSync(__dirname)

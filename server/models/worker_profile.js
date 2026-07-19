@@ -35,8 +35,8 @@ module.exports = (sequelize, DataTypes) => {
     },
     bio: DataTypes.TEXT,
     major: DataTypes.STRING,
-    profile_image: DataTypes.TEXT('long'),
-    p_images: DataTypes.TEXT('long'), // Portfolio data
+    profile_image: DataTypes.TEXT,
+    p_images: DataTypes.TEXT,
     min_price: DataTypes.DECIMAL(10, 2),
     max_price: DataTypes.DECIMAL(10, 2)
   }, {

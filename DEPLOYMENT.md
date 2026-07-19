@@ -14,7 +14,7 @@ The `netlify.toml` file already contains the build settings and the fallback red
 
 ## Backend
 
-This project uses an Express/MySQL backend in `server/`. Netlify static hosting does not run this server as-is, so deploy it separately on a Node hosting service such as Railway, Render, Fly.io, or another VPS. Railway is the easiest option here because it can provision MySQL.
+This project uses an Express backend connected exclusively to Supabase PostgreSQL. Netlify static hosting does not run this server, so deploy `server/` separately on Railway, Render, Fly.io, or another Node host.
 
 Backend settings:
 
@@ -24,7 +24,21 @@ Backend settings:
 - Environment variables: copy the names from `server/.env.example` and fill in real production values in the hosting dashboard.
 - Health check path: `/health`
 
-Use a hosted MySQL database for production. `DB_HOST` cannot be `localhost` after deployment.
+For Google sign-in, create an OAuth 2.0 Web client in Google Cloud, add the production
+frontend URL to Authorized JavaScript origins, and set the client ID as
+`GOOGLE_CLIENT_ID` on the backend host. Email/password registration and Google
+registration are both available.
+
+## Supabase
+
+1. Create a Supabase project.
+2. Open `Connect` and copy the Session pooler connection string on port `5432`.
+3. Set it as `SUPABASE_DATABASE_URL` in the backend host.
+4. Run `npm run db:migrate` inside `server/`.
+
+The migration creates the final schema, constraints, indexes, default roles and crafts, and enables Row Level Security on application tables. The database password must only exist in server environment variables; never expose `SUPABASE_DATABASE_URL` to the React client.
+
+Schema migrations do not copy old MySQL rows. If those records are needed, migrate them once with Supabase's MySQL migration tool before switching production traffic, then verify row counts and PostgreSQL sequences.
 
 After the backend is deployed, copy its public URL into Netlify as `REACT_APP_API_URL`, then redeploy the frontend.
 If `REACT_APP_API_URL` is not set, the client currently defaults to the deployed Railway API URL.

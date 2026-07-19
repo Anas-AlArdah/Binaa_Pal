@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const { User, Role, WorkerProfile, Skill, Worker_Skill, sequelize } = require('../models');
+const { sendLoginNotificationEmail, sendWelcomeEmail } = require('../utils/emailService');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'binaa_pal_dev_secret';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -11,8 +12,13 @@ const SALT_ROUNDS = 10;
 const ADMIN_EMAIL = normalizeEmail(process.env.ADMIN_EMAIL || 'admin@binaapal.com');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin12345';
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || '';
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
-const ALLOW_PASSWORD_REGISTER = process.env.ALLOW_PASSWORD_REGISTER;
+const GOOGLE_CLIENT_ID_VALUE = String(
+  process.env.GOOGLE_CLIENT_ID || process.env.REACT_APP_GOOGLE_CLIENT_ID || ''
+).trim();
+const GOOGLE_CLIENT_ID = /\.apps\.googleusercontent\.com$/i.test(GOOGLE_CLIENT_ID_VALUE)
+  && !/^(your_|replace_)/i.test(GOOGLE_CLIENT_ID_VALUE)
+  ? GOOGLE_CLIENT_ID_VALUE
+  : '';
 const googleClient = GOOGLE_CLIENT_ID ? new OAuth2Client(GOOGLE_CLIENT_ID) : null;
 
 const ROLE_BY_USER_TYPE = {
@@ -36,12 +42,12 @@ function cleanString(value) {
   return String(value || '').trim();
 }
 
-function isPasswordRegistrationAllowed() {
-  if (ALLOW_PASSWORD_REGISTER !== undefined) {
-    return ['1', 'true', 'yes'].includes(String(ALLOW_PASSWORD_REGISTER).toLowerCase());
-  }
-
-  return !GOOGLE_CLIENT_ID;
+function getPublicAuthConfig(req, res) {
+  res.status(200).json({
+    googleClientId: GOOGLE_CLIENT_ID,
+    googleEnabled: Boolean(GOOGLE_CLIENT_ID),
+    passwordRegistrationEnabled: true,
+  });
 }
 
 function normalizeDigits(value) {
@@ -345,16 +351,6 @@ async function createWorkerAccountDetails(user, selectedSkills, primarySkill, sk
   );
 }
 
-async function userHasWorkerProfile(userId, transaction) {
-  const workerProfile = await WorkerProfile.findOne({
-    where: { user_id: userId },
-    attributes: ['id'],
-    transaction,
-  });
-
-  return Boolean(workerProfile);
-}
-
 function getUniqueConstraintMessage(error) {
   if (error.name !== 'SequelizeUniqueConstraintError') {
     return '';
@@ -423,6 +419,7 @@ async function verifyGoogleCredential(credential) {
   return {
     googleSub: payload.sub,
     email,
+    emailAuthoritative: email.endsWith('@gmail.com') || Boolean(payload.hd),
     ...splitGoogleName(payload),
   };
 }
@@ -431,12 +428,6 @@ async function register(req, res) {
   let transaction;
 
   try {
-    if (!isPasswordRegistrationAllowed()) {
-      return res.status(400).json({
-        message: 'للتسجيل بإيميل حقيقي استخدم زر Google.',
-      });
-    }
-
     const email = normalizeEmail(req.body.email);
     const password = String(req.body.password || '');
     const firstname = cleanString(req.body.firstname);
@@ -526,6 +517,8 @@ async function googleAuth(req, res) {
 
   try {
     const registerIntent = req.body.registerIntent === true || req.body.registerIntent === 'true';
+    const completeRegistration = req.body.completeRegistration === true
+      || req.body.completeRegistration === 'true';
     const googleProfile = await verifyGoogleCredential(req.body.credential);
     let user = await findUserByGoogleSub(googleProfile.googleSub);
 
@@ -534,91 +527,44 @@ async function googleAuth(req, res) {
     }
 
     if (user) {
-      const requestedRoleType = registerIntent ? normalizeUserType(req.body.userType) : null;
-      const currentRoleType = user.role?.type || null;
-
       if (user.google_sub && user.google_sub !== googleProfile.googleSub) {
         return res.status(409).json({ message: 'هذا البريد مربوط بحساب Google آخر.' });
       }
 
+      if (!user.google_sub && !googleProfile.emailAuthoritative) {
+        const linkPassword = String(req.body.linkPassword || '');
+        const storedPassword = user.password || '';
+        const passwordMatches = linkPassword && storedPassword
+          ? (isBcryptHash(storedPassword)
+              ? await bcrypt.compare(linkPassword, storedPassword)
+              : linkPassword === storedPassword)
+          : false;
+
+        if (!passwordMatches) {
+          return res.status(409).json({
+            message: 'لحماية حسابك، أدخل كلمة المرور الحالية ثم تابع عبر Google لربط هذا البريد.',
+          });
+        }
+      }
+
       user.google_sub = googleProfile.googleSub;
       user.email_verified = true;
-
-      if (!user.auth_provider) {
-        user.auth_provider = user.password ? 'password' : 'google';
-      }
-
-      if (!user.password) {
-        user.auth_provider = 'google';
-      }
-
-      const requestedPhone = normalizePhone(req.body.phone);
-      const requestedLocation = cleanString(req.body.location);
-
-      if (requestedPhone && requestedPhone !== user.phone) {
-        validateLocalPhone(requestedPhone);
-        const existingPhone = await findUserByPhone(requestedPhone);
-
-        if (existingPhone && existingPhone.id !== user.id) {
-          return res.status(409).json({ message: 'رقم الجوال مسجل بالفعل.' });
-        }
-
-        user.phone = requestedPhone;
-      }
-
-      if (requestedLocation) {
-        user.location = requestedLocation;
-      }
-
-      const needsWorkerSetup = registerIntent
-        && requestedRoleType === 'Worker'
-        && (currentRoleType !== 'Worker' || !user.worker_profile);
-
-      if (needsWorkerSetup) {
-        if (!user.phone || !user.location) {
-          return res.status(400).json({ message: 'رقم الجوال والموقع مطلوبان لتحويل الحساب إلى عامل.' });
-        }
-
-        const { primarySkillId, requestedSkillIds, skillExperienceById } = parseWorkerSkills(req.body, requestedRoleType);
-        const { selectedSkills, primarySkill } = await getWorkerSkillsOrThrow(requestedRoleType, requestedSkillIds, primarySkillId);
-        const workerRole = await getOrCreateRole('Worker');
-
-        transaction = await sequelize.transaction();
-        user.role_id = workerRole.id;
-        await user.save({ transaction });
-
-        const hasProfile = await userHasWorkerProfile(user.id, transaction);
-
-        if (!hasProfile) {
-          await createWorkerAccountDetails(user, selectedSkills, primarySkill, skillExperienceById, transaction);
-        }
-
-        await transaction.commit();
-        transaction = null;
-
-        const userWithRole = await findUserByIdWithRole(user.id);
-        const token = createToken(userWithRole);
-
-        return res.status(200).json({
-          message: 'Account upgraded to worker with Google successfully.',
-          token,
-          user: sanitizeUser(userWithRole),
-        });
-      }
-
-      if (registerIntent && requestedRoleType === 'Client' && currentRoleType === 'Worker') {
-        return res.status(409).json({
-          message: 'هذا البريد مسجل كعامل بالفعل. استخدم تسجيل الدخول عبر Google.',
-        });
-      }
+      user.auth_provider = user.password ? 'password_google' : 'google';
 
       await user.save();
 
       const userWithRole = await findUserByIdWithRole(user.id);
       const token = createToken(userWithRole);
+      const loginEmail = await sendLoginNotificationEmail({
+        to: userWithRole.email,
+        firstname: userWithRole.firstname,
+        authMethod: 'Google',
+      });
 
       return res.status(200).json({
         message: 'Logged in with Google successfully.',
+        isNewUser: false,
+        loginEmailSent: Boolean(loginEmail.success),
         token,
         user: sanitizeUser(userWithRole),
       });
@@ -630,40 +576,53 @@ async function googleAuth(req, res) {
       });
     }
 
-    const phone = normalizePhone(req.body.phone);
-    const location = cleanString(req.body.location);
     const roleType = normalizeUserType(req.body.userType);
-    const password = String(req.body.password || '');
-
-    if (!phone || !location || !password) {
-      return res.status(400).json({ message: 'رقم الجوال، الموقع، وكلمة المرور مطلوبة لإنشاء حساب Google.' });
+    if (roleType === 'Worker' && !completeRegistration) {
+      return res.status(200).json({
+        message: 'Google account verified. Complete the worker registration form.',
+        onboardingRequired: true,
+        googleProfile: {
+          firstname: googleProfile.firstname,
+          lastname: googleProfile.lastname,
+          email: googleProfile.email,
+        },
+      });
     }
 
-    if (password.length < 6) {
-      return res.status(400).json({ message: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل.' });
+    const firstname = roleType === 'Worker'
+      ? (cleanString(req.body.firstname) || googleProfile.firstname)
+      : googleProfile.firstname;
+    const lastname = roleType === 'Worker'
+      ? (cleanString(req.body.lastname) || googleProfile.lastname)
+      : googleProfile.lastname;
+    const phone = roleType === 'Worker' ? normalizePhone(req.body.phone) : null;
+    const location = roleType === 'Worker' ? cleanString(req.body.location) : null;
+
+    if (roleType === 'Worker' && (!firstname || !lastname || !phone || !location)) {
+      throw createRequestError('الاسم الأول، الاسم الثاني، رقم الجوال، والموقع مطلوبة لإكمال حساب العامل.');
     }
 
-    validateLocalPhone(phone);
+    if (roleType === 'Worker') {
+      validateLocalPhone(phone);
 
-    const existingPhone = await findUserByPhone(phone);
+      const existingPhone = await findUserByPhone(phone);
 
-    if (existingPhone) {
-      return res.status(409).json({ message: 'رقم الجوال مسجل بالفعل.' });
+      if (existingPhone) {
+        throw createStatusError('رقم الجوال مسجل بالفعل.', 409);
+      }
     }
 
     const { primarySkillId, requestedSkillIds, skillExperienceById } = parseWorkerSkills(req.body, roleType);
     const { selectedSkills, primarySkill } = await getWorkerSkillsOrThrow(roleType, requestedSkillIds, primarySkillId);
     const role = await getOrCreateRole(roleType);
 
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-
     transaction = await sequelize.transaction();
 
     const createdUser = await User.create({
-      firstname: googleProfile.firstname,
-      lastname: googleProfile.lastname,
+      firstname,
+      lastname,
       email: googleProfile.email,
-      password: hashedPassword,
+      password: null,
       phone,
       location,
       role_id: role.id,
@@ -681,9 +640,17 @@ async function googleAuth(req, res) {
 
     const userWithRole = await findUserByIdWithRole(createdUser.id);
     const token = createToken(userWithRole);
+    const welcomeEmail = await sendWelcomeEmail({
+      to: googleProfile.email,
+      firstname,
+      accountType: roleType,
+    });
 
     return res.status(201).json({
       message: 'Account created with Google successfully.',
+      isNewUser: true,
+      needsProfileSetup: roleType === 'Worker',
+      welcomeEmailSent: Boolean(welcomeEmail.success),
       token,
       user: sanitizeUser(userWithRole),
     });
@@ -758,9 +725,15 @@ async function login(req, res) {
     }
 
     const token = createToken(user);
+    const loginEmail = await sendLoginNotificationEmail({
+      to: user.email,
+      firstname: user.firstname,
+      authMethod: 'كلمة المرور',
+    });
 
     res.status(200).json({
       message: 'Logged in successfully.',
+      loginEmailSent: Boolean(loginEmail.success),
       token,
       user: sanitizeUser(user),
     });
@@ -799,6 +772,7 @@ async function me(req, res) {
 
 module.exports = {
   JWT_SECRET,
+  getPublicAuthConfig,
   googleAuth,
   login,
   me,

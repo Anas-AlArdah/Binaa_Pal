@@ -2,18 +2,8 @@
   "scripts": {
     "client:install": "npm --prefix client ci",
     "client:build": "npm --prefix client run build",
-    "client:test": "npm --prefix client test -- --watchAll=false",
     "server:install": "npm --prefix server ci",
     "server:start": "npm --prefix server start",
     "server:migrate": "npm --prefix server run db:migrate"
-  },
-  "dependencies": {
-    "bootstrap": "^5.3.8",
-    "express": "^5.2.1",
-    "mysql2": "^3.22.0",
-    "nodemailer": "^8.0.7",
-    "pg": "^8.21.0",
-    "pg-hstore": "^2.3.4",
-    "sequelize": "^6.37.8"
   }
 }

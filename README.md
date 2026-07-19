@@ -17,7 +17,7 @@ Frontend:
 - React 18
 - React Router
 - Material UI
-- Bootstrap and custom CSS
+- Custom responsive CSS
 - Native `fetch` through the shared `client/src/utils/api.js` helper
 
 Backend:
@@ -25,7 +25,7 @@ Backend:
 - Node.js
 - Express
 - Sequelize
-- MySQL or compatible hosted SQL database
+- Supabase PostgreSQL
 - JWT authentication
 
 ## Project Structure
@@ -73,9 +73,14 @@ Create backend environment variables:
 copy server\.env.example server\.env
 ```
 
-Then fill in the database, JWT, Google, and email values in `server/.env`.
+Then fill in the Supabase connection URL and a long random JWT secret in `server/.env`.
 
-Create frontend environment variables when needed:
+To enable Google sign-in, create a Google OAuth 2.0 Web application, add
+`http://localhost:3000` to its Authorized JavaScript origins, and set its client ID as
+`GOOGLE_CLIENT_ID` in `server/.env`. The React app reads this public client ID from the
+backend, so a frontend environment variable is not required.
+
+Create frontend environment variables only when an API URL override is needed:
 
 ```bash
 copy client\.env.example client\.env
@@ -83,13 +88,13 @@ copy client\.env.example client\.env
 
 ## Database
 
-The backend reads database settings from environment variables first. `server/config/config.json` only contains non-secret local defaults and should not contain real passwords.
+The backend uses Supabase PostgreSQL exclusively. Copy the Session pooler connection string from the Supabase dashboard into `SUPABASE_DATABASE_URL`; there is no local database fallback.
 
 Useful backend commands:
 
 ```bash
-npm --prefix server run db:create
 npm --prefix server run db:migrate
+npm --prefix server run db:migrate:status
 npm --prefix server run db:seed
 npm --prefix server start
 ```
@@ -112,12 +117,6 @@ The frontend dev server proxies local API requests to `http://localhost:3001`.
 
 ## Verification
 
-Run the frontend test suite:
-
-```bash
-npm --prefix client test -- --watchAll=false
-```
-
 Build the frontend:
 
 ```bash
@@ -132,6 +131,6 @@ node -e "require('./server/app'); console.log('server modules loaded')"
 
 ## Deployment
 
-See `DEPLOYMENT.md` for Netlify and Railway-oriented deployment notes. In production, set either `DATABASE_URL`/`MYSQL_URL` or the explicit `DB_HOST`, `DB_USERNAME`, and `DB_NAME` environment variables.
+See `DEPLOYMENT.md` for Netlify, Railway, and Supabase deployment notes. Set `SUPABASE_DATABASE_URL` in every backend environment before running migrations or starting the API.
 
 Do not commit real API keys, database passwords, JWT secrets, admin passwords, SMTP credentials, or production webhook URLs.

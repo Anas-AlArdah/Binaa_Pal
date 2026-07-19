@@ -25,17 +25,17 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Request.init({
-    description: DataTypes.STRING,
-    city: DataTypes.STRING,
-    date: DataTypes.DATE,
-    status: DataTypes.STRING,
-    user_id: DataTypes.INTEGER,
-    worker_id: DataTypes.INTEGER,
-    worker_profile_id: DataTypes.INTEGER,
-    craft_name: DataTypes.STRING,
-    client_name: DataTypes.STRING,
-    client_email: DataTypes.STRING,
-    client_phone: DataTypes.STRING
+    description: { type: DataTypes.TEXT, allowNull: false },
+    city: { type: DataTypes.STRING(160), allowNull: true },
+    date: { type: DataTypes.DATE, allowNull: false },
+    status: { type: DataTypes.STRING(24), allowNull: false, defaultValue: 'pending' },
+    user_id: { type: DataTypes.INTEGER, allowNull: false },
+    worker_id: { type: DataTypes.INTEGER, allowNull: false },
+    worker_profile_id: { type: DataTypes.INTEGER, allowNull: false },
+    craft_name: { type: DataTypes.STRING(120), allowNull: true },
+    client_name: { type: DataTypes.STRING(220), allowNull: false },
+    client_email: { type: DataTypes.STRING(320), allowNull: false },
+    client_phone: { type: DataTypes.STRING(32), allowNull: true },
   }, {
     sequelize,
     modelName: 'Request',

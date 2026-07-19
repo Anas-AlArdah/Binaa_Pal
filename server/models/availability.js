@@ -39,16 +39,19 @@ module.exports = (sequelize) => {
             },
 
             day_of_week: {
-                type: DataTypes.ENUM(
-                    'Sunday',
-                    'Monday',
-                    'Tuesday',
-                    'Wednesday',
-                    'Thursday',
-                    'Friday',
-                    'Saturday'
-                ),
+                type: DataTypes.STRING(16),
                 allowNull: false,
+                validate: {
+                    isIn: [[
+                        'Sunday',
+                        'Monday',
+                        'Tuesday',
+                        'Wednesday',
+                        'Thursday',
+                        'Friday',
+                        'Saturday',
+                    ]],
+                },
             },
 
             start_time: {

@@ -46,7 +46,7 @@ function buildSearchWhere(search, fields) {
   return {
     [Op.or]: fields.map((field) => ({
       [field]: {
-        [Op.like]: `%${cleanSearch}%`,
+        [Op.iLike]: `%${cleanSearch}%`,
       },
     })),
   };

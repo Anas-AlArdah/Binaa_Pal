@@ -113,12 +113,12 @@ async function searchWorkers(req, res) {
             userWhere[Op.or] = [
                 {
                     firstname: {
-                        [Op.like]: `%${filters.name}%`
+                        [Op.iLike]: `%${filters.name}%`
                     }
                 },
                 {
                     lastname: {
-                        [Op.like]: `%${filters.name}%`
+                        [Op.iLike]: `%${filters.name}%`
                     }
                 }
             ];
@@ -126,7 +126,7 @@ async function searchWorkers(req, res) {
 
         if (filters.location) {
             userWhere.location = {
-                [Op.like]: `%${filters.location}%`
+                [Op.iLike]: `%${filters.location}%`
             };
         }
 
@@ -158,7 +158,7 @@ async function searchWorkers(req, res) {
                             where: filters.skill
                                 ? {
                                     skill_name: {
-                                        [Op.like]: `%${filters.skill}%`
+                                        [Op.iLike]: `%${filters.skill}%`
                                     }
                                 }
                                 : undefined,
