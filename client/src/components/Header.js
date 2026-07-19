@@ -1,10 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
 import { FiSun, FiMoon } from "react-icons/fi";
 import "./Header.css";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const headerRef = useRef(null);
   const location = useLocation();
 
   const [theme, setTheme] = useState(() => {
@@ -34,6 +35,24 @@ export default function Header() {
 
   const closeMenu = () => setMenuOpen(false);
 
+  useEffect(() => {
+    if (!menuOpen) {
+      return undefined;
+    }
+
+    const handleOutsideClick = (event) => {
+      if (headerRef.current && !headerRef.current.contains(event.target)) {
+        closeMenu();
+      }
+    };
+
+    document.addEventListener("pointerdown", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsideClick);
+    };
+  }, [menuOpen]);
+
   // Reusable function to handle navigation clicks
   // Closes the mobile menu and scrolls to the top of the page smoothly
   const handleNavClick = () => {
@@ -54,7 +73,7 @@ export default function Header() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <header className="nh-header" dir="rtl">
+    <header className={`nh-header ${menuOpen ? "nh-header--menu-open" : ""}`} dir="rtl" ref={headerRef}>
       <div className="nh-inner">
 
         {/* Logo */}
@@ -156,6 +175,7 @@ export default function Header() {
           className="nh-toggle"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="القائمة"
+          aria-expanded={menuOpen}
         >
           <span className={`nh-toggle__bar ${menuOpen ? "nh-toggle__bar--open" : ""}`} />
           <span className={`nh-toggle__bar ${menuOpen ? "nh-toggle__bar--open" : ""}`} />
@@ -166,10 +186,28 @@ export default function Header() {
       {/* Mobile Menu */}
       {menuOpen && (
         <div className="nh-mobile-menu" dir="rtl">
-          <Link to="/home"      className="nh-mobile-link" onClick={handleNavClick}>الرئيسية</Link>
-          <Link to="/craftsman" className="nh-mobile-link" onClick={handleNavClick}>الصنعات</Link>
+          <Link
+            to="/home"
+            className={`nh-mobile-link ${isActive("/home") ? "nh-mobile-link--active" : ""}`}
+            onClick={handleNavClick}
+          >
+            الرئيسية
+          </Link>
+          <Link
+            to="/craftsman"
+            className={`nh-mobile-link ${isActive("/craftsman") ? "nh-mobile-link--active" : ""}`}
+            onClick={handleNavClick}
+          >
+            الصنعات
+          </Link>
           {isAdminLoggedIn && (
-            <Link to="/admin" className="nh-mobile-link" onClick={handleNavClick}>لوحة الآدمن</Link>
+            <Link
+              to="/admin"
+              className={`nh-mobile-link ${isActive("/admin") ? "nh-mobile-link--active" : ""}`}
+              onClick={handleNavClick}
+            >
+              لوحة الآدمن
+            </Link>
           )}
           <button className="nh-mobile-link nh-mobile-theme-btn" onClick={() => { toggleTheme(); closeMenu(); }}>
             <span className="nh-mobile-link__icon">
@@ -178,10 +216,22 @@ export default function Header() {
             {theme === "light" ? "المظهر الداكن" : "المظهر الفاتح"}
           </button>
           {isLoggedIn && !isAdminLoggedIn && (
-            <Link to="/my-services" className="nh-mobile-link" onClick={handleNavClick}>خدماتي</Link>
+            <Link
+              to="/my-services"
+              className={`nh-mobile-link ${isActive("/my-services") ? "nh-mobile-link--active" : ""}`}
+              onClick={handleNavClick}
+            >
+              خدماتي
+            </Link>
           )}
           {isLoggedIn && isWorker && !isAdminLoggedIn && (
-            <Link to="/orders"      className="nh-mobile-link" onClick={handleNavClick}>الطلبات</Link>
+            <Link
+              to="/orders"
+              className={`nh-mobile-link ${isActive("/orders") ? "nh-mobile-link--active" : ""}`}
+              onClick={handleNavClick}
+            >
+              الطلبات
+            </Link>
           )}
           {!isLoggedIn ? (
             <Link to="/login" className="nh-mobile-link nh-mobile-link--cta" onClick={handleNavClick}>

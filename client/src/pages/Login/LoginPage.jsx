@@ -22,13 +22,10 @@ const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
 const text = {
     welcomeBack: 'مرحبا بعودتك',
     createAccount: 'إنشاء حساب جديد',
-    adminWelcome: 'دخول الأدمن',
     loginSubtitle: 'سجل دخولك للوصول إلى حسابك',
     registerSubtitle: 'انضم إلى منصة بنّاء بال اليوم',
-    adminSubtitle: 'سجل دخولك لإدارة منصة Binaa Pal',
     login: 'تسجيل الدخول',
     register: 'إنشاء حساب',
-    admin: 'الأدمن',
     firstname: 'الاسم الأول',
     firstnamePlaceholder: 'أدخل اسمك الأول',
     lastname: 'الاسم الثاني',
@@ -55,11 +52,9 @@ const text = {
     hasAccount: 'لديك حساب بالفعل؟',
     loggingIn: 'جاري تسجيل الدخول...',
     registering: 'جاري إنشاء الحساب...',
-    adminLoggingIn: 'جاري التحقق من الأدمن...',
     loginSuccess: 'تم تسجيل الدخول بنجاح.',
     registerSuccess: 'تم إنشاء الحساب بنجاح.',
     adminSuccess: 'تم تسجيل دخول الأدمن بنجاح.',
-    adminSubmit: 'دخول لوحة الأدمن',
     googleDivider: 'أو عبر Google',
     googleUnavailable: 'فعّل Google Client ID حتى يظهر زر الدخول عبر Google.',
     googleLoading: 'جاري المتابعة عبر Google...',
@@ -109,7 +104,7 @@ function LoginPage() {
     const [formValues, setFormValues] = useState(initialFormValues);
     const isLogin = formMode === 'login';
     const isRegister = formMode === 'register';
-    const isAdmin = formMode === 'admin';
+    const isAdmin = false;
     const isWorkerRegister = isRegister && userType === 'worker';
     const isBusy = loading || googleLoading;
     const googleSignupOnly = isRegister && Boolean(GOOGLE_CLIENT_ID);
@@ -123,11 +118,10 @@ function LoginPage() {
         googleContextRef.current = {
             formMode,
             formValues,
-            isAdmin,
             isRegister,
             userType,
         };
-    }, [formMode, formValues, isAdmin, isRegister, userType]);
+    }, [formMode, formValues, isRegister, userType]);
 
     useEffect(() => {
         if (!isWorkerRegister || skills.length > 0) {
@@ -421,11 +415,7 @@ function LoginPage() {
         }
 
         try {
-            const endpoint = isAdmin
-                ? '/api/auth/admin-login'
-                : isLogin
-                    ? '/api/auth/login'
-                    : '/api/auth/register';
+            const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
 
             const data = await fetchJson(endpoint, {
                 method: 'POST',
@@ -433,7 +423,7 @@ function LoginPage() {
                 body: JSON.stringify(payload),
             });
 
-            if (isAdmin) {
+            if (data?.admin) {
                 persistAdminAuth(data);
                 setSuccess(text.adminSuccess);
 
@@ -471,16 +461,16 @@ function LoginPage() {
                     </aside>
 
                     <div className="login-form-wrapper">
-                        <div className={`login-card ${isAdmin ? 'login-card--admin' : ''}`}>
+                        <div className="login-card">
                             <div className="brand-header">
                                 <span className="brand-name">Binaa Pal</span>
                             </div>
 
                             <h2 className="login-title">
-                                {isAdmin ? text.adminWelcome : isLogin ? text.welcomeBack : text.createAccount}
+                                {isLogin ? text.welcomeBack : text.createAccount}
                             </h2>
                             <p className="login-subtitle">
-                                {isAdmin ? text.adminSubtitle : isLogin ? text.loginSubtitle : text.registerSubtitle}
+                                {isLogin ? text.loginSubtitle : text.registerSubtitle}
                             </p>
 
                             <div className="toggle-container">
@@ -499,14 +489,6 @@ function LoginPage() {
                                     onClick={() => toggleForm('register')}
                                 >
                                     {text.register}
-                                </button>
-                                <button
-                                    id="btn-toggle-admin"
-                                    type="button"
-                                    className={`toggle-btn ${isAdmin ? 'active' : ''}`}
-                                    onClick={() => toggleForm('admin')}
-                                >
-                                    {text.admin}
                                 </button>
                             </div>
 
@@ -689,7 +671,7 @@ function LoginPage() {
                                                 name="email"
                                                 type="email"
                                                 className="form-input-custom"
-                                                placeholder={isAdmin ? 'admin@example.com' : 'you@example.com'}
+                                                placeholder="you@example.com"
                                                 value={formValues.email}
                                                 onChange={handleInputChange}
                                                 autoComplete="email"
@@ -757,7 +739,7 @@ function LoginPage() {
                                                 placeholder="••••••••"
                                                 value={formValues.password}
                                                 onChange={handleInputChange}
-                                                autoComplete={isLogin || isAdmin ? 'current-password' : 'new-password'}
+                                                autoComplete={isLogin ? 'current-password' : 'new-password'}
                                                 required
                                                 minLength="6"
                                                 disabled={isBusy}
@@ -795,48 +777,44 @@ function LoginPage() {
                                         disabled={isBusy}
                                     >
                                         {loading
-                                            ? (isAdmin ? text.adminLoggingIn : isLogin ? text.loggingIn : text.registering)
-                                            : (isAdmin ? text.adminSubmit : isLogin ? text.login : text.register)}
+                                            ? (isLogin ? text.loggingIn : text.registering)
+                                            : (isLogin ? text.login : text.register)}
                                     </button>
                                 )}
 
-                                {!isAdmin && (
-                                    <div className="google-auth-block">
-                                        <div className="google-divider">
-                                            <span>{googleSignupOnly ? 'أكمل التسجيل عبر Google' : text.googleDivider}</span>
-                                        </div>
-
-                                        {GOOGLE_CLIENT_ID ? (
-                                            <>
-                                                <div
-                                                    ref={googleButtonRef}
-                                                    className={`google-button-slot ${googleReady ? 'is-ready' : ''}`}
-                                                    aria-busy={!googleReady || googleLoading}
-                                                />
-                                                {googleLoading && (
-                                                    <span className="google-inline-status">{text.googleLoading}</span>
-                                                )}
-                                            </>
-                                        ) : (
-                                            <p className="google-config-note">{text.googleUnavailable}</p>
-                                        )}
+                                <div className="google-auth-block">
+                                    <div className="google-divider">
+                                        <span>{googleSignupOnly ? 'أكمل التسجيل عبر Google' : text.googleDivider}</span>
                                     </div>
-                                )}
+
+                                    {GOOGLE_CLIENT_ID ? (
+                                        <>
+                                            <div
+                                                ref={googleButtonRef}
+                                                className={`google-button-slot ${googleReady ? 'is-ready' : ''}`}
+                                                aria-busy={!googleReady || googleLoading}
+                                            />
+                                            {googleLoading && (
+                                                <span className="google-inline-status">{text.googleLoading}</span>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <p className="google-config-note">{text.googleUnavailable}</p>
+                                    )}
+                                </div>
                             </form>
 
-                            {!isAdmin && (
-                                <p className="switch-text">
-                                    {isLogin ? text.noAccount : text.hasAccount}
-                                    <button
-                                        type="button"
-                                        className="switch-link"
-                                        onClick={() => toggleForm(isLogin ? 'register' : 'login')}
-                                        disabled={isBusy}
-                                    >
-                                        {isLogin ? text.register : text.login}
-                                    </button>
-                                </p>
-                            )}
+                            <p className="switch-text">
+                                {isLogin ? text.noAccount : text.hasAccount}
+                                <button
+                                    type="button"
+                                    className="switch-link"
+                                    onClick={() => toggleForm(isLogin ? 'register' : 'login')}
+                                    disabled={isBusy}
+                                >
+                                    {isLogin ? text.register : text.login}
+                                </button>
+                            </p>
                         </div>
                     </div>
                 </section>

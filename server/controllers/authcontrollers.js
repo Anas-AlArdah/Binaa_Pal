@@ -715,6 +715,24 @@ async function login(req, res) {
       return res.status(400).json({ message: 'البريد الإلكتروني غير صالح.' });
     }
 
+    if (email === ADMIN_EMAIL) {
+      const adminPasswordMatches = ADMIN_PASSWORD_HASH
+        ? await bcrypt.compare(password, ADMIN_PASSWORD_HASH)
+        : password === ADMIN_PASSWORD;
+
+      if (!adminPasswordMatches) {
+        return res.status(401).json({ message: 'Invalid email or password.' });
+      }
+
+      const adminToken = createAdminToken(email);
+
+      return res.status(200).json({
+        message: 'Admin logged in successfully.',
+        token: adminToken,
+        admin: sanitizeAdmin(email),
+      });
+    }
+
     const user = await findUserByEmail(email);
 
     if (!user) {

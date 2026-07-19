@@ -15,6 +15,7 @@ import {
   FiTool,
   FiUserCheck,
 } from 'react-icons/fi';
+import Footer from '../../components/Footer';
 import ProfileAvailability from '../../components/profile/ProfileAvailability';
 import { ApiError, fetchJson, getApiErrorMessage } from '../../utils/api';
 import { getFirstPortfolioImage, normalizePortfolioItems } from '../../utils/workerProfile';
@@ -476,26 +477,32 @@ const PageProfile = () => {
 
   if (loading) {
     return (
-      <div className="profile-page profile-page--state" dir="rtl">
-        <div className="profile-state-card">
-          <span className="profile-state-spinner" aria-hidden="true" />
-          <p>جاري تحميل بروفايل العامل...</p>
+      <>
+        <div className="profile-page profile-page--state" dir="rtl">
+          <div className="profile-state-card">
+            <span className="profile-state-spinner" aria-hidden="true" />
+            <p>جاري تحميل بروفايل العامل...</p>
+          </div>
         </div>
-      </div>
+        <Footer />
+      </>
     );
   }
 
   if (error || !profile || !derived) {
     return (
-      <div className="profile-page profile-page--state" dir="rtl">
-        <div className="profile-state-card profile-state-card--error">
-          <FiShield />
-          <h1>{error || 'الملف المهني غير موجود.'}</h1>
-          <button type="button" onClick={() => navigate('/craftsman')}>
-            الرجوع للصنايعية
-          </button>
+      <>
+        <div className="profile-page profile-page--state" dir="rtl">
+          <div className="profile-state-card profile-state-card--error">
+            <FiShield />
+            <h1>{error || 'الملف المهني غير موجود.'}</h1>
+            <button type="button" onClick={() => navigate('/craftsman')}>
+              الرجوع للصنايعية
+            </button>
+          </div>
         </div>
-      </div>
+        <Footer />
+      </>
     );
   }
 
@@ -612,8 +619,9 @@ const PageProfile = () => {
   };
 
   return (
-    <div className="profile-page" dir="rtl">
-      <section className="profile-hero">
+    <>
+      <div className="profile-page" dir="rtl">
+        <section className="profile-hero">
         <div className="profile-shell profile-hero__grid">
           <div className="profile-hero__main">
             <div className="profile-hero__eyebrow">
@@ -965,7 +973,9 @@ const PageProfile = () => {
           </button>
         </div>
       )}
-    </div>
+      </div>
+      <Footer />
+    </>
   );
 };
 
