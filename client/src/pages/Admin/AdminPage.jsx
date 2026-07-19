@@ -25,6 +25,16 @@ import {
   FiUsers,
   FiX,
 } from 'react-icons/fi';
+import {
+  FaBolt,
+  FaHammer,
+  FaLayerGroup,
+  FaPaintRoller,
+  FaThLarge,
+  FaWindowMaximize,
+  FaWrench,
+} from 'react-icons/fa';
+import { GiBrickWall } from 'react-icons/gi';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { fetchJson, getApiErrorMessage } from '../../utils/api';
@@ -56,7 +66,12 @@ const text = {
   deletingCraft: 'جاري الحذف...',
   craftNameLabel: 'اسم الصنعة',
   craftNamePlaceholder: 'مثال: نجارة',
-  craftRequired: 'اكتب اسم الصنعة أولاً.',
+  craftSlugLabel: 'معرّف رابط الصنعة',
+  craftSlugPlaceholder: 'مثال: appliance-repair',
+  craftDescriptionLabel: 'وصف الصنعة',
+  craftDescriptionPlaceholder: 'اكتب وصفاً واضحاً للخدمات التي تشملها الصنعة',
+  craftIconLabel: 'أيقونة الصنعة',
+  craftRequired: 'أكمل جميع مواصفات الصنعة قبل الحفظ.',
   craftDuplicate: 'الصنعة موجودة مسبقاً.',
   craftAddSuccess: 'تمت إضافة الصنعة.',
   craftUpdateSuccess: 'تم تعديل الصنعة.',
@@ -102,6 +117,136 @@ const TABS = [
   { id: 'crafts', label: 'الصنعات', icon: FiTool },
   { id: 'permissions', label: 'الصلاحيات', icon: FiLock },
 ];
+
+const CRAFT_ICON_OPTIONS = [
+  { value: 'tiling', label: 'تبليط', Icon: FaThLarge },
+  { value: 'painting', label: 'دهان', Icon: FaPaintRoller },
+  { value: 'electrical', label: 'كهرباء', Icon: FaBolt },
+  { value: 'plumbing', label: 'سباكة', Icon: FaWrench },
+  { value: 'gypsum', label: 'جبس وأسقف', Icon: FaLayerGroup },
+  { value: 'carpentry', label: 'نجارة', Icon: FaHammer },
+  { value: 'aluminum', label: 'ألمنيوم وحديد', Icon: FaWindowMaximize },
+  { value: 'masonry', label: 'بناء وحجر', Icon: GiBrickWall },
+];
+
+const CRAFT_ICON_BY_KEY = Object.fromEntries(
+  CRAFT_ICON_OPTIONS.map(({ value, Icon }) => [value, Icon])
+);
+
+const EMPTY_CRAFT_DRAFT = Object.freeze({
+  skill_name: '',
+  slug: '',
+  description: '',
+  icon_key: '',
+});
+
+function cleanCraftDraft(draft = {}) {
+  return {
+    skill_name: String(draft.skill_name || draft.name || '').trim(),
+    slug: String(draft.slug || '').trim().toLowerCase(),
+    description: String(draft.description || '').trim(),
+    icon_key: String(draft.icon_key || draft.iconKey || '').trim().toLowerCase(),
+  };
+}
+
+function getCraftDraftError(draft) {
+  const cleanDraft = cleanCraftDraft(draft);
+
+  if (Object.values(cleanDraft).some((value) => !value)) {
+    return text.craftRequired;
+  }
+
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(cleanDraft.slug)) {
+    return 'معرّف الرابط يقبل أحرفاً إنجليزية صغيرة وأرقاماً وشرطات فقط.';
+  }
+
+  if (cleanDraft.description.length < 10) {
+    return 'اكتب وصفاً واضحاً للصنعة من 10 أحرف على الأقل.';
+  }
+
+  if (!CRAFT_ICON_BY_KEY[cleanDraft.icon_key]) {
+    return 'اختر أيقونة الصنعة من الخيارات المتاحة.';
+  }
+
+  return '';
+}
+
+function CraftFields({ idPrefix, value, onChange, disabled = false, autoFocus = false }) {
+  const updateField = (field, fieldValue) => {
+    onChange((current) => ({
+      ...current,
+      [field]: fieldValue,
+    }));
+  };
+
+  return (
+    <div className="admin-craft-fields">
+      <label htmlFor={`${idPrefix}-name`}>
+        <span>{text.craftNameLabel}</span>
+        <input
+          id={`${idPrefix}-name`}
+          type="text"
+          value={value.skill_name}
+          onChange={(event) => updateField('skill_name', event.target.value)}
+          placeholder={text.craftNamePlaceholder}
+          maxLength={120}
+          disabled={disabled}
+          autoFocus={autoFocus}
+          required
+        />
+      </label>
+
+      <label htmlFor={`${idPrefix}-slug`}>
+        <span>{text.craftSlugLabel}</span>
+        <input
+          id={`${idPrefix}-slug`}
+          type="text"
+          dir="ltr"
+          value={value.slug}
+          onChange={(event) => updateField('slug', event.target.value)}
+          placeholder={text.craftSlugPlaceholder}
+          maxLength={120}
+          pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+          disabled={disabled}
+          required
+        />
+      </label>
+
+      <label className="admin-craft-fields__description" htmlFor={`${idPrefix}-description`}>
+        <span>{text.craftDescriptionLabel}</span>
+        <textarea
+          id={`${idPrefix}-description`}
+          value={value.description}
+          onChange={(event) => updateField('description', event.target.value)}
+          placeholder={text.craftDescriptionPlaceholder}
+          minLength={10}
+          maxLength={1000}
+          rows={3}
+          disabled={disabled}
+          required
+        />
+      </label>
+
+      <fieldset className="admin-craft-icon-picker" disabled={disabled}>
+        <legend>{text.craftIconLabel}</legend>
+        <div className="admin-craft-icon-options">
+          {CRAFT_ICON_OPTIONS.map(({ value: iconKey, label, Icon }) => (
+            <button
+              key={iconKey}
+              type="button"
+              className={value.icon_key === iconKey ? 'is-selected' : ''}
+              aria-pressed={value.icon_key === iconKey}
+              onClick={() => updateField('icon_key', iconKey)}
+            >
+              <Icon aria-hidden="true" />
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+      </fieldset>
+    </div>
+  );
+}
 
 const fallbackDashboard = {
   stats: {
@@ -193,6 +338,10 @@ function normalizeCraftRows(data) {
     .map((craft) => ({
       id: craft.id,
       name: craft.name || craft.skill_name || '',
+      skill_name: craft.skill_name || craft.name || '',
+      slug: craft.slug || '',
+      description: craft.description || '',
+      icon_key: craft.icon_key || craft.iconKey || '',
       createdAt: craft.createdAt,
       workersCount: Number(craft.workersCount || craft.workers || 0),
     }))
@@ -289,9 +438,9 @@ function AdminPage() {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [craftName, setCraftName] = useState('');
+  const [craftDraft, setCraftDraft] = useState({ ...EMPTY_CRAFT_DRAFT });
   const [editingCraftId, setEditingCraftId] = useState(null);
-  const [editingCraftName, setEditingCraftName] = useState('');
+  const [editingCraftDraft, setEditingCraftDraft] = useState({ ...EMPTY_CRAFT_DRAFT });
   const [craftMessage, setCraftMessage] = useState({ type: '', text: '' });
   const [addingCraft, setAddingCraft] = useState(false);
   const [updatingCraftId, setUpdatingCraftId] = useState(null);
@@ -561,10 +710,11 @@ function AdminPage() {
   const handleAddCraft = async (event) => {
     event.preventDefault();
 
-    const cleanName = craftName.trim();
+    const validationError = getCraftDraftError(craftDraft);
+    const payload = cleanCraftDraft(craftDraft);
 
-    if (!cleanName) {
-      setCraftMessage({ type: 'error', text: text.craftRequired });
+    if (validationError) {
+      setCraftMessage({ type: 'error', text: validationError });
       return;
     }
 
@@ -575,7 +725,7 @@ function AdminPage() {
       const data = await fetchAdmin('/api/admin/crafts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: cleanName }),
+        body: JSON.stringify(payload),
       });
       const [createdCraft] = normalizeCraftRows({ items: [data?.item] });
 
@@ -586,7 +736,7 @@ function AdminPage() {
         refreshCraftStat(1);
       }
 
-      setCraftName('');
+      setCraftDraft({ ...EMPTY_CRAFT_DRAFT });
       setCraftMessage({ type: 'success', text: text.craftAddSuccess });
     } catch (err) {
       if (!handleAdminAuthError(err)) {
@@ -602,24 +752,25 @@ function AdminPage() {
 
   const startEditCraft = (craft) => {
     setEditingCraftId(craft.id);
-    setEditingCraftName(craft.name);
+    setEditingCraftDraft(cleanCraftDraft(craft));
     setCraftMessage({ type: '', text: '' });
   };
 
   const cancelEditCraft = () => {
     setEditingCraftId(null);
-    setEditingCraftName('');
+    setEditingCraftDraft({ ...EMPTY_CRAFT_DRAFT });
   };
 
   const handleUpdateCraft = async (craft) => {
-    const cleanName = editingCraftName.trim();
+    const validationError = getCraftDraftError(editingCraftDraft);
+    const payload = cleanCraftDraft(editingCraftDraft);
 
-    if (!cleanName) {
-      setCraftMessage({ type: 'error', text: text.craftRequired });
+    if (validationError) {
+      setCraftMessage({ type: 'error', text: validationError });
       return;
     }
 
-    if (cleanName === craft.name) {
+    if (JSON.stringify(payload) === JSON.stringify(cleanCraftDraft(craft))) {
       cancelEditCraft();
       return;
     }
@@ -631,7 +782,7 @@ function AdminPage() {
       const data = await fetchAdmin(`/api/admin/crafts/${craft.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: cleanName }),
+        body: JSON.stringify(payload),
       });
       const [updatedCraft] = normalizeCraftRows({ items: [data?.item] });
 
@@ -1155,21 +1306,16 @@ function AdminPage() {
               </div>
 
               <form className="admin-craft-form" onSubmit={handleAddCraft}>
-                <label htmlFor="admin-craft-name">{text.craftNameLabel}</label>
-                <div className="admin-craft-form-row">
-                  <input
-                    id="admin-craft-name"
-                    type="text"
-                    value={craftName}
-                    onChange={(event) => setCraftName(event.target.value)}
-                    placeholder={text.craftNamePlaceholder}
-                    disabled={addingCraft}
-                  />
-                  <button type="submit" className="admin-primary-action admin-craft-submit" disabled={addingCraft}>
-                    <FiPlus />
-                    <span>{addingCraft ? text.addingCraft : text.addCraft}</span>
-                  </button>
-                </div>
+                <CraftFields
+                  idPrefix="admin-new-craft"
+                  value={craftDraft}
+                  onChange={setCraftDraft}
+                  disabled={addingCraft}
+                />
+                <button type="submit" className="admin-primary-action admin-craft-submit" disabled={addingCraft}>
+                  <FiPlus />
+                  <span>{addingCraft ? text.addingCraft : text.addCraft}</span>
+                </button>
               </form>
 
               {craftMessage.text && (
@@ -1184,19 +1330,29 @@ function AdminPage() {
                     const isEditing = editingCraftId === craft.id;
 
                     return (
-                      <div className="admin-craft-item" key={craft.id}>
+                      <div className={`admin-craft-item${isEditing ? ' is-editing' : ''}`} key={craft.id}>
                         <div className="admin-craft-item__body">
                           {isEditing ? (
-                            <input
-                              type="text"
-                              value={editingCraftName}
-                              onChange={(event) => setEditingCraftName(event.target.value)}
+                            <CraftFields
+                              idPrefix={`admin-craft-${craft.id}`}
+                              value={editingCraftDraft}
+                              onChange={setEditingCraftDraft}
+                              disabled={updatingCraftId === craft.id}
                               autoFocus
                             />
                           ) : (
                             <>
-                              <strong>{craft.name}</strong>
-                              <span>
+                              <div className="admin-craft-item__heading">
+                                <span className="admin-craft-item__icon" aria-hidden="true">
+                                  {React.createElement(CRAFT_ICON_BY_KEY[craft.icon_key] || FiTool)}
+                                </span>
+                                <div>
+                                  <strong>{craft.name}</strong>
+                                  <code dir="ltr">/{craft.slug}</code>
+                                </div>
+                              </div>
+                              <p>{craft.description}</p>
+                              <span className="admin-craft-item__workers">
                                 {formatNumber(craft.workersCount)} {text.workersLinked}
                               </span>
                             </>

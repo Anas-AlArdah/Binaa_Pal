@@ -84,6 +84,23 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: false,
     },
+    email_verification_code_hash: {
+      type: DataTypes.STRING(64),
+      allowNull: true,
+    },
+    email_verification_expires_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    email_verification_attempts: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    email_verification_sent_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   }, {
     sequelize,
     modelName: 'User',

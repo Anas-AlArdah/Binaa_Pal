@@ -8,6 +8,10 @@ const {
   WorkerProfile,
   Worker_Skill,
 } = require('../models');
+const {
+  buildCraftPayload,
+  getCraftValidationError,
+} = require('../utils/craftMetadata');
 
 const COMPLETED_STATUSES = ['completed', 'done', 'closed', '\u0645\u0643\u062a\u0645\u0644'];
 const DEFAULT_PAGE_SIZE = 10;
@@ -52,41 +56,15 @@ function buildSearchWhere(search, fields) {
   };
 }
 
-function cleanString(value) {
-  return String(value || '').trim();
-}
-
-function makeSlug(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^\p{L}\p{N}]+/gu, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-function buildCraftPayload(body) {
-  const skillName = cleanString(body.skill_name || body.name);
-  const slug = cleanString(body.slug) || makeSlug(skillName);
-
-  return {
-    skill_name: skillName,
-    slug: slug || null,
-    description: cleanString(body.description) || null,
-    icon_key: cleanString(body.icon_key || body.iconKey) || null,
-  };
-}
-
 function formatCraftItem(skill, workersCount = 0) {
   return {
     id: skill.id,
     name: skill.skill_name,
     skill_name: skill.skill_name,
     slug: skill.slug,
-    description: skill.description || '',
-    iconKey: skill.icon_key || '',
-    icon_key: skill.icon_key || '',
+    description: skill.description,
+    iconKey: skill.icon_key,
+    icon_key: skill.icon_key,
     createdAt: skill.createdAt,
     workersCount,
   };
@@ -595,32 +573,35 @@ async function getCrafts(req, res) {
 async function createCraft(req, res) {
   try {
     const payload = buildCraftPayload(req.body);
+    const validationError = getCraftValidationError(payload);
 
-    if (!payload.skill_name) {
-      return res.status(400).json({ message: 'Craft name is required.' });
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
     }
 
     const existingSkill = await Skill.findOne({
-      where: { skill_name: payload.skill_name },
+      where: {
+        [Op.or]: [
+          { skill_name: { [Op.iLike]: payload.skill_name } },
+          { slug: payload.slug },
+        ],
+      },
     });
 
     if (existingSkill) {
-      return res.status(409).json({ message: 'Craft already exists.' });
+      return res.status(409).json({ message: 'اسم الصنعة أو معرّف رابطها مستخدم مسبقاً.' });
     }
 
     const skill = await Skill.create(payload);
-
-    if (!skill.slug) {
-      await skill.update({
-        slug: `skill-${skill.id}`,
-        icon_key: skill.icon_key || `skill-${skill.id}`,
-      });
-    }
 
     res.status(201).json({
       item: formatCraftItem(skill, 0),
     });
   } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ message: 'اسم الصنعة أو معرّف رابطها مستخدم مسبقاً.' });
+    }
+
     res.status(500).json({
       message: 'Failed to create admin craft.',
       error: error.message,
@@ -631,13 +612,14 @@ async function createCraft(req, res) {
 async function updateCraft(req, res) {
   const craftId = Number(req.params.id);
   const payload = buildCraftPayload(req.body);
+  const validationError = getCraftValidationError(payload);
 
   if (!Number.isFinite(craftId) || craftId <= 0) {
     return res.status(400).json({ message: 'Invalid craft id.' });
   }
 
-  if (!payload.skill_name) {
-    return res.status(400).json({ message: 'Craft name is required.' });
+  if (validationError) {
+    return res.status(400).json({ message: validationError });
   }
 
   try {
@@ -649,13 +631,16 @@ async function updateCraft(req, res) {
 
     const existingSkill = await Skill.findOne({
       where: {
-        skill_name: payload.skill_name,
         id: { [Op.ne]: craftId },
+        [Op.or]: [
+          { skill_name: { [Op.iLike]: payload.skill_name } },
+          { slug: payload.slug },
+        ],
       },
     });
 
     if (existingSkill) {
-      return res.status(409).json({ message: 'Craft already exists.' });
+      return res.status(409).json({ message: 'اسم الصنعة أو معرّف رابطها مستخدم مسبقاً.' });
     }
 
     await skill.update(payload);
@@ -670,6 +655,10 @@ async function updateCraft(req, res) {
       item: formatCraftItem(skill, workersCount),
     });
   } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ message: 'اسم الصنعة أو معرّف رابطها مستخدم مسبقاً.' });
+    }
+
     return res.status(500).json({
       message: 'Failed to update admin craft.',
       error: error.message,

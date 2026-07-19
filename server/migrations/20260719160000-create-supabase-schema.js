@@ -114,11 +114,11 @@ module.exports = {
         unique: true,
       },
       description: {
-        allowNull: true,
+        allowNull: false,
         type: Sequelize.TEXT,
       },
       icon_key: {
-        allowNull: true,
+        allowNull: false,
         type: Sequelize.STRING(80),
       },
       ...timestampColumns(Sequelize),

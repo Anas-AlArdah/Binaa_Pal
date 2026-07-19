@@ -1,14 +1,22 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const { User, Role, WorkerProfile, Skill, Worker_Skill, sequelize } = require('../models');
-const { sendLoginNotificationEmail, sendWelcomeEmail } = require('../utils/emailService');
+const {
+  sendEmailVerificationCode,
+  sendLoginNotificationEmail,
+  sendWelcomeEmail,
+} = require('../utils/emailService');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'binaa_pal_dev_secret';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 // try {
     //req.user = jwt.verify(token, JWT_SECRET)
 const SALT_ROUNDS = 10;
+const EMAIL_VERIFICATION_TTL_MINUTES = 10;
+const EMAIL_VERIFICATION_MAX_ATTEMPTS = 5;
+const EMAIL_VERIFICATION_RESEND_COOLDOWN_MS = 60 * 1000;
 const ADMIN_EMAIL = normalizeEmail(process.env.ADMIN_EMAIL || 'admin@binaapal.com');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin12345';
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || '';
@@ -40,6 +48,45 @@ function normalizeUserType(userType) {
 
 function cleanString(value) {
   return String(value || '').trim();
+}
+
+function createEmailVerificationCode() {
+  return String(crypto.randomInt(100000, 1000000));
+}
+
+function hashEmailVerificationCode(email, code) {
+  return crypto
+    .createHmac('sha256', JWT_SECRET)
+    .update(`${normalizeEmail(email)}:${String(code || '')}`)
+    .digest('hex');
+}
+
+function verificationHashesMatch(actualHash, expectedHash) {
+  const actual = Buffer.from(String(actualHash || ''), 'hex');
+  const expected = Buffer.from(String(expectedHash || ''), 'hex');
+
+  return actual.length > 0
+    && actual.length === expected.length
+    && crypto.timingSafeEqual(actual, expected);
+}
+
+function createEmailVerificationState(email) {
+  const code = createEmailVerificationCode();
+  const now = new Date();
+
+  return {
+    code,
+    codeHash: hashEmailVerificationCode(email, code),
+    expiresAt: new Date(now.getTime() + EMAIL_VERIFICATION_TTL_MINUTES * 60 * 1000),
+    sentAt: now,
+  };
+}
+
+function maskEmail(email) {
+  const [localPart = '', domain = ''] = normalizeEmail(email).split('@');
+  const visiblePrefix = localPart.slice(0, Math.min(2, localPart.length));
+
+  return `${visiblePrefix}${'*'.repeat(Math.max(3, localPart.length - visiblePrefix.length))}@${domain}`;
 }
 
 function getPublicAuthConfig(req, res) {
@@ -457,18 +504,25 @@ async function register(req, res) {
     const existingUser = await findUserByEmail(email);
 
     if (existingUser) {
-      return res.status(409).json({ message: 'البريد الإلكتروني مسجل بالفعل.' });
+      return res.status(409).json({
+        code: 'ACCOUNT_ALREADY_EXISTS',
+        message: 'هذا الحساب موجود بالفعل. انتقل إلى تسجيل الدخول بدل إنشاء حساب جديد.',
+      });
     }
 
     const existingPhone = await findUserByPhone(phone);
 
     if (existingPhone) {
-      return res.status(409).json({ message: 'رقم الجوال مسجل بالفعل.' });
+      return res.status(409).json({
+        code: 'ACCOUNT_ALREADY_EXISTS',
+        message: 'رقم الجوال مرتبط بحساب موجود بالفعل. استخدم تسجيل الدخول إلى حسابك الحالي.',
+      });
     }
 
     const { selectedSkills, primarySkill } = await getWorkerSkillsOrThrow(roleType, requestedSkillIds, primarySkillId);
     const role = await getOrCreateRole(roleType);
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    const verification = createEmailVerificationState(email);
     transaction = await sequelize.transaction();
     const user = await User.create({
       firstname,
@@ -480,22 +534,34 @@ async function register(req, res) {
       role_id: role.id,
       auth_provider: 'password',
       email_verified: false,
+      email_verification_code_hash: verification.codeHash,
+      email_verification_expires_at: verification.expiresAt,
+      email_verification_attempts: 0,
+      email_verification_sent_at: verification.sentAt,
     }, { transaction });
 
     if (roleType === 'Worker') {
       await createWorkerAccountDetails(user, selectedSkills, primarySkill, skillExperienceById, transaction);
     }
 
+    const verificationEmail = await sendEmailVerificationCode({
+      to: email,
+      firstname,
+      code: verification.code,
+      expiresInMinutes: EMAIL_VERIFICATION_TTL_MINUTES,
+    });
+
+    if (!verificationEmail.success) {
+      throw createStatusError('تعذر إرسال رمز التحقق إلى بريدك. تأكد من البريد وحاول مرة أخرى.', 503);
+    }
+
     await transaction.commit();
     transaction = null;
 
-    const userWithRole = await findUserByIdWithRole(user.id);
-    const token = createToken(userWithRole);
-
     res.status(201).json({
-      message: 'Account created successfully.',
-      token,
-      user: sanitizeUser(userWithRole),
+      message: 'أرسلنا رمز تحقق إلى بريدك الإلكتروني. أدخله لإكمال إنشاء الحساب.',
+      requiresEmailVerification: true,
+      email: maskEmail(email),
     });
   } catch (error) {
     if (transaction) {
@@ -508,6 +574,152 @@ async function register(req, res) {
     res.status(status).json({
       message: status === 500 ? 'Failed to create account.' : (uniqueMessage || error.message),
       ...(status === 500 ? { error: error.message } : {}),
+    });
+  }
+}
+
+async function verifyEmail(req, res) {
+  try {
+    const email = normalizeEmail(req.body.email);
+    const code = normalizeDigits(req.body.code).replace(/\D/g, '');
+
+    if (!isValidEmail(email) || !/^\d{6}$/.test(code)) {
+      return res.status(400).json({ message: 'أدخل بريداً صالحاً ورمز تحقق مكوناً من 6 أرقام.' });
+    }
+
+    const user = await findUserByEmail(email);
+
+    if (!user) {
+      return res.status(400).json({ message: 'رمز التحقق غير صحيح أو انتهت صلاحيته.' });
+    }
+
+    if (user.email_verified) {
+      const token = createToken(user);
+
+      return res.status(200).json({
+        message: 'البريد الإلكتروني موثق بالفعل.',
+        token,
+        user: sanitizeUser(user),
+      });
+    }
+
+    const expiresAt = user.email_verification_expires_at
+      ? new Date(user.email_verification_expires_at)
+      : null;
+
+    if (!user.email_verification_code_hash || !expiresAt || expiresAt.getTime() <= Date.now()) {
+      return res.status(410).json({
+        code: 'VERIFICATION_CODE_EXPIRED',
+        message: 'انتهت صلاحية رمز التحقق. اطلب رمزاً جديداً.',
+      });
+    }
+
+    if (Number(user.email_verification_attempts || 0) >= EMAIL_VERIFICATION_MAX_ATTEMPTS) {
+      return res.status(429).json({
+        code: 'VERIFICATION_ATTEMPTS_EXCEEDED',
+        message: 'تم تجاوز عدد المحاولات المسموح. اطلب رمزاً جديداً.',
+      });
+    }
+
+    const submittedHash = hashEmailVerificationCode(email, code);
+
+    if (!verificationHashesMatch(submittedHash, user.email_verification_code_hash)) {
+      user.email_verification_attempts = Number(user.email_verification_attempts || 0) + 1;
+      await user.save();
+
+      const attemptsLeft = Math.max(
+        0,
+        EMAIL_VERIFICATION_MAX_ATTEMPTS - user.email_verification_attempts
+      );
+
+      return res.status(attemptsLeft > 0 ? 400 : 429).json({
+        code: attemptsLeft > 0 ? 'INVALID_VERIFICATION_CODE' : 'VERIFICATION_ATTEMPTS_EXCEEDED',
+        message: attemptsLeft > 0
+          ? `رمز التحقق غير صحيح. بقيت ${attemptsLeft} محاولات.`
+          : 'تم تجاوز عدد المحاولات المسموح. اطلب رمزاً جديداً.',
+      });
+    }
+
+    user.email_verified = true;
+    user.email_verification_code_hash = null;
+    user.email_verification_expires_at = null;
+    user.email_verification_attempts = 0;
+    user.email_verification_sent_at = null;
+    await user.save();
+
+    const userWithRole = await findUserByIdWithRole(user.id);
+    const token = createToken(userWithRole);
+
+    return res.status(200).json({
+      message: 'تم توثيق بريدك وإنشاء الحساب بنجاح.',
+      token,
+      user: sanitizeUser(userWithRole),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'تعذر التحقق من البريد الإلكتروني.',
+      error: error.message,
+    });
+  }
+}
+
+async function resendEmailVerification(req, res) {
+  try {
+    const email = normalizeEmail(req.body.email);
+
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ message: 'البريد الإلكتروني غير صالح.' });
+    }
+
+    const user = await findUserByEmail(email);
+
+    if (!user || user.email_verified) {
+      return res.status(200).json({
+        message: 'إذا كان الحساب بحاجة إلى توثيق فسيصل رمز جديد إلى بريده.',
+      });
+    }
+
+    const lastSentAt = user.email_verification_sent_at
+      ? new Date(user.email_verification_sent_at).getTime()
+      : 0;
+    const waitMs = EMAIL_VERIFICATION_RESEND_COOLDOWN_MS - (Date.now() - lastSentAt);
+
+    if (waitMs > 0) {
+      return res.status(429).json({
+        code: 'VERIFICATION_RESEND_COOLDOWN',
+        retryAfterSeconds: Math.ceil(waitMs / 1000),
+        message: `انتظر ${Math.ceil(waitMs / 1000)} ثانية قبل طلب رمز جديد.`,
+      });
+    }
+
+    const verification = createEmailVerificationState(email);
+    const verificationEmail = await sendEmailVerificationCode({
+      to: email,
+      firstname: user.firstname,
+      code: verification.code,
+      expiresInMinutes: EMAIL_VERIFICATION_TTL_MINUTES,
+    });
+
+    if (!verificationEmail.success) {
+      return res.status(503).json({
+        message: 'تعذر إرسال رمز التحقق حالياً. حاول مرة أخرى لاحقاً.',
+      });
+    }
+
+    user.email_verification_code_hash = verification.codeHash;
+    user.email_verification_expires_at = verification.expiresAt;
+    user.email_verification_attempts = 0;
+    user.email_verification_sent_at = verification.sentAt;
+    await user.save();
+
+    return res.status(200).json({
+      message: 'تم إرسال رمز تحقق جديد إلى بريدك الإلكتروني.',
+      email: maskEmail(email),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'تعذر إعادة إرسال رمز التحقق.',
+      error: error.message,
     });
   }
 }
@@ -527,6 +739,13 @@ async function googleAuth(req, res) {
     }
 
     if (user) {
+      if (registerIntent) {
+        return res.status(409).json({
+          code: 'ACCOUNT_ALREADY_EXISTS',
+          message: 'حساب Google هذا مسجل بالفعل. انتقل إلى تسجيل الدخول بدل إنشاء حساب جديد.',
+        });
+      }
+
       if (user.google_sub && user.google_sub !== googleProfile.googleSub) {
         return res.status(409).json({ message: 'هذا البريد مربوط بحساب Google آخر.' });
       }
@@ -719,6 +938,15 @@ async function login(req, res) {
       return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
+    if (!user.email_verified) {
+      return res.status(403).json({
+        code: 'EMAIL_NOT_VERIFIED',
+        message: 'يجب توثيق البريد الإلكتروني قبل تسجيل الدخول.',
+        requiresEmailVerification: true,
+        email: maskEmail(user.email),
+      });
+    }
+
     if (!isBcryptHash(storedPassword)) {
       user.password = await bcrypt.hash(password, SALT_ROUNDS);
       await user.save();
@@ -777,4 +1005,6 @@ module.exports = {
   login,
   me,
   register,
+  resendEmailVerification,
+  verifyEmail,
 };

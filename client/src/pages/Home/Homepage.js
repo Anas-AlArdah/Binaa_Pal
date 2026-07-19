@@ -17,10 +17,12 @@ import {
   FaBolt,
   FaHammer,
   FaHardHat,
+  FaLayerGroup,
   FaPaintRoller,
   FaPlug,
   FaThLarge,
   FaTools,
+  FaWindowMaximize,
   FaWrench,
 } from "react-icons/fa";
 import Footer from "../../components/Footer";
@@ -36,6 +38,8 @@ const CRAFT_ICON_BY_SLUG = {
   plumbing: FaWrench,
   painting: FaPaintRoller,
   tiling: FaThLarge,
+  gypsum: FaLayerGroup,
+  aluminum: FaWindowMaximize,
   appliances: FaPlug,
   construction: FaHardHat,
   blacksmithing: FaTools,

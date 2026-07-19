@@ -347,7 +347,9 @@
 .admin-tools input,
 .admin-tools select,
 .admin-craft-form input,
+.admin-craft-form textarea,
 .admin-craft-item__body input,
+.admin-craft-item__body textarea,
 .admin-request-card__actions select {
   border: 0;
   outline: 0;
@@ -774,30 +776,123 @@
 
 .admin-craft-form {
   display: grid;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--admin-border);
 }
 
-.admin-craft-form label {
+.admin-craft-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  min-width: 0;
+}
+
+.admin-craft-fields label {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-craft-fields label > span,
+.admin-craft-icon-picker legend {
   color: var(--admin-text);
   font-size: 0.92rem;
   font-weight: 950;
 }
 
-.admin-craft-form-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
+.admin-craft-fields__description,
+.admin-craft-icon-picker {
+  grid-column: 1 / -1;
+}
+
+.admin-craft-form input,
+.admin-craft-form textarea,
+.admin-craft-item__body input,
+.admin-craft-item__body textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: var(--admin-bg);
 }
 
 .admin-craft-form input,
 .admin-craft-item__body input {
-  width: 100%;
-  min-height: 46px;
-  padding: 0 14px;
+  padding-block: 0;
+}
+
+.admin-craft-form textarea,
+.admin-craft-item__body textarea {
+  min-height: 92px;
+  resize: vertical;
+  line-height: 1.75;
+}
+
+.admin-craft-form input:focus,
+.admin-craft-form textarea:focus,
+.admin-craft-item__body input:focus,
+.admin-craft-item__body textarea:focus {
+  border-color: var(--admin-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.13);
+}
+
+.admin-craft-icon-picker {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.admin-craft-icon-picker legend {
+  margin-bottom: 10px;
+}
+
+.admin-craft-icon-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.admin-craft-icon-options button {
+  min-width: 0;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 10px;
   border: 1px solid var(--admin-border);
-  border-radius: 12px;
+  border-radius: 10px;
   background: var(--admin-bg);
+  color: var(--admin-muted);
+  font-family: inherit;
+  font-weight: 900;
+}
+
+.admin-craft-icon-options button svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.admin-craft-icon-options button:hover:not(:disabled) {
+  border-color: rgba(37, 99, 235, 0.48);
+  color: var(--admin-blue);
+}
+
+.admin-craft-icon-options button.is-selected {
+  border-color: var(--admin-blue);
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--admin-blue);
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.18);
+}
+
+.admin-craft-submit {
+  min-width: 170px;
+  justify-self: start;
 }
 
 .admin-primary-action {
@@ -876,9 +971,64 @@
   font-weight: 950;
 }
 
-.admin-craft-item__body span {
+.admin-craft-item__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.admin-craft-item__heading > div {
+  min-width: 0;
+}
+
+.admin-craft-item__icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(37, 99, 235, 0.24);
+  border-radius: 10px;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--admin-blue);
+}
+
+.admin-craft-item__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.admin-craft-item__body code {
   display: block;
-  margin-top: 4px;
+  margin-top: 3px;
+  color: var(--admin-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.admin-craft-item__body p {
+  max-width: 760px;
+  margin: 10px 0 7px;
+  color: var(--admin-muted);
+  line-height: 1.7;
+}
+
+.admin-craft-item__workers {
+  display: inline-block;
+  color: var(--admin-muted);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.admin-craft-item.is-editing {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.admin-craft-item.is-editing .admin-craft-item__actions {
+  justify-content: flex-end;
 }
 
 .admin-craft-item__actions {
@@ -1119,9 +1269,21 @@
     padding: 14px;
   }
 
-  .admin-craft-form-row,
   .admin-craft-item {
     grid-template-columns: 1fr;
+  }
+
+  .admin-craft-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-craft-fields__description,
+  .admin-craft-icon-picker {
+    grid-column: auto;
+  }
+
+  .admin-craft-icon-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .admin-craft-submit,

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     FiBriefcase,
     FiCheckCircle,
+    FiArrowRight,
     FiEye,
     FiEyeOff,
     FiLock,
@@ -10,6 +11,8 @@ import {
     FiMapPin,
     FiPhone,
     FiPlus,
+    FiRefreshCw,
+    FiShield,
     FiTool,
     FiTrendingUp,
     FiUser,
@@ -66,6 +69,13 @@ const text = {
     googleVerifiedHint: 'أكمل بيانات العامل ثم أنشئ الحساب.',
     googlePassword: 'لا تحتاج كلمة مرور مع Google',
     changeGoogleAccount: 'تغيير الحساب',
+    verifyEmailTitle: 'تحقق من بريدك الإلكتروني',
+    verifyEmailSubtitle: 'أرسلنا رمزاً من 6 أرقام لإكمال إنشاء الحساب.',
+    verificationCode: 'رمز التحقق',
+    verifyEmail: 'تأكيد البريد وإنشاء الحساب',
+    verifyingEmail: 'جاري التحقق...',
+    resendCode: 'إرسال رمز جديد',
+    backToLogin: 'العودة إلى تسجيل الدخول',
     phoneInvalid: 'رقم الجوال يجب أن يكون محليا مثل 0591234567 بدون +970.',
 };
 
@@ -108,6 +118,9 @@ function LoginPage() {
     const [googleReady, setGoogleReady] = useState(false);
     const [googleClientId, setGoogleClientId] = useState(GOOGLE_CLIENT_ID_FALLBACK);
     const [googleRegistration, setGoogleRegistration] = useState(null);
+    const [emailVerification, setEmailVerification] = useState(null);
+    const [verificationCode, setVerificationCode] = useState('');
+    const [resendLoading, setResendLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [formValues, setFormValues] = useState(initialFormValues);
@@ -115,7 +128,8 @@ function LoginPage() {
     const isRegister = formMode === 'register';
     const isWorkerRegister = isRegister && userType === 'worker';
     const isGoogleWorkerRegistration = isWorkerRegister && Boolean(googleRegistration);
-    const isBusy = loading || googleLoading;
+    const isVerificationStep = Boolean(emailVerification);
+    const isBusy = loading || googleLoading || resendLoading;
 
     const secondarySkills = useMemo(
         () => skills.filter((skill) => String(skill.id) !== String(formValues.primarySkillId)),
@@ -181,6 +195,8 @@ function LoginPage() {
     const resetFormValues = () => {
         setFormValues(initialFormValues);
         setGoogleRegistration(null);
+        setEmailVerification(null);
+        setVerificationCode('');
         setShowPassword(false);
     };
 
@@ -352,7 +368,7 @@ function LoginPage() {
     };
 
     useEffect(() => {
-        if (!googleClientId || isGoogleWorkerRegistration) {
+        if (!googleClientId || isGoogleWorkerRegistration || isVerificationStep) {
             setGoogleReady(false);
             return undefined;
         }
@@ -412,7 +428,70 @@ function LoginPage() {
             isMounted = false;
             script.onload = null;
         };
-    }, [googleClientId, handleGoogleCredential, isGoogleWorkerRegistration, isRegister]);
+    }, [googleClientId, handleGoogleCredential, isGoogleWorkerRegistration, isRegister, isVerificationStep]);
+
+    const handleVerificationCodeChange = (event) => {
+        setVerificationCode(toWesternDigits(event.target.value).replace(/\D/g, '').slice(0, 6));
+    };
+
+    const handleVerifyEmail = async (event) => {
+        event.preventDefault();
+        setLoading(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            const data = await fetchJson('/api/auth/verify-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: emailVerification.email,
+                    code: verificationCode,
+                }),
+            });
+
+            persistAuth(data);
+            setSuccess(data.message || text.registerSuccess);
+            setTimeout(() => navigate('/home'), 600);
+        } catch (err) {
+            setError(getApiErrorMessage(err));
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResendVerification = async () => {
+        setResendLoading(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            const data = await fetchJson('/api/auth/resend-verification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: emailVerification.email }),
+            });
+
+            setVerificationCode('');
+            setSuccess(data.message);
+        } catch (err) {
+            setError(getApiErrorMessage(err));
+        } finally {
+            setResendLoading(false);
+        }
+    };
+
+    const returnToLogin = () => {
+        const email = emailVerification?.email || '';
+
+        setEmailVerification(null);
+        setVerificationCode('');
+        setError('');
+        setSuccess('');
+        setFormMode('login');
+        setFormValues({ ...initialFormValues, email });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -480,6 +559,16 @@ function LoginPage() {
                 return;
             }
 
+            if (data?.requiresEmailVerification) {
+                setEmailVerification({
+                    email: payload.email,
+                    maskedEmail: data.email || payload.email,
+                });
+                setVerificationCode('');
+                setSuccess(data.message);
+                return;
+            }
+
             persistAuth(data);
             setSuccess(isLogin ? text.loginSuccess : text.registerSuccess);
 
@@ -487,6 +576,14 @@ function LoginPage() {
                 navigate('/home');
             }, 600);
         } catch (err) {
+            if (err?.payload?.requiresEmailVerification) {
+                setEmailVerification({
+                    email: formValues.email.trim(),
+                    maskedEmail: err.payload.email || formValues.email.trim(),
+                });
+                setVerificationCode('');
+            }
+
             setError(getApiErrorMessage(err));
         } finally {
             setLoading(false);
@@ -513,17 +610,21 @@ function LoginPage() {
                             </div>
 
                             <h2 className="login-title">
-                                {isGoogleWorkerRegistration
+                                {isVerificationStep
+                                    ? text.verifyEmailTitle
+                                    : isGoogleWorkerRegistration
                                     ? text.completeWorkerAccount
                                     : (isLogin ? text.welcomeBack : text.createAccount)}
                             </h2>
                             <p className="login-subtitle">
-                                {isGoogleWorkerRegistration
+                                {isVerificationStep
+                                    ? text.verifyEmailSubtitle
+                                    : isGoogleWorkerRegistration
                                     ? text.completeWorkerSubtitle
                                     : (isLogin ? text.loginSubtitle : text.registerSubtitle)}
                             </p>
 
-                            <div className="toggle-container">
+                            {!isVerificationStep && <div className="toggle-container">
                                 <button
                                     id="btn-toggle-login"
                                     type="button"
@@ -540,7 +641,7 @@ function LoginPage() {
                                 >
                                     {text.register}
                                 </button>
-                            </div>
+                            </div>}
 
                             {error && <div className="auth-alert auth-alert-error">{error}</div>}
                             {success && <div className="auth-alert auth-alert-success">{success}</div>}
@@ -566,6 +667,75 @@ function LoginPage() {
                                 </div>
                             )}
 
+                            {isVerificationStep ? (
+                                <form
+                                    onSubmit={handleVerifyEmail}
+                                    className="login-form verification-form"
+                                    autoComplete="off"
+                                >
+                                    <div className="verification-summary">
+                                        <span className="verification-summary__icon"><FiShield /></span>
+                                        <span>
+                                            أرسلنا الرمز إلى
+                                            <strong dir="ltr">{emailVerification.maskedEmail}</strong>
+                                        </span>
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label className="form-label-custom" htmlFor="verificationCode">
+                                            {text.verificationCode}
+                                        </label>
+                                        <input
+                                            id="verificationCode"
+                                            name="verificationCode"
+                                            type="text"
+                                            className="form-input-custom verification-code-input"
+                                            value={verificationCode}
+                                            onChange={handleVerificationCodeChange}
+                                            placeholder="000000"
+                                            inputMode="numeric"
+                                            autoComplete="one-time-code"
+                                            pattern="[0-9]{6}"
+                                            maxLength="6"
+                                            required
+                                            autoFocus
+                                            disabled={isBusy}
+                                        />
+                                    </div>
+
+                                    <button
+                                        id="btn-verify-email"
+                                        type="submit"
+                                        className="submit-btn"
+                                        disabled={isBusy || verificationCode.length !== 6}
+                                    >
+                                        <FiCheckCircle />
+                                        {loading ? text.verifyingEmail : text.verifyEmail}
+                                    </button>
+
+                                    <div className="verification-actions">
+                                        <button
+                                            type="button"
+                                            className="verification-action-btn"
+                                            onClick={handleResendVerification}
+                                            disabled={isBusy}
+                                        >
+                                            <FiRefreshCw />
+                                            {resendLoading ? 'جاري الإرسال...' : text.resendCode}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="verification-action-btn"
+                                            onClick={returnToLogin}
+                                            disabled={isBusy}
+                                        >
+                                            <FiArrowRight />
+                                            {text.backToLogin}
+                                        </button>
+                                    </div>
+                                </form>
+                            ) : (
+                                <>
                             <form onSubmit={handleSubmit} className="login-form" autoComplete="on">
                                 {isRegister && (
                                     <div className="form-group">
@@ -865,6 +1035,8 @@ function LoginPage() {
                                     {isLogin ? text.register : text.login}
                                 </button>
                             </p>
+                                </>
+                            )}
                         </div>
                     </div>
                 </section>

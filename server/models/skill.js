@@ -43,14 +43,35 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(120),
       allowNull: false,
       unique: true,
+      validate: {
+        notEmpty: true,
+        is: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      },
     },
     description: {
       type: DataTypes.TEXT,
-      allowNull: true,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: [10, 1000],
+      },
     },
     icon_key: {
       type: DataTypes.STRING(80),
-      allowNull: true,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        isIn: [[
+          'tiling',
+          'painting',
+          'electrical',
+          'plumbing',
+          'gypsum',
+          'carpentry',
+          'aluminum',
+          'masonry',
+        ]],
+      },
     }
   }, {
     sequelize,

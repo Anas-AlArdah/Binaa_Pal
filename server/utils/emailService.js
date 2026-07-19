@@ -73,6 +73,32 @@ async function sendWelcomeEmail({ to, firstname, accountType }) {
   });
 }
 
+async function sendEmailVerificationCode({ to, firstname, code, expiresInMinutes }) {
+  const safeFirstname = escapeHtml(firstname) || 'صديقنا';
+  const safeCode = escapeHtml(code);
+  const safeExpiry = escapeHtml(expiresInMinutes);
+
+  return sendEmail({
+    to,
+    subject: 'رمز تأكيد بريدك في Binaa Pal',
+    html: `
+      <div dir="rtl" style="margin:0;background:#f4f7fb;padding:32px 16px;font-family:Arial,sans-serif;color:#172033;">
+        <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e3e9f2;border-radius:12px;overflow:hidden;">
+          <div style="background:#16233f;padding:22px 28px;color:#ffffff;">
+            <strong style="font-size:22px;">Binaa Pal</strong>
+          </div>
+          <div style="padding:28px;line-height:1.9;">
+            <h1 style="margin:0 0 12px;font-size:23px;color:#172033;">تأكيد البريد الإلكتروني</h1>
+            <p style="margin:0 0 16px;">مرحباً ${safeFirstname}، استخدم الرمز التالي لإكمال إنشاء حسابك:</p>
+            <div dir="ltr" style="margin:0 auto 16px;padding:14px 18px;background:#eef4ff;border:1px solid #bfd2ff;border-radius:10px;color:#163b7a;font-size:30px;font-weight:800;letter-spacing:8px;text-align:center;">${safeCode}</div>
+            <p style="margin:0;color:#526078;">تنتهي صلاحية الرمز خلال ${safeExpiry} دقائق. لا تشاركه مع أي شخص.</p>
+          </div>
+        </div>
+      </div>
+    `,
+  });
+}
+
 async function sendLoginNotificationEmail({ to, firstname, authMethod }) {
   const safeFirstname = escapeHtml(firstname) || 'صديقنا';
   const safeAuthMethod = escapeHtml(authMethod) || 'الحساب';
@@ -103,4 +129,9 @@ async function sendLoginNotificationEmail({ to, firstname, authMethod }) {
   });
 }
 
-module.exports = { sendEmail, sendLoginNotificationEmail, sendWelcomeEmail };
+module.exports = {
+  sendEmail,
+  sendEmailVerificationCode,
+  sendLoginNotificationEmail,
+  sendWelcomeEmail,
+};

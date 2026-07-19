@@ -1,51 +1,37 @@
+const { Op } = require('sequelize');
 const { Skill, Worker_Skill } = require('../models');
-
-function cleanString(value) {
-    return String(value || '').trim();
-}
-
-function makeSlug(value) {
-    return String(value || '')
-        .trim()
-        .toLowerCase()
-        .normalize('NFKD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^\p{L}\p{N}]+/gu, '-')
-        .replace(/^-+|-+$/g, '');
-}
-
-function buildSkillPayload(body) {
-    const skillName = cleanString(body.skill_name || body.name);
-    const slug = cleanString(body.slug) || makeSlug(skillName);
-
-    return {
-        skill_name: skillName,
-        slug: slug || null,
-        description: cleanString(body.description) || null,
-        icon_key: cleanString(body.icon_key || body.iconKey) || null,
-    };
-}
+const {
+    buildCraftPayload,
+    getCraftValidationError,
+} = require('../utils/craftMetadata');
 
 async function createSkill(req, res) {
     try {
-        const payload = buildSkillPayload(req.body);
+        const payload = buildCraftPayload(req.body);
+        const validationError = getCraftValidationError(payload);
 
-        if (!payload.skill_name) {
-            return res.status(400).json({ message: 'Skill name is required' });
+        if (validationError) {
+            return res.status(400).json({ message: validationError });
+        }
+
+        const existingSkill = await Skill.findOne({
+            where: {
+                [Op.or]: [
+                    { skill_name: { [Op.iLike]: payload.skill_name } },
+                    { slug: payload.slug },
+                ],
+            },
+        });
+
+        if (existingSkill) {
+            return res.status(409).json({ message: 'اسم الصنعة أو معرّف رابطها مستخدم مسبقاً.' });
         }
 
         const skill = await Skill.create(payload);
 
-        if (!skill.slug) {
-            await skill.update({
-                slug: `skill-${skill.id}`,
-                icon_key: skill.icon_key || `skill-${skill.id}`,
-            });
-        }
-
         res.status(201).json(skill);
     } catch (err) {
-        res.status(400).json({
+        res.status(err.name === 'SequelizeUniqueConstraintError' ? 409 : 400).json({
             message: 'Error creating skill',
             error: err.message
         });
@@ -118,16 +104,31 @@ async function updateSkill(req, res) {
             return res.status(404).json({ message: 'Skill not found' });
         }
 
-        const payload = buildSkillPayload(req.body);
+        const payload = buildCraftPayload(req.body);
+        const validationError = getCraftValidationError(payload);
 
-        if (!payload.skill_name) {
-            return res.status(400).json({ message: 'Skill name is required' });
+        if (validationError) {
+            return res.status(400).json({ message: validationError });
+        }
+
+        const existingSkill = await Skill.findOne({
+            where: {
+                id: { [Op.ne]: skill.id },
+                [Op.or]: [
+                    { skill_name: { [Op.iLike]: payload.skill_name } },
+                    { slug: payload.slug },
+                ],
+            },
+        });
+
+        if (existingSkill) {
+            return res.status(409).json({ message: 'اسم الصنعة أو معرّف رابطها مستخدم مسبقاً.' });
         }
 
         await skill.update(payload);
         res.status(200).json(skill);
     } catch (err) {
-        res.status(500).json({
+        res.status(err.name === 'SequelizeUniqueConstraintError' ? 409 : 500).json({
             message: 'Error updating skill',
             error: err.message
         });

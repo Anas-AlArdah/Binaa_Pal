@@ -11,16 +11,6 @@ const average = (values) => (
   values.length ? Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(1)) : 0
 );
 
-function makeSlug(value) {
-  return String(value || '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^\p{L}\p{N}]+/gu, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
 async function getWorkerCountBySkillId() {
   const rows = await Worker_Skill.findAll({
     attributes: [
@@ -35,15 +25,13 @@ async function getWorkerCountBySkillId() {
 }
 
 function buildCraft(skill, countBySkillId) {
-  const slug = skill.slug || makeSlug(skill.skill_name) || `skill-${skill.id}`;
-
   return {
     id: skill.id,
     skill_name: skill.skill_name,
-    name: skill.skill_name || 'Craft',
-    slug,
-    description: skill.description || '',
-    iconKey: skill.icon_key || slug || 'default',
+    name: skill.skill_name,
+    slug: skill.slug,
+    description: skill.description,
+    iconKey: skill.icon_key,
     workers: countBySkillId.get(Number(skill.id)) || 0,
   };
 }
