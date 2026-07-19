@@ -94,7 +94,6 @@ function getProfileImage(profile) {
 }
 
 module.exports = {
-  getFirstPortfolioImage,
   getProfileImage,
   normalizePortfolioItems,
   serializePortfolioItems,

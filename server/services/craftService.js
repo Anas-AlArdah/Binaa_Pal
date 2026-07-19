@@ -253,5 +253,4 @@ module.exports = {
   findCraft,
   getCrafts,
   getCraftWorkers,
-  getWorkerCountBySkillId,
 };

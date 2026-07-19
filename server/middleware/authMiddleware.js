@@ -259,41 +259,10 @@ function requireAvailabilityOwner(paramName = 'id') {
   };
 }
 
-function requireOfferOwner(paramName = 'id') {
-  return async (req, res, next) => {
-    const userId = assertAuthenticatedUser(req, res);
-    if (!userId) return;
-
-    const offerId = normalizePositiveInteger(req.params[paramName]);
-    if (!offerId) {
-      return res.status(400).json({ message: `${paramName} must be a positive integer.` });
-    }
-
-    try {
-      const { Offer } = require('../models');
-      const offer = await Offer.findByPk(offerId, { attributes: ['id', 'worker_id'] });
-
-      if (!offer) {
-        return res.status(404).json({ message: 'Offer not found.' });
-      }
-
-      if (Number(offer.worker_id) !== userId) {
-        return res.status(403).json({ message: 'You can only modify your own offers.' });
-      }
-
-      return next();
-    } catch (error) {
-      return next(error);
-    }
-  };
-}
-
 module.exports = {
   authenticateAdminToken,
   authenticateToken,
-  getAuthenticatedUserId,
   requireAvailabilityOwner,
-  requireOfferOwner,
   requirePhotoOwner,
   requireProjectBodyOwner,
   requireProjectOwner,

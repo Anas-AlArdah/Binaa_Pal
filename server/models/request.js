@@ -22,12 +22,6 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: 'worker_profile_id',
             as: 'worker_profile',
         })
-        Request.belongsTo(models.Offer, {
-            foreignKey: 'offers_id',
-            as: 'offer',
-        });
-
-
     }
   }
   Request.init({
@@ -41,8 +35,7 @@ module.exports = (sequelize, DataTypes) => {
     craft_name: DataTypes.STRING,
     client_name: DataTypes.STRING,
     client_email: DataTypes.STRING,
-    client_phone: DataTypes.STRING,
-    offers_id: DataTypes.INTEGER
+    client_phone: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Request',

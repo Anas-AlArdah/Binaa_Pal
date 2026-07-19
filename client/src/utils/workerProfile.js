@@ -61,16 +61,6 @@ export function getFirstPortfolioImage(value) {
   return normalizePortfolioItems(value)[0]?.image || null;
 }
 
-export function createEmptyPortfolioItem() {
-  return {
-    id: `draft-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    title: '',
-    description: '',
-    tag: '',
-    image: '',
-  };
-}
-
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

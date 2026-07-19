@@ -268,18 +268,6 @@ async function loadStats() {
   };
 }
 
-async function getStats(req, res) {
-  try {
-    const stats = await loadStats();
-    res.status(200).json({ stats });
-  } catch (error) {
-    res.status(500).json({
-      message: 'Failed to load admin stats.',
-      error: error.message,
-    });
-  }
-}
-
 async function getDashboard(req, res) {
   try {
     const [stats, recentRequests, recentWorkers] = await Promise.all([
@@ -417,7 +405,6 @@ async function getRequests(req, res) {
         'client_name',
         'client_email',
         'client_phone',
-        'offers_id',
         'createdAt',
         'updatedAt',
       ],
@@ -485,7 +472,6 @@ async function updateRequestStatus(req, res) {
         'client_name',
         'client_email',
         'client_phone',
-        'offers_id',
         'createdAt',
         'updatedAt',
       ],
@@ -739,7 +725,6 @@ module.exports = {
   getCrafts,
   getDashboard,
   getRequests,
-  getStats,
   getUsers,
   getWorkers,
   updateCraft,

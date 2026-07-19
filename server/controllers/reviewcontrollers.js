@@ -23,10 +23,6 @@ function cleanString(value) {
   return String(value || '').trim();
 }
 
-function hasOwn(body, fieldName) {
-  return Object.prototype.hasOwnProperty.call(body || {}, fieldName);
-}
-
 function normalizePositiveInteger(value, fieldName) {
   const normalizedValue = typeof value === 'string' ? value.trim() : value;
   const numericValue = Number(normalizedValue);
@@ -82,22 +78,6 @@ function normalizeComment(value) {
   return comment;
 }
 
-function normalizeOptionalDate(value) {
-  const normalizedValue = typeof value === 'string' ? value.trim() : value;
-
-  if (normalizedValue === undefined || normalizedValue === null || normalizedValue === '') {
-    return null;
-  }
-
-  const parsedDate = new Date(normalizedValue);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    throw buildClientError('date must be a valid date.');
-  }
-
-  return parsedDate;
-}
-
 function getAuthenticatedUserId(req) {
   const userId = Number(req.user?.id);
   return Number.isInteger(userId) && userId > 0 ? userId : null;
@@ -123,28 +103,6 @@ async function loadWorkerProfile(workerProfileId) {
   }
 
   return profile;
-}
-
-async function loadReview(reviewId) {
-  const review = await Review.findByPk(reviewId, {
-    include: REVIEW_INCLUDE,
-  });
-
-  if (!review) {
-    throw buildClientError('Review not found.', 404);
-  }
-
-  return review;
-}
-
-function assertReviewOwner(req, review) {
-  const userId = assertAuthenticatedUser(req);
-
-  if (Number(review.user_id) !== userId) {
-    throw buildClientError('You can only modify your own reviews.', 403);
-  }
-
-  return userId;
 }
 
 function sendControllerError(res, err, fallbackMessage) {
@@ -210,100 +168,7 @@ async function createReview(req, res) {
   }
 }
 
-async function getReviewById(req, res) {
-  try {
-    const reviewId = normalizePositiveInteger(req.params.id, 'id');
-    const review = await loadReview(reviewId);
-    return res.status(200).json(review);
-  } catch (err) {
-    return sendControllerError(res, err, 'Failed to get review.');
-  }
-}
-
-async function getAllReviews(req, res) {
-  try {
-    const reviews = await Review.findAll({
-      include: REVIEW_INCLUDE,
-      order: [['createdAt', 'DESC']],
-    });
-
-    return res.status(200).json(reviews);
-  } catch (err) {
-    return sendControllerError(res, err, 'Failed to get reviews.');
-  }
-}
-
-async function updateReview(req, res) {
-  try {
-    const reviewId = normalizePositiveInteger(req.params.id, 'id');
-    const review = await loadReview(reviewId);
-    const authenticatedUserId = assertReviewOwner(req, review);
-
-    const updates = {};
-
-    if (hasOwn(req.body, 'worker_id')) {
-      updates.worker_id = normalizePositiveInteger(req.body.worker_id, 'worker_id');
-      const workerProfile = await loadWorkerProfile(updates.worker_id);
-
-      if (Number(workerProfile.user_id) === authenticatedUserId) {
-        throw buildClientError('You cannot review your own worker profile.');
-      }
-    }
-
-    if (hasOwn(req.body, 'request_id')) {
-      updates.request_id = normalizeOptionalPositiveInteger(req.body.request_id, 'request_id');
-    }
-
-    if (hasOwn(req.body, 'comment')) {
-      updates.comment = normalizeComment(req.body.comment);
-    }
-
-    if (hasOwn(req.body, 'rating')) {
-      updates.rating = normalizeRating(req.body.rating, 'rating');
-    }
-
-    if (hasOwn(req.body, 'punctuality')) {
-      updates.punctuality = normalizeOptionalRating(req.body.punctuality, 'punctuality');
-    }
-
-    if (hasOwn(req.body, 'date')) {
-      updates.date = normalizeOptionalDate(req.body.date);
-    }
-
-    if (Object.keys(updates).length === 0) {
-      throw buildClientError('At least one review field is required.');
-    }
-
-    await review.update(updates);
-
-    const updatedReview = await Review.findByPk(review.id, {
-      include: REVIEW_INCLUDE,
-    });
-
-    return res.status(200).json(updatedReview);
-  } catch (err) {
-    return sendControllerError(res, err, 'Failed to update review.');
-  }
-}
-
-async function deleteReview(req, res) {
-  try {
-    const reviewId = normalizePositiveInteger(req.params.id, 'id');
-    const review = await loadReview(reviewId);
-    assertReviewOwner(req, review);
-
-    await review.destroy();
-    return res.status(200).json({ message: 'Review deleted successfully' });
-  } catch (err) {
-    return sendControllerError(res, err, 'Failed to delete review.');
-  }
-}
-
 module.exports = {
   createReview,
-  deleteReview,
-  getAllReviews,
-  getReviewById,
   getWorkerReviews,
-  updateReview,
 };

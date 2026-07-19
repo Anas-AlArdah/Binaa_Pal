@@ -1,4 +1,4 @@
-export const EMPTY_PORTFOLIO_ITEM = {
+const EMPTY_PORTFOLIO_ITEM = {
     title: '',
     image: '',
     tag: '',
@@ -6,7 +6,7 @@ export const EMPTY_PORTFOLIO_ITEM = {
     video: '',
 };
 
-export const DAY_MAP = {
+const DAY_MAP = {
     الأحد: 'Sunday',
     الإثنين: 'Monday',
     الثلاثاء: 'Tuesday',
@@ -19,7 +19,7 @@ export const DAY_MAP = {
 export const DAYS_AR = Object.keys(DAY_MAP);
 export const PRIMARY_AVAILABILITY_KEY = 'primary';
 
-export const getAvailabilityCraftKey = (skillId) => {
+const getAvailabilityCraftKey = (skillId) => {
     const numericSkillId = Number(skillId);
     return Number.isInteger(numericSkillId) && numericSkillId > 0
         ? `skill-${numericSkillId}`

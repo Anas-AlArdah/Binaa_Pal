@@ -772,44 +772,6 @@ async function login(req, res) {
   }
 }
 
-async function adminLogin(req, res) {
-  try {
-    const email = normalizeEmail(req.body.email);
-    const password = String(req.body.password || '');
-
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Admin email and password are required.' });
-    }
-
-    const passwordMatches = ADMIN_PASSWORD_HASH
-      ? await bcrypt.compare(password, ADMIN_PASSWORD_HASH)
-      : password === ADMIN_PASSWORD;
-
-    if (email !== ADMIN_EMAIL || !passwordMatches) {
-      return res.status(401).json({ message: 'Invalid admin email or password.' });
-    }
-
-    const token = createAdminToken(email);
-
-    res.status(200).json({
-      message: 'Admin logged in successfully.',
-      token,
-      admin: sanitizeAdmin(email),
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: 'Failed to login as admin.',
-      error: error.message,
-    });
-  }
-}
-
-async function adminMe(req, res) {
-  res.status(200).json({
-    admin: sanitizeAdmin(req.admin.email),
-  });
-}
-
 async function me(req, res) {
   try {
     const user = await User.findByPk(req.user.id, {
@@ -837,11 +799,8 @@ async function me(req, res) {
 
 module.exports = {
   JWT_SECRET,
-  adminLogin,
-  adminMe,
   googleAuth,
   login,
   me,
   register,
-  sanitizeUser,
 };

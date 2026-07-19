@@ -7,7 +7,6 @@ const router = express.Router();
 router.use(authenticateAdminToken);
 
 router.get('/dashboard', adminController.getDashboard);
-router.get('/stats', adminController.getStats);
 router.get('/users', adminController.getUsers);
 router.get('/workers', adminController.getWorkers);
 router.get('/requests', adminController.getRequests);

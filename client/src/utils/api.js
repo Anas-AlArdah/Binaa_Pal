@@ -56,12 +56,12 @@ export class ApiError extends Error {
   }
 }
 
-export const getApiUrl = (path) => {
+const getApiUrl = (path) => {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${apiBaseUrl}${normalizedPath}`;
 };
 
-export const apiFetch = (path, options = {}) => {
+const apiFetch = (path, options = {}) => {
   const headers = {
     Accept: 'application/json',
     ...(options.headers || {}),
@@ -128,10 +128,6 @@ export async function fetchJson(path, options = {}) {
     } catch (error) {
       throw new ApiError('استجابة الخادم ليست JSON صالحاً.', response.status, rawBody);
     }
-  }
-
-  if (data?.apiFallback) {
-    throw new ApiError(data.message || 'الخادم الخلفي غير مربوط بعد.', 503, data);
   }
 
   if (!response.ok) {
