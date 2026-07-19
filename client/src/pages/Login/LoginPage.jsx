@@ -19,6 +19,7 @@ import {
 } from 'react-icons/fi';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import { PALESTINE_CITIES } from '../../data/palestineCities';
 import { fetchJson, getApiErrorMessage } from '../../utils/api';
 import './LoginPage.css';
 
@@ -32,6 +33,8 @@ const text = {
     registerSubtitle: 'انضم إلى منصة بنّاء بال اليوم',
     completeWorkerAccount: 'أكمل إنشاء حساب العامل',
     completeWorkerSubtitle: 'حساب Google موثّق، بقيت بيانات العمل فقط.',
+    completeClientAccount: 'أكمل إنشاء حساب العميل',
+    completeClientSubtitle: 'حساب Google موثّق، بقيت بياناتك الأساسية فقط.',
     login: 'تسجيل الدخول',
     register: 'إنشاء حساب',
     firstname: 'الاسم الأول',
@@ -43,7 +46,7 @@ const text = {
     phone: 'رقم الجوال',
     phonePlaceholder: '0591234567',
     location: 'الموقع',
-    locationPlaceholder: 'مثال: رام الله',
+    locationPlaceholder: 'اختر المدينة',
     iAm: 'أنا:',
     client: 'عميل',
     worker: 'عامل',
@@ -66,7 +69,8 @@ const text = {
     emailDivider: 'أو أكمل بالبريد الإلكتروني',
     googleLoading: 'جاري المتابعة عبر Google...',
     googleVerified: 'تم توثيق حساب Google',
-    googleVerifiedHint: 'أكمل بيانات العامل ثم أنشئ الحساب.',
+    googleWorkerVerifiedHint: 'أكمل بيانات العامل ثم أنشئ الحساب.',
+    googleClientVerifiedHint: 'أكمل بيانات العميل ثم أنشئ الحساب.',
     googlePassword: 'لا تحتاج كلمة مرور مع Google',
     changeGoogleAccount: 'تغيير الحساب',
     verifyEmailTitle: 'تحقق من بريدك الإلكتروني',
@@ -127,7 +131,7 @@ function LoginPage() {
     const isLogin = formMode === 'login';
     const isRegister = formMode === 'register';
     const isWorkerRegister = isRegister && userType === 'worker';
-    const isGoogleWorkerRegistration = isWorkerRegister && Boolean(googleRegistration);
+    const isGoogleRegistration = isRegister && Boolean(googleRegistration);
     const isVerificationStep = Boolean(emailVerification);
     const isBusy = loading || googleLoading || resendLoading;
 
@@ -281,10 +285,6 @@ function LoginPage() {
             userType: context.userType,
         };
 
-        if (context.isRegister && context.userType === 'worker') {
-            payload.prepareRegistration = true;
-        }
-
         if (!context.isRegister && currentValues.password) {
             payload.linkPassword = currentValues.password;
         }
@@ -329,7 +329,9 @@ function LoginPage() {
                 setSuccess('');
 
                 window.requestAnimationFrame(() => {
-                    document.getElementById('primarySkillId')?.scrollIntoView({
+                    const firstFieldId = context.userType === 'worker' ? 'primarySkillId' : 'firstname';
+
+                    document.getElementById(firstFieldId)?.scrollIntoView({
                         behavior: 'smooth',
                         block: 'center',
                     });
@@ -368,7 +370,7 @@ function LoginPage() {
     };
 
     useEffect(() => {
-        if (!googleClientId || isGoogleWorkerRegistration || isVerificationStep) {
+        if (!googleClientId || isGoogleRegistration || isVerificationStep) {
             setGoogleReady(false);
             return undefined;
         }
@@ -428,7 +430,7 @@ function LoginPage() {
             isMounted = false;
             script.onload = null;
         };
-    }, [googleClientId, handleGoogleCredential, isGoogleWorkerRegistration, isRegister, isVerificationStep]);
+    }, [googleClientId, handleGoogleCredential, isGoogleRegistration, isRegister, isVerificationStep]);
 
     const handleVerificationCodeChange = (event) => {
         setVerificationCode(toWesternDigits(event.target.value).replace(/\D/g, '').slice(0, 6));
@@ -507,12 +509,12 @@ function LoginPage() {
             return;
         }
 
-        const payload = isGoogleWorkerRegistration
+        const payload = isGoogleRegistration
             ? {
                 credential: googleRegistration.credential,
                 registerIntent: true,
                 completeRegistration: true,
-                userType: 'worker',
+                userType,
             }
             : {
                 email: formValues.email.trim(),
@@ -540,7 +542,7 @@ function LoginPage() {
         try {
             const endpoint = isLogin
                 ? '/api/auth/login'
-                : (isGoogleWorkerRegistration ? '/api/auth/google' : '/api/auth/register');
+                : (isGoogleRegistration ? '/api/auth/google' : '/api/auth/register');
 
             const data = await fetchJson(endpoint, {
                 method: 'POST',
@@ -612,15 +614,15 @@ function LoginPage() {
                             <h2 className="login-title">
                                 {isVerificationStep
                                     ? text.verifyEmailTitle
-                                    : isGoogleWorkerRegistration
-                                    ? text.completeWorkerAccount
+                                    : isGoogleRegistration
+                                    ? (userType === 'worker' ? text.completeWorkerAccount : text.completeClientAccount)
                                     : (isLogin ? text.welcomeBack : text.createAccount)}
                             </h2>
                             <p className="login-subtitle">
                                 {isVerificationStep
                                     ? text.verifyEmailSubtitle
-                                    : isGoogleWorkerRegistration
-                                    ? text.completeWorkerSubtitle
+                                    : isGoogleRegistration
+                                    ? (userType === 'worker' ? text.completeWorkerSubtitle : text.completeClientSubtitle)
                                     : (isLogin ? text.loginSubtitle : text.registerSubtitle)}
                             </p>
 
@@ -646,7 +648,7 @@ function LoginPage() {
                             {error && <div className="auth-alert auth-alert-error">{error}</div>}
                             {success && <div className="auth-alert auth-alert-success">{success}</div>}
 
-                            {isGoogleWorkerRegistration && (
+                            {isGoogleRegistration && (
                                 <div className="google-registration-status" role="status">
                                     <span className="google-registration-status__icon">
                                         <FiCheckCircle />
@@ -654,7 +656,11 @@ function LoginPage() {
                                     <span className="google-registration-status__content">
                                         <strong>{text.googleVerified}</strong>
                                         <span>{googleRegistration.email}</span>
-                                        <small>{text.googleVerifiedHint}</small>
+                                        <small>
+                                            {userType === 'worker'
+                                                ? text.googleWorkerVerifiedHint
+                                                : text.googleClientVerifiedHint}
+                                        </small>
                                     </span>
                                     <button
                                         type="button"
@@ -746,7 +752,7 @@ function LoginPage() {
                                                 type="button"
                                                 className={`user-type-btn ${userType === 'client' ? 'active' : ''}`}
                                                 onClick={() => handleUserTypeChange('client')}
-                                                disabled={isBusy || isGoogleWorkerRegistration}
+                                                disabled={isBusy || isGoogleRegistration}
                                             >
                                                 <span className="user-type-icon"><FiUser /></span>
                                                 <span>{text.client}</span>
@@ -756,7 +762,7 @@ function LoginPage() {
                                                 type="button"
                                                 className={`user-type-btn ${userType === 'worker' ? 'active' : ''}`}
                                                 onClick={() => handleUserTypeChange('worker')}
-                                                disabled={isBusy || isGoogleWorkerRegistration}
+                                                disabled={isBusy || isGoogleRegistration}
                                             >
                                                 <span className="user-type-icon"><FiBriefcase /></span>
                                                 <span>{text.worker}</span>
@@ -910,13 +916,13 @@ function LoginPage() {
                                                 id="email"
                                                 name="email"
                                                 type="email"
-                                                className="form-input-custom"
+                                                className={`form-input-custom ${isGoogleRegistration ? 'google-verified-input' : ''}`}
                                                 placeholder="you@example.com"
                                                 value={formValues.email}
                                                 onChange={handleInputChange}
                                                 autoComplete="email"
                                                 required
-                                                disabled={isBusy || isGoogleWorkerRegistration}
+                                                disabled={isBusy || isGoogleRegistration}
                                             />
                                         </div>
                                 </div>
@@ -949,17 +955,20 @@ function LoginPage() {
                                             <label className="form-label-custom" htmlFor="location">{text.location}</label>
                                             <div className="input-wrapper">
                                                 <span className="input-icon"><FiMapPin /></span>
-                                                <input
+                                                <select
                                                     id="location"
                                                     name="location"
-                                                    type="text"
                                                     className="form-input-custom"
-                                                    placeholder={text.locationPlaceholder}
                                                     value={formValues.location}
                                                     onChange={handleInputChange}
                                                     required
                                                     disabled={isBusy}
-                                                />
+                                                >
+                                                    <option value="" disabled>{text.locationPlaceholder}</option>
+                                                    {PALESTINE_CITIES.map((city) => (
+                                                        <option key={city} value={city}>{city}</option>
+                                                    ))}
+                                                </select>
                                             </div>
                                         </div>
                                     </>
@@ -972,17 +981,17 @@ function LoginPage() {
                                             <input
                                                 id="password"
                                                 name="password"
-                                                type={isGoogleWorkerRegistration ? 'text' : (showPassword ? 'text' : 'password')}
-                                                className={`form-input-custom ${isGoogleWorkerRegistration ? 'google-verified-input' : ''}`}
-                                                placeholder={isGoogleWorkerRegistration ? text.googlePassword : '••••••••'}
-                                                value={isGoogleWorkerRegistration ? text.googlePassword : formValues.password}
+                                                type={isGoogleRegistration ? 'text' : (showPassword ? 'text' : 'password')}
+                                                className={`form-input-custom ${isGoogleRegistration ? 'google-verified-input' : ''}`}
+                                                placeholder={isGoogleRegistration ? text.googlePassword : '••••••••'}
+                                                value={isGoogleRegistration ? text.googlePassword : formValues.password}
                                                 onChange={handleInputChange}
                                                 autoComplete={isLogin ? 'current-password' : 'new-password'}
-                                                required={!isGoogleWorkerRegistration}
+                                                required={!isGoogleRegistration}
                                                 minLength="6"
-                                                disabled={isBusy || isGoogleWorkerRegistration}
+                                                disabled={isBusy || isGoogleRegistration}
                                             />
-                                            {!isGoogleWorkerRegistration && (
+                                            {!isGoogleRegistration && (
                                                 <button
                                                     type="button"
                                                     className="toggle-password"
@@ -1007,7 +1016,7 @@ function LoginPage() {
                                         : (isLogin ? text.login : text.register)}
                                 </button>
 
-                                {googleClientId && !isGoogleWorkerRegistration && (
+                                {googleClientId && !isGoogleRegistration && (
                                     <div className="google-auth-block">
                                         <div className="google-divider">
                                             <span>أو تابع باستخدام Google</span>

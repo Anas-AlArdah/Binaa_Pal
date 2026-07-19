@@ -2,8 +2,27 @@ const { Op } = require('sequelize');
 const { Skill, Worker_Skill } = require('../models');
 const {
     buildCraftPayload,
+    getCraftSlugBase,
     getCraftValidationError,
 } = require('../utils/craftMetadata');
+
+async function createUniqueSkillSlug(payload, excludeId = null) {
+    const base = getCraftSlugBase(payload);
+    let slug = base;
+    let suffix = 2;
+
+    while (await Skill.findOne({
+        where: {
+            slug,
+            ...(excludeId ? { id: { [Op.ne]: excludeId } } : {}),
+        },
+    })) {
+        slug = `${base}-${suffix}`;
+        suffix += 1;
+    }
+
+    return slug;
+}
 
 async function createSkill(req, res) {
     try {
@@ -14,17 +33,16 @@ async function createSkill(req, res) {
             return res.status(400).json({ message: validationError });
         }
 
+        payload.slug = await createUniqueSkillSlug(payload);
+
         const existingSkill = await Skill.findOne({
             where: {
-                [Op.or]: [
-                    { skill_name: { [Op.iLike]: payload.skill_name } },
-                    { slug: payload.slug },
-                ],
+                skill_name: { [Op.iLike]: payload.skill_name },
             },
         });
 
         if (existingSkill) {
-            return res.status(409).json({ message: 'اسم الصنعة أو معرّف رابطها مستخدم مسبقاً.' });
+            return res.status(409).json({ message: 'اسم الصنعة مستخدم مسبقاً.' });
         }
 
         const skill = await Skill.create(payload);
@@ -111,18 +129,17 @@ async function updateSkill(req, res) {
             return res.status(400).json({ message: validationError });
         }
 
+        payload.slug = skill.slug || await createUniqueSkillSlug(payload, skill.id);
+
         const existingSkill = await Skill.findOne({
             where: {
                 id: { [Op.ne]: skill.id },
-                [Op.or]: [
-                    { skill_name: { [Op.iLike]: payload.skill_name } },
-                    { slug: payload.slug },
-                ],
+                skill_name: { [Op.iLike]: payload.skill_name },
             },
         });
 
         if (existingSkill) {
-            return res.status(409).json({ message: 'اسم الصنعة أو معرّف رابطها مستخدم مسبقاً.' });
+            return res.status(409).json({ message: 'اسم الصنعة مستخدم مسبقاً.' });
         }
 
         await skill.update(payload);

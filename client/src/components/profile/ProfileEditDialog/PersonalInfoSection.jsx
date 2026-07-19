@@ -5,12 +5,14 @@ import {
     Box,
     Button,
     Chip,
+    MenuItem,
     Stack,
     TextField,
     Typography,
 } from '@mui/material';
 import AddPhotoAlternateRoundedIcon from '@mui/icons-material/AddPhotoAlternateRounded';
 import { FiTag, FiUser } from 'react-icons/fi';
+import { PALESTINE_CITIES } from '../../../data/palestineCities';
 import { prepareImageFile } from '../../../utils/workerProfile';
 
 const twoColumnGrid = {
@@ -172,10 +174,27 @@ const PersonalInfoSection = ({
                 />
                 <TextField
                     label="الموقع"
+                    select
                     value={form.location}
                     onChange={(event) => updateField('location', event.target.value)}
+                    SelectProps={{
+                        MenuProps: {
+                            PaperProps: {
+                                className: 'profile-edit-city-menu',
+                            },
+                        },
+                    }}
                     fullWidth
-                />
+                >
+                    <MenuItem value="" disabled>
+                        اختر المدينة
+                    </MenuItem>
+                    {PALESTINE_CITIES.map((city) => (
+                        <MenuItem key={city} value={city}>
+                            {city}
+                        </MenuItem>
+                    ))}
+                </TextField>
                 <TextField
                     label="الصنعة الأساسية"
                     value={form.major}

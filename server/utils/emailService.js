@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+require('../config/env');
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
@@ -13,11 +14,28 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+function isPlaceholder(value) {
+  const text = String(value || '').trim().toLowerCase();
+  return !text
+    || text.includes('your_')
+    || text.includes('your-')
+    || text.includes('replace_')
+    || text.includes('same_')
+    || text.includes('app_password')
+    || text.includes('16_character');
+}
+
+function isEmailConfigured() {
+  return !isPlaceholder(process.env.EMAIL_HOST)
+    && !isPlaceholder(process.env.EMAIL_USER)
+    && !isPlaceholder(process.env.EMAIL_PASS)
+    && !isPlaceholder(process.env.EMAIL_FROM);
+}
+
 async function sendEmail({ to, subject, html }) {
-  // Authentication remains optional so email outages never block core workflows.
-  if (!process.env.EMAIL_USER || process.env.EMAIL_USER === 'your-email@gmail.com') {
+  if (!isEmailConfigured()) {
     console.log('Email not sent: SMTP is not configured in .env');
-    return { success: false, message: 'SMTP not configured' };
+    return { success: false, code: 'SMTP_NOT_CONFIGURED', message: 'SMTP not configured' };
   }
 
   try {
@@ -130,6 +148,7 @@ async function sendLoginNotificationEmail({ to, firstname, authMethod }) {
 }
 
 module.exports = {
+  isEmailConfigured,
   sendEmail,
   sendEmailVerificationCode,
   sendLoginNotificationEmail,

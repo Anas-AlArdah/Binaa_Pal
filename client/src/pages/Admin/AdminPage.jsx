@@ -26,11 +26,34 @@ import {
   FiX,
 } from 'react-icons/fi';
 import {
+  FaBroom,
   FaBolt,
+  FaBrush,
+  FaCouch,
+  FaDoorOpen,
+  FaDraftingCompass,
+  FaFan,
+  FaFireExtinguisher,
   FaHammer,
+  FaHardHat,
+  FaHome,
+  FaKey,
   FaLayerGroup,
   FaPaintRoller,
+  FaPlug,
+  FaRoad,
+  FaRulerCombined,
+  FaScrewdriver,
+  FaShower,
+  FaSnowflake,
+  FaSolarPanel,
   FaThLarge,
+  FaTint,
+  FaToilet,
+  FaTools,
+  FaTree,
+  FaTruck,
+  FaWarehouse,
   FaWindowMaximize,
   FaWrench,
 } from 'react-icons/fa';
@@ -66,8 +89,6 @@ const text = {
   deletingCraft: 'جاري الحذف...',
   craftNameLabel: 'اسم الصنعة',
   craftNamePlaceholder: 'مثال: نجارة',
-  craftSlugLabel: 'معرّف رابط الصنعة',
-  craftSlugPlaceholder: 'مثال: appliance-repair',
   craftDescriptionLabel: 'وصف الصنعة',
   craftDescriptionPlaceholder: 'اكتب وصفاً واضحاً للخدمات التي تشملها الصنعة',
   craftIconLabel: 'أيقونة الصنعة',
@@ -127,6 +148,29 @@ const CRAFT_ICON_OPTIONS = [
   { value: 'carpentry', label: 'نجارة', Icon: FaHammer },
   { value: 'aluminum', label: 'ألمنيوم وحديد', Icon: FaWindowMaximize },
   { value: 'masonry', label: 'بناء وحجر', Icon: GiBrickWall },
+  { value: 'construction', label: 'مقاولات وبناء', Icon: FaHardHat },
+  { value: 'appliances', label: 'صيانة أجهزة', Icon: FaPlug },
+  { value: 'blacksmithing', label: 'حدادة', Icon: FaTools },
+  { value: 'interior-design', label: 'ديكور داخلي', Icon: FaCouch },
+  { value: 'doors', label: 'أبواب', Icon: FaDoorOpen },
+  { value: 'locks', label: 'أقفال ومفاتيح', Icon: FaKey },
+  { value: 'cleaning', label: 'تنظيف', Icon: FaBroom },
+  { value: 'roofing', label: 'أسطح وعزل', Icon: FaHome },
+  { value: 'gardening', label: 'حدائق', Icon: FaTree },
+  { value: 'hvac', label: 'تكييف وتهوية', Icon: FaFan },
+  { value: 'refrigeration', label: 'تبريد', Icon: FaSnowflake },
+  { value: 'solar', label: 'طاقة شمسية', Icon: FaSolarPanel },
+  { value: 'fire-safety', label: 'سلامة وإطفاء', Icon: FaFireExtinguisher },
+  { value: 'roads', label: 'طرق وأرصفة', Icon: FaRoad },
+  { value: 'waterproofing', label: 'عزل ومياه', Icon: FaTint },
+  { value: 'bathrooms', label: 'حمامات', Icon: FaShower },
+  { value: 'sanitary', label: 'أدوات صحية', Icon: FaToilet },
+  { value: 'surveying', label: 'مساحة وقياس', Icon: FaRulerCombined },
+  { value: 'engineering', label: 'رسم هندسي', Icon: FaDraftingCompass },
+  { value: 'warehousing', label: 'مستودعات', Icon: FaWarehouse },
+  { value: 'transport', label: 'نقل وتركيب', Icon: FaTruck },
+  { value: 'repairs', label: 'إصلاحات عامة', Icon: FaScrewdriver },
+  { value: 'finishing', label: 'تشطيبات', Icon: FaBrush },
 ];
 
 const CRAFT_ICON_BY_KEY = Object.fromEntries(
@@ -152,12 +196,8 @@ function cleanCraftDraft(draft = {}) {
 function getCraftDraftError(draft) {
   const cleanDraft = cleanCraftDraft(draft);
 
-  if (Object.values(cleanDraft).some((value) => !value)) {
+  if (!cleanDraft.skill_name || !cleanDraft.description || !cleanDraft.icon_key) {
     return text.craftRequired;
-  }
-
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(cleanDraft.slug)) {
-    return 'معرّف الرابط يقبل أحرفاً إنجليزية صغيرة وأرقاماً وشرطات فقط.';
   }
 
   if (cleanDraft.description.length < 10) {
@@ -192,22 +232,6 @@ function CraftFields({ idPrefix, value, onChange, disabled = false, autoFocus = 
           maxLength={120}
           disabled={disabled}
           autoFocus={autoFocus}
-          required
-        />
-      </label>
-
-      <label htmlFor={`${idPrefix}-slug`}>
-        <span>{text.craftSlugLabel}</span>
-        <input
-          id={`${idPrefix}-slug`}
-          type="text"
-          dir="ltr"
-          value={value.slug}
-          onChange={(event) => updateField('slug', event.target.value)}
-          placeholder={text.craftSlugPlaceholder}
-          maxLength={120}
-          pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-          disabled={disabled}
           required
         />
       </label>
@@ -1348,7 +1372,6 @@ function AdminPage() {
                                 </span>
                                 <div>
                                   <strong>{craft.name}</strong>
-                                  <code dir="ltr">/{craft.slug}</code>
                                 </div>
                               </div>
                               <p>{craft.description}</p>

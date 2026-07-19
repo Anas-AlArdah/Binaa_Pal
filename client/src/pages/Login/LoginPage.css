@@ -403,6 +403,15 @@
 select.form-input-custom {
     appearance: none;
     cursor: pointer;
+    padding-left: 46px;
+    background-image:
+        linear-gradient(45deg, transparent 50%, #94a3b8 50%),
+        linear-gradient(135deg, #94a3b8 50%, transparent 50%);
+    background-position:
+        left 22px center,
+        left 16px center;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat: no-repeat;
 }
 
 .toggle-password {

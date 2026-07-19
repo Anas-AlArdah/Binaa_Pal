@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config({ quiet: true });
+require('./config/env');
 const db = require('./models');
 
 // ================= Routes =================

@@ -1,3 +1,5 @@
+import { PALESTINE_CITIES } from '../../../data/palestineCities';
+
 const EMPTY_PORTFOLIO_ITEM = {
     title: '',
     image: '',
@@ -24,6 +26,13 @@ const getAvailabilityCraftKey = (skillId) => {
     return Number.isInteger(numericSkillId) && numericSkillId > 0
         ? `skill-${numericSkillId}`
         : PRIMARY_AVAILABILITY_KEY;
+};
+
+const PALESTINE_CITY_SET = new Set(PALESTINE_CITIES);
+
+const normalizeProfileCity = (value) => {
+    const city = String(value || '').trim();
+    return PALESTINE_CITY_SET.has(city) ? city : '';
 };
 
 export const getSkillIdFromCraftKey = (craftKey) => {
@@ -134,7 +143,7 @@ export const buildProfileFormPatch = (profile) => ({
     lastname: profile?.user?.lastname || '',
     email: profile?.user?.email || '',
     phone: profile?.user?.phone || '',
-    location: profile?.user?.location || '',
+    location: normalizeProfileCity(profile?.user?.location),
     bio: profile?.bio || '',
     major: profile?.major || '',
     min_price: profile?.min_price || '',

@@ -1,4 +1,4 @@
-require('dotenv').config({ quiet: true });
+require('./config/env');
 
 const bcrypt = require('bcryptjs');
 const { Role, Skill, User, WorkerProfile, Worker_Skill, sequelize } = require('./models');

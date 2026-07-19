@@ -1,6 +1,6 @@
 'use strict';
 
-require('dotenv').config({ quiet: true });
+require('./env');
 
 const connectionUrl = process.env.SUPABASE_DATABASE_URL;
 

@@ -4,10 +4,13 @@ const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const { User, Role, WorkerProfile, Skill, Worker_Skill, sequelize } = require('../models');
 const {
+  isEmailConfigured,
   sendEmailVerificationCode,
   sendLoginNotificationEmail,
   sendWelcomeEmail,
 } = require('../utils/emailService');
+const { validateRegistrationEmail } = require('../utils/emailValidation');
+const { isPalestineCity } = require('../utils/palestineCities');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'binaa_pal_dev_secret';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -493,6 +496,26 @@ async function register(req, res) {
       return res.status(400).json({ message: 'البريد الإلكتروني غير صالح.' });
     }
 
+    const emailValidation = await validateRegistrationEmail(email);
+
+    if (!emailValidation.valid) {
+      if (emailValidation.code === 'DISPOSABLE_EMAIL') {
+        return res.status(400).json({
+          code: emailValidation.code,
+          message: 'لا يمكن إنشاء حساب باستخدام بريد إلكتروني مؤقت أو وهمي.',
+        });
+      }
+
+      return res.status(400).json({
+        code: emailValidation.code,
+        message: 'نطاق البريد الإلكتروني غير موجود أو لا يستقبل الرسائل.',
+      });
+    }
+
+    if (!isPalestineCity(location)) {
+      return res.status(400).json({ message: 'اختر مدينة من القائمة.' });
+    }
+
     validateLocalPhone(phone);
 
     if (password.length < 6) {
@@ -521,6 +544,14 @@ async function register(req, res) {
 
     const { selectedSkills, primarySkill } = await getWorkerSkillsOrThrow(roleType, requestedSkillIds, primarySkillId);
     const role = await getOrCreateRole(roleType);
+
+    if (!isEmailConfigured()) {
+      return res.status(503).json({
+        code: 'EMAIL_SERVICE_NOT_CONFIGURED',
+        message: 'خدمة إرسال رمز التحقق غير جاهزة حالياً. تواصل مع إدارة المنصة.',
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     const verification = createEmailVerificationState(email);
     transaction = await sequelize.transaction();
@@ -671,6 +702,13 @@ async function resendEmailVerification(req, res) {
       return res.status(400).json({ message: 'البريد الإلكتروني غير صالح.' });
     }
 
+    if (!isEmailConfigured()) {
+      return res.status(503).json({
+        code: 'EMAIL_SERVICE_NOT_CONFIGURED',
+        message: 'خدمة إرسال رمز التحقق غير جاهزة حالياً. تواصل مع إدارة المنصة.',
+      });
+    }
+
     const user = await findUserByEmail(email);
 
     if (!user || user.email_verified) {
@@ -796,9 +834,9 @@ async function googleAuth(req, res) {
     }
 
     const roleType = normalizeUserType(req.body.userType);
-    if (roleType === 'Worker' && !completeRegistration) {
+    if (!completeRegistration) {
       return res.status(200).json({
-        message: 'Google account verified. Complete the worker registration form.',
+        message: 'Google account verified. Complete the registration form.',
         onboardingRequired: true,
         googleProfile: {
           firstname: googleProfile.firstname,
@@ -808,27 +846,25 @@ async function googleAuth(req, res) {
       });
     }
 
-    const firstname = roleType === 'Worker'
-      ? (cleanString(req.body.firstname) || googleProfile.firstname)
-      : googleProfile.firstname;
-    const lastname = roleType === 'Worker'
-      ? (cleanString(req.body.lastname) || googleProfile.lastname)
-      : googleProfile.lastname;
-    const phone = roleType === 'Worker' ? normalizePhone(req.body.phone) : null;
-    const location = roleType === 'Worker' ? cleanString(req.body.location) : null;
+    const firstname = cleanString(req.body.firstname) || googleProfile.firstname;
+    const lastname = cleanString(req.body.lastname) || googleProfile.lastname;
+    const phone = normalizePhone(req.body.phone);
+    const location = cleanString(req.body.location);
 
-    if (roleType === 'Worker' && (!firstname || !lastname || !phone || !location)) {
-      throw createRequestError('الاسم الأول، الاسم الثاني، رقم الجوال، والموقع مطلوبة لإكمال حساب العامل.');
+    if (!firstname || !lastname || !phone || !location) {
+      throw createRequestError('الاسم الأول، الاسم الثاني، رقم الجوال، والموقع مطلوبة لإكمال الحساب.');
     }
 
-    if (roleType === 'Worker') {
-      validateLocalPhone(phone);
+    if (!isPalestineCity(location)) {
+      throw createRequestError('اختر مدينة من القائمة.');
+    }
 
-      const existingPhone = await findUserByPhone(phone);
+    validateLocalPhone(phone);
 
-      if (existingPhone) {
-        throw createStatusError('رقم الجوال مسجل بالفعل.', 409);
-      }
+    const existingPhone = await findUserByPhone(phone);
+
+    if (existingPhone) {
+      throw createStatusError('رقم الجوال مسجل بالفعل.', 409);
     }
 
     const { primarySkillId, requestedSkillIds, skillExperienceById } = parseWorkerSkills(req.body, roleType);

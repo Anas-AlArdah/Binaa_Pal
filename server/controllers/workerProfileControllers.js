@@ -4,6 +4,7 @@ const {
   normalizePortfolioItems,
   serializePortfolioItems,
 } = require('../utils/workerProfileData');
+const { isPalestineCity } = require('../utils/palestineCities');
 
 const USER_ATTRIBUTES = ['id', 'firstname', 'lastname', 'email', 'phone', 'location'];
 
@@ -426,7 +427,15 @@ async function persistWorkerProfile(req, res, { create = false } = {}) {
 
     ['firstname', 'lastname', 'email', 'phone', 'location'].forEach((field) => {
       if (userInput[field] !== undefined) {
-        userUpdates[field] = normalizeOptionalString(userInput[field]);
+        const value = normalizeOptionalString(userInput[field]);
+
+        if (field === 'location' && value && !isPalestineCity(value)) {
+          const error = new Error('اختر مدينة من القائمة.');
+          error.statusCode = 400;
+          throw error;
+        }
+
+        userUpdates[field] = value;
       }
     });
 

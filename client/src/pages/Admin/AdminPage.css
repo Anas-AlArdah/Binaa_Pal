@@ -795,6 +795,10 @@
   min-width: 0;
 }
 
+.admin-craft-fields > label:first-child {
+  grid-column: 1 / -1;
+}
+
 .admin-craft-fields label > span,
 .admin-craft-icon-picker legend {
   color: var(--admin-text);
@@ -854,6 +858,12 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 9px;
+  max-height: 235px;
+  padding-inline-end: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.55) rgba(15, 23, 42, 0.2);
 }
 
 .admin-craft-icon-options button {
@@ -870,6 +880,7 @@
   color: var(--admin-muted);
   font-family: inherit;
   font-weight: 900;
+  cursor: pointer;
 }
 
 .admin-craft-icon-options button svg {

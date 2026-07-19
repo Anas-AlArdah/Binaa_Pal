@@ -1,4 +1,5 @@
 'use strict';
+const { CRAFT_ICON_KEYS } = require('../utils/craftMetadata');
 const {
   Model
 } = require('sequelize');
@@ -61,16 +62,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       validate: {
         notEmpty: true,
-        isIn: [[
-          'tiling',
-          'painting',
-          'electrical',
-          'plumbing',
-          'gypsum',
-          'carpentry',
-          'aluminum',
-          'masonry',
-        ]],
+        isIn: [CRAFT_ICON_KEYS],
       },
     }
   }, {

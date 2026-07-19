@@ -9,6 +9,29 @@ const CRAFT_ICON_KEYS = Object.freeze([
   'carpentry',
   'aluminum',
   'masonry',
+  'construction',
+  'appliances',
+  'blacksmithing',
+  'interior-design',
+  'doors',
+  'locks',
+  'cleaning',
+  'roofing',
+  'gardening',
+  'hvac',
+  'refrigeration',
+  'solar',
+  'fire-safety',
+  'roads',
+  'waterproofing',
+  'bathrooms',
+  'sanitary',
+  'surveying',
+  'engineering',
+  'warehousing',
+  'transport',
+  'repairs',
+  'finishing',
 ]);
 
 const CRAFT_ICON_KEY_SET = new Set(CRAFT_ICON_KEYS);
@@ -27,25 +50,36 @@ function buildCraftPayload(body = {}) {
   };
 }
 
+function slugifyCraftName(value) {
+  return cleanString(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+}
+
+function getCraftSlugBase(payload = {}) {
+  return slugifyCraftName(payload.slug)
+    || slugifyCraftName(payload.icon_key)
+    || slugifyCraftName(payload.skill_name)
+    || 'craft';
+}
+
 function getCraftValidationError(payload) {
   if (!payload.skill_name) {
     return 'اسم الصنعة مطلوب.';
   }
 
   if (payload.skill_name.length > 120) {
-    return 'اسم الصنعة يجب ألا يتجاوز 120 حرفاً.';
+    return 'اسم الصنعة يجب ألا يتجاوز 120 حرفا.';
   }
 
-  if (!payload.slug) {
-    return 'معرّف رابط الصنعة مطلوب.';
-  }
-
-  if (payload.slug.length > 120 || !SLUG_PATTERN.test(payload.slug)) {
-    return 'معرّف الرابط يقبل أحرفاً إنجليزية صغيرة وأرقاماً وشرطات فقط.';
+  if (payload.slug && (payload.slug.length > 120 || !SLUG_PATTERN.test(payload.slug))) {
+    return 'معرف الرابط غير صالح.';
   }
 
   if (payload.description.length < 10) {
-    return 'اكتب وصفاً واضحاً للصنعة من 10 أحرف على الأقل.';
+    return 'اكتب وصفا واضحا للصنعة من 10 احرف على الاقل.';
   }
 
   if (payload.description.length > 1000) {
@@ -53,7 +87,7 @@ function getCraftValidationError(payload) {
   }
 
   if (!CRAFT_ICON_KEY_SET.has(payload.icon_key)) {
-    return 'اختر أيقونة الصنعة من الخيارات المتاحة.';
+    return 'اختر ايقونة الصنعة من الخيارات المتاحة.';
   }
 
   return '';
@@ -62,5 +96,6 @@ function getCraftValidationError(payload) {
 module.exports = {
   CRAFT_ICON_KEYS,
   buildCraftPayload,
+  getCraftSlugBase,
   getCraftValidationError,
 };

@@ -10,6 +10,7 @@ const {
 } = require('../models');
 const {
   buildCraftPayload,
+  getCraftSlugBase,
   getCraftValidationError,
 } = require('../utils/craftMetadata');
 
@@ -68,6 +69,24 @@ function formatCraftItem(skill, workersCount = 0) {
     createdAt: skill.createdAt,
     workersCount,
   };
+}
+
+async function createUniqueCraftSlug(payload, excludeId = null) {
+  const base = getCraftSlugBase(payload);
+  let slug = base;
+  let suffix = 2;
+
+  while (await Skill.findOne({
+    where: {
+      slug,
+      ...(excludeId ? { id: { [Op.ne]: excludeId } } : {}),
+    },
+  })) {
+    slug = `${base}-${suffix}`;
+    suffix += 1;
+  }
+
+  return slug;
 }
 
 function formatUserName(user) {
@@ -579,17 +598,16 @@ async function createCraft(req, res) {
       return res.status(400).json({ message: validationError });
     }
 
+    payload.slug = await createUniqueCraftSlug(payload);
+
     const existingSkill = await Skill.findOne({
       where: {
-        [Op.or]: [
-          { skill_name: { [Op.iLike]: payload.skill_name } },
-          { slug: payload.slug },
-        ],
+        skill_name: { [Op.iLike]: payload.skill_name },
       },
     });
 
     if (existingSkill) {
-      return res.status(409).json({ message: 'اسم الصنعة أو معرّف رابطها مستخدم مسبقاً.' });
+      return res.status(409).json({ message: 'اسم الصنعة مستخدم مسبقاً.' });
     }
 
     const skill = await Skill.create(payload);
@@ -599,7 +617,7 @@ async function createCraft(req, res) {
     });
   } catch (error) {
     if (error.name === 'SequelizeUniqueConstraintError') {
-      return res.status(409).json({ message: 'اسم الصنعة أو معرّف رابطها مستخدم مسبقاً.' });
+      return res.status(409).json({ message: 'اسم الصنعة مستخدم مسبقاً.' });
     }
 
     res.status(500).json({
@@ -629,18 +647,17 @@ async function updateCraft(req, res) {
       return res.status(404).json({ message: 'Craft not found.' });
     }
 
+    payload.slug = skill.slug || await createUniqueCraftSlug(payload, craftId);
+
     const existingSkill = await Skill.findOne({
       where: {
         id: { [Op.ne]: craftId },
-        [Op.or]: [
-          { skill_name: { [Op.iLike]: payload.skill_name } },
-          { slug: payload.slug },
-        ],
+        skill_name: { [Op.iLike]: payload.skill_name },
       },
     });
 
     if (existingSkill) {
-      return res.status(409).json({ message: 'اسم الصنعة أو معرّف رابطها مستخدم مسبقاً.' });
+      return res.status(409).json({ message: 'اسم الصنعة مستخدم مسبقاً.' });
     }
 
     await skill.update(payload);
@@ -656,7 +673,7 @@ async function updateCraft(req, res) {
     });
   } catch (error) {
     if (error.name === 'SequelizeUniqueConstraintError') {
-      return res.status(409).json({ message: 'اسم الصنعة أو معرّف رابطها مستخدم مسبقاً.' });
+      return res.status(409).json({ message: 'اسم الصنعة مستخدم مسبقاً.' });
     }
 
     return res.status(500).json({
